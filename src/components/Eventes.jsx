@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { gsap } from "gsap";
+import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 
-// Register the ScrollTrigger plugin
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const Events = () => {
   // Refs for animations
@@ -11,7 +11,6 @@ const Events = () => {
   const headerRef = useRef(null);
   const cardsRef = useRef([]);
 
-  // Enhanced event data with categories, locations and skill levels
   const events = [
     {
       id: 1,
@@ -63,46 +62,37 @@ const Events = () => {
     },
   ];
 
-  // Initialize animations
-  useEffect(() => {
-    const section = sectionRef.current;
-    const header = headerRef.current;
-    const cards = cardsRef.current;
+  useGSAP(
+    () => {
+      // Ensure elements exist before animating
+      if (headerRef.current && cardsRef.current.length) {
+        // Header animation
+        gsap.from(headerRef.current, {
+          y: -50,
+          opacity: 0,
+          duration: 0.8,
+          ease: "power3.out",
+          immediateRender: false, // Prevent initial flicker
+        });
 
-    // Header animation
-    gsap.fromTo(
-      header,
-      { y: -50, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        ease: "power3.out",
+        // Cards animation with ScrollTrigger
+        gsap.from(cardsRef.current, {
+          y: 100,
+          opacity: 0,
+          duration: 1.8,
+          stagger: 0.2,
+          ease: "power4.out",
+          immediateRender: false, // Important for SSR frameworks
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 15%",
+            toggleActions: "play none none none",
+          },
+        });
       }
-    );
-
-    // Cards staggered animation
-    gsap.fromTo(
-      cards,
-      { y: 100, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "back.out(1.7)",
-        scrollTrigger: {
-          trigger: section,
-          start: "top 80%",
-        },
-      }
-    );
-
-    // Cleanup
-    return () => {
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-    };
-  }, []);
+    },
+    { scope: sectionRef, dependencies: [events] }
+  );
 
   // Format date to be more readable
   const formatDate = (dateString) => {

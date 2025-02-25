@@ -1,65 +1,9 @@
-// import React from "react";
-// import TestimonialCard from "./TestimonialCard";
-
-// const TestimonialsSection = () => {
-//   // Sample Data for Testimonials
-//   const testimonials = [
-//     {
-//       imageSrc: "https://via.placeholder.com/150",
-//       altText: "Liza Furgezan",
-//       quote: "Creating web games was easier than I thought.",
-//       name: "Liza Furgezan",
-//     },
-//     {
-//       imageSrc: "https://via.placeholder.com/150",
-//       altText: "Mark Anderson",
-//       quote:
-//         "The chat with the tutors is good because I can get help as soon as I get stuck.",
-//       name: "Mark Anderson",
-//     },
-//     {
-//       imageSrc: "https://via.placeholder.com/150",
-//       altText: "Emily Cleara",
-//       quote: "It's like solving a puzzle. Coding is fun.",
-//       name: "Emily Cleara",
-//     },
-//     {
-//       imageSrc: "https://via.placeholder.com/150",
-//       altText: "John Doe",
-//       quote: "Learning to code changed my career path.",
-//       name: "John Doe",
-//     },
-//     {
-//       imageSrc: "https://via.placeholder.com/150",
-//       altText: "Jane Smith",
-//       quote: "I love the interactive lessons and challenges.",
-//       name: "Jane Smith",
-//     },
-//   ];
-
-//   return (
-//     <div className="container mx-auto">
-//       {/* Responsive Layout */}
-//       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-//         {testimonials.map((testimonial, index) => (
-//           <TestimonialCard
-//             key={index}
-//             imageSrc={testimonial.imageSrc}
-//             altText={testimonial.altText}
-//             quote={testimonial.quote}
-//             name={testimonial.name}
-//           />
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default TestimonialsSection;
-
 import React, { useRef, useEffect } from "react";
 import TestimonialCard from "./TestimonialCard.jsx";
 import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 const TestimonialsSection = () => {
   const sectionRef = useRef(null);
