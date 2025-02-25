@@ -1,77 +1,10 @@
-// import React from "react";
-
-// const Footer = () => {
-//   return (
-//     <footer className="w-full bg-[#022332] text-white py-12">
-//       {/* Container */}
-//       <div className="container mx-auto px-4">
-//         {/* Main Content */}
-//         <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16">
-//           {/* Logo Section */}
-//           <div className="text-center md:text-left flex-grow">
-//             <span className="text-2xl font-bold text-blue-400">
-//               @ Coding Club
-//             </span>
-//             <p className="mt-2 text-sm text-gray-400">
-//               Empowering coders to build the future.
-//             </p>
-//           </div>
-
-//           {/* Support Section */}
-//           <div className="flex flex-col items-center md:items-start gap-2 flex-grow">
-//             <h4 className="text-lg font-semibold text-blue-400">SUPPORT</h4>
-//             <a href="#help" className="hover:text-blue-400 transition-colors">
-//               Help Center
-//             </a>
-//             <a href="#faq" className="hover:text-blue-400 transition-colors">
-//               FAQ
-//             </a>
-//             <a
-//               href="#contact"
-//               className="hover:text-blue-400 transition-colors"
-//             >
-//               Contact
-//             </a>
-//           </div>
-
-//           {/* About Us Section */}
-//           <div className="flex flex-col items-center md:items-start gap-2 flex-grow">
-//             <h4 className="text-lg font-semibold text-blue-400">ABOUT US</h4>
-//             <a href="#about" className="hover:text-blue-400 transition-colors">
-//               About Us
-//             </a>
-//             <a href="#terms" className="hover:text-blue-400 transition-colors">
-//               Terms of Use
-//             </a>
-//             <a
-//               href="#privacy"
-//               className="hover:text-blue-400 transition-colors"
-//             >
-//               Privacy Policy
-//             </a>
-//           </div>
-//         </div>
-
-//         {/* Divider */}
-//         <div className="border-t border-gray-700 my-8"></div>
-
-//         {/* Copyright Section */}
-//         <div className="text-center text-sm text-gray-400">
-//           &copy; {new Date().getFullYear()} Coding Club. All rights reserved.
-//         </div>
-//       </div>
-//     </footer>
-//   );
-// };
-
-// export default Footer;
-
 import React, { useEffect, useRef } from "react";
-import { gsap } from "gsap";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Register ScrollTrigger plugin
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const Footer = () => {
   // Create refs for animated elements
@@ -91,62 +24,112 @@ const Footer = () => {
   ];
 
   // GSAP animations
-  useEffect(() => {
-    // Stagger animation for the footer sections
-    gsap.fromTo(
-      [logoRef.current, navColumnsRef.current, newsletterRef.current],
-      { y: 50, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: footerRef.current,
-          start: "top 90%",
-        },
-      }
-    );
+  // useEffect(() => {
+  //   // Stagger animation for the footer sections
+  //   gsap.fromTo(
+  //     [logoRef.current, navColumnsRef.current, newsletterRef.current],
+  //     { y: 50, opacity: 0 },
+  //     {
+  //       y: 0,
+  //       opacity: 1,
+  //       duration: 0.8,
+  //       stagger: 0.2,
+  //       ease: "power2.out",
+  //       scrollTrigger: {
+  //         trigger: footerRef.current,
+  //         start: "top 90%",
+  //       },
+  //     }
+  //   );
 
-    // Separate animation for social icons with a bounce effect
-    gsap.fromTo(
-      socialIconsRef.current.children,
-      { scale: 0, opacity: 0 },
-      {
-        scale: 1,
-        opacity: 1,
+  //   // Separate animation for social icons with a bounce effect
+  //   gsap.fromTo(
+  //     socialIconsRef.current.children,
+  //     { scale: 0, opacity: 0 },
+  //     {
+  //       scale: 1,
+  //       opacity: 1,
+  //       duration: 0.4,
+  //       stagger: 0.1,
+  //       ease: "back.out(1.7)",
+  //       scrollTrigger: {
+  //         trigger: socialIconsRef.current,
+  //         start: "top 95%",
+  //       },
+  //     }
+  //   );
+
+  //   // Fade in animation for bottom bar
+  //   gsap.fromTo(
+  //     bottomBarRef.current,
+  //     { opacity: 0 },
+  //     {
+  //       opacity: 1,
+  //       duration: 1,
+  //       delay: 0.5,
+  //       ease: "power1.inOut",
+  //       scrollTrigger: {
+  //         trigger: bottomBarRef.current,
+  //         start: "top 100%",
+  //       },
+  //     }
+  //   );
+
+  //   // Cleanup function
+  //   return () => {
+  //     ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+  //   };
+  // }, []);
+
+  useGSAP(
+    () => {
+      // Main content animation
+      gsap.from(
+        [logoRef.current, navColumnsRef.current, newsletterRef.current],
+        {
+          y: 50,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.2,
+          ease: "power2.out",
+          immediateRender: false,
+          scrollTrigger: {
+            trigger: footerRef.current,
+            start: "top 90%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+
+      gsap.from(socialIconsRef.current?.children || [], {
+        scale: 0,
+        opacity: 0,
         duration: 0.4,
         stagger: 0.1,
         ease: "back.out(1.7)",
+        immediateRender: false,
         scrollTrigger: {
           trigger: socialIconsRef.current,
           start: "top 95%",
+          toggleActions: "play none none reverse",
         },
-      }
-    );
+      });
 
-    // Fade in animation for bottom bar
-    gsap.fromTo(
-      bottomBarRef.current,
-      { opacity: 0 },
-      {
-        opacity: 1,
+      gsap.from(bottomBarRef.current, {
+        opacity: 0,
+        y: 20,
         duration: 1,
-        delay: 0.5,
         ease: "power1.inOut",
+        immediateRender: false,
         scrollTrigger: {
           trigger: bottomBarRef.current,
           start: "top 100%",
+          toggleActions: "play none none reverse",
         },
-      }
-    );
-
-    // Cleanup function
-    return () => {
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-    };
-  }, []);
+      });
+    },
+    { scope: footerRef }
+  );
 
   return (
     <footer
