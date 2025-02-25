@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -16,6 +16,7 @@ const Navbar = () => {
   const linksRef = useRef([]);
   const buttonRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const overlayRef = useRef(null);
 
   // Navigation links with icons
   const navLinks = [
@@ -35,6 +36,31 @@ const Navbar = () => {
       icon: <FaQuestionCircle className="w-4 h-4" />,
     },
   ];
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen) {
+        // Check if the click is outside the navbar and mobile menu
+        if (
+          navbarRef.current &&
+          !navbarRef.current.contains(event.target) &&
+          mobileMenuRef.current &&
+          !mobileMenuRef.current.contains(event.target)
+        ) {
+          setIsMenuOpen(false);
+        }
+      }
+    };
+
+    // Add global click listener
+    document.addEventListener("click", handleClickOutside);
+
+    // Clean up the event listener
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   // Main animations
   useGSAP(
@@ -87,6 +113,16 @@ const Navbar = () => {
       const menuItems = mobileMenuRef.current.querySelectorAll("a, button");
 
       if (isMenuOpen) {
+        // Animate overlay in
+        if (overlayRef.current) {
+          gsap.to(overlayRef.current, {
+            opacity: 1,
+            duration: 0.2,
+            display: "block",
+          });
+        }
+
+        // Animate menu in
         gsap.to(mobileMenuRef.current, {
           height: "auto",
           opacity: 1,
@@ -94,6 +130,7 @@ const Navbar = () => {
           ease: "power2.out",
         });
 
+        // Animate menu items in
         gsap.from(menuItems, {
           y: 20,
           opacity: 0,
@@ -102,6 +139,18 @@ const Navbar = () => {
           delay: 0.1,
         });
       } else {
+        // Animate overlay out
+        if (overlayRef.current) {
+          gsap.to(overlayRef.current, {
+            opacity: 0,
+            duration: 0.2,
+            onComplete: () => {
+              gsap.set(overlayRef.current, { display: "none" });
+            },
+          });
+        }
+
+        // Animate menu out
         gsap.to(mobileMenuRef.current, {
           height: 0,
           opacity: 0,
@@ -136,10 +185,19 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const closeMenu = () => setIsMenuOpen(false);
+  const toggleMenu = (e) => {
+    e.stopPropagation(); // Prevent event from bubbling to document
+    setIsMenuOpen(!isMenuOpen);
+  };
 
-  const handleLinkClick = (id) => {
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const handleLinkClick = (id, e) => {
+    if (e) {
+      e.preventDefault();
+    }
     setActiveLink(id);
     closeMenu();
 
@@ -156,7 +214,7 @@ const Navbar = () => {
   return (
     <nav
       ref={navbarRef}
-      className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-2xl py-4 transition-all duration-300 scrolled:bg-white scrolled:shadow-lg scrolled:py-2 opacity-95 "
+      className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md py-4 transition-all duration-300 scrolled:bg-white scrolled:shadow-lg scrolled:py-2 opacity-95 "
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         {/* Logo */}
@@ -166,7 +224,7 @@ const Navbar = () => {
           className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-all duration-300 flex items-center group"
           onClick={(e) => {
             e.preventDefault();
-            handleLinkClick("home");
+            handleLinkClick("home", e);
           }}
         >
           <div className="w-10 h-10 rounded-lg bg-indigo-500 flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform duration-300">
@@ -205,7 +263,7 @@ const Navbar = () => {
               } transition-colors duration-300`}
               onClick={(e) => {
                 e.preventDefault();
-                handleLinkClick(link.id);
+                handleLinkClick(link.id, e);
               }}
             >
               <span
@@ -225,12 +283,6 @@ const Navbar = () => {
               ></span>
             </a>
           ))}
-          {/* <button
-            ref={buttonRef}
-            className="bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-2 rounded-xl font-medium text-sm text-white hover:from-blue-600 hover:to-blue-700 transform hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 shadow-md hover:shadow-lg"
-          >
-            Become a Member
-          </button> */}
           <button
             ref={buttonRef}
             className="bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-[10px] rounded-xl font-medium text-sm text-white hover:from-indigo-600 hover:to-indigo-700 transform hover:-translate-y-0.5 transition-all duration-300"
@@ -269,7 +321,7 @@ const Navbar = () => {
       {/* Mobile Navigation */}
       <div
         ref={mobileMenuRef}
-        className="absolute top-full left-0 w-full bg-white shadow-lg md:hidden overflow-hidden h-0 opacity-0"
+        className="absolute top-full left-0 w-full bg-white shadow-lg md:hidden overflow-hidden h-0 opacity-0 z-50"
       >
         <div className="flex flex-col items-center gap-4 p-6">
           {navLinks.map((link) => (
@@ -283,7 +335,7 @@ const Navbar = () => {
               } transition-colors duration-300`}
               onClick={(e) => {
                 e.preventDefault();
-                handleLinkClick(link.id);
+                handleLinkClick(link.id, e);
               }}
             >
               {React.cloneElement(link.icon, { className: "w-5 h-5" })}
@@ -300,12 +352,12 @@ const Navbar = () => {
       </div>
 
       {/* Mobile menu overlay */}
-      {isMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
-          onClick={closeMenu}
-        />
-      )}
+      <div
+        ref={overlayRef}
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden hidden"
+        style={{ opacity: 0 }}
+        onClick={closeMenu}
+      />
     </nav>
   );
 };
