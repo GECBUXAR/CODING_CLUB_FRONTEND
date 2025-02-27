@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { NavLink, Link } from "react-router";
+import { NavLink, Link } from "react-router-dom";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -294,12 +294,14 @@ const Navbar = () => {
               ></span>
             </a>
           ))}
-          <button
-            ref={buttonRef}
-            className="bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-[10px] rounded-xl font-medium text-sm text-white hover:from-indigo-600 hover:to-indigo-700 transform hover:-translate-y-0.5 transition-all duration-300"
-          >
-            Become a Member
-          </button>
+          <Link to="/login">
+            <button
+              ref={buttonRef}
+              className="bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-[10px] rounded-xl font-medium text-sm text-white hover:from-indigo-600 hover:to-indigo-700 transform hover:-translate-y-0.5 transition-all duration-300"
+            >
+              Become a Member
+            </button>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
@@ -353,12 +355,14 @@ const Navbar = () => {
               <span>{link.label}</span>
             </a>
           ))}
-          <button
-            ref={buttonRef}
-            className="bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-[10px] rounded-xl font-medium text-sm text-white hover:from-indigo-600 hover:to-indigo-700 transform hover:-translate-y-0.5 transition-all duration-300"
-          >
-            Become a Member
-          </button>
+          <Link to="/login">
+            <button
+              ref={buttonRef}
+              className="bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-[10px] rounded-xl font-medium text-sm text-white hover:from-indigo-600 hover:to-indigo-700 transform hover:-translate-y-0.5 transition-all duration-300"
+            >
+              Become a Member
+            </button>
+          </Link>
         </div>
       </div>
 
