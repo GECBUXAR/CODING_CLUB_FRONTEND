@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { NavLink, Link } from "react-router";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -227,8 +228,8 @@ const Navbar = () => {
             handleLinkClick("home", e);
           }}
         >
-          <div className="w-10 h-10 rounded-lg bg-indigo-500 flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform duration-300">
-            <svg
+          <div className="w-10 h-10 rounded-lg  flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform duration-300">
+            {/* <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6 text-white"
               fill="none"
@@ -241,10 +242,20 @@ const Navbar = () => {
                 strokeWidth={2}
                 d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
               />
-            </svg>
+            </svg> */}
+            <img
+              src="./CodingClubLogoSmall.png"
+              alt="Coding Club"
+              className="size-10"
+            />
           </div>
           <span className="relative">
-            Coding Club
+            {/* code crusaders */}
+            <img
+              src="./CodingClubLogo.png"
+              alt="Coding Club"
+              className="w-38"
+            />
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
           </span>
         </a>
