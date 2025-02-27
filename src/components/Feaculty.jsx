@@ -1,22 +1,3 @@
-// import React from "react";
-// import TestimonialsSection from "./TestimonialsSection";
-
-// const Feaculty = () => {
-//   return (
-//     <section className="bg-blue-500 text-white py-16 px-4">
-//       {/* Header */}
-//       <h2 className="text-[clamp(1.5rem, 4vw, 2.5rem)] font-bold text-center mb-8">
-//         Feaculty
-//       </h2>
-
-//       {/* Testimonials Section */}
-//       <TestimonialsSection />
-//     </section>
-//   );
-// };
-
-// export default Feaculty;
-
 import React, { useEffect } from "react";
 import TestimonialsSection from "./TestimonialsSection.jsx";
 import gsap from "gsap";
@@ -25,7 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
-const FacultyPage = () => {
+const Faculty = () => {
   useEffect(() => {
     // Create a parallax effect for the background pattern
     gsap.to(".bg-pattern", {
@@ -83,4 +64,4 @@ const FacultyPage = () => {
   );
 };
 
-export default FacultyPage;
+export default Faculty;
