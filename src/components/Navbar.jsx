@@ -324,7 +324,7 @@ const Navbar = () => {
       {/* Mobile Navigation */}
       <div
         ref={mobileMenuRef}
-        className="absolute top-full left-0 w-full bg-white shadow-lg md:hidden overflow-hidden h-0 opacity-0 z-50"
+        className="absolute top-full left-0 w-full bg-white bg- shadow-lg md:hidden overflow-hidden h-0 opacity-0 z-50"
       >
         <div className="flex flex-col items-center gap-4 p-6">
           {navLinks.map((link) => (

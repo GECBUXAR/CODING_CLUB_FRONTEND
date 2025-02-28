@@ -846,8 +846,8 @@ const Signup = () => {
               {!signupSuccess && (
                 <>
                   <div className="text-center">
-                    <p className="text-gray-600">
-                      Already have an account?{" "}
+                    <p className="relative z-50 text-gray-600">
+                      {"Already have an account?"}
                       <Link
                         to="/login"
                         className="font-semibold text-indigo-600 underline-offset-4 hover:underline"
