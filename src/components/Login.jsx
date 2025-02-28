@@ -1183,12 +1183,12 @@ const Login = () => {
                 </Button>
               </form>
 
-              <div className="text-center">
-                <p className="text-gray-600">
-                  Don't have an account?{" "}
+              <div className=" text-center">
+                <p className="relative z-50 text-gray-600">
+                  {"Don't have an account?"}
                   <Link
                     to="/signup"
-                    className="font-semibold text-fuchsia-600 underline-offset-4 hover:underline"
+                    className=" font-semibold text-fuchsia-600 underline-offset-4 hover:underline"
                   >
                     Sign Up
                   </Link>
