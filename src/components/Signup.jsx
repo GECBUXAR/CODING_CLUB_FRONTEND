@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 // import gsap from "gsap";
 import { gsap } from "gsap-trial";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -24,10 +25,11 @@ import { FloatingParticles } from "./floating-particles";
 import { ThreeDCard } from "./three-d-card";
 import { ProgressBar } from "./progress-bar";
 
-// Register GSAP plugins (note: useGSAP has been removed)
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
 const Signup = () => {
+  const navigate = useNavigate();
+
   // Form state
   const [formStep, setFormStep] = useState(0);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -59,7 +61,62 @@ const Signup = () => {
   const ctaButtonRef = useRef(null);
   const formStepsRef = useRef(null);
 
+  // Input validation
+  const validateEmail = (email) => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
+
+  const validateMobile = (mobile) => {
+    return /^\d{10}$/.test(mobile);
+  };
+
+  // calling backend for signup
+
+  const signupUser = async (userData) => {
+    try {
+      const response = await axios.post(
+        // `${process.env.REACT_APP_API_URL}/api/v1/users/signup`,
+        "http://localhost:3030/api/v1/users/signup",
+        userData
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || error.message || "Signup failed"
+      );
+    }
+  };
+
+  // const signupUser = async (userData) => {
+
+  //   try {
+  //     const response = await axios.post(
+  //       "http://localhost:3030/api/v1/users/signup",
+  //       {
+  //         name,
+  //         email,
+  //         password,
+  //         regNo,
+  //         branch,
+  //         semester,
+  //         mobile,
+  //       }
+  //     );
+
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(errorData.message || "Signup failed");
+  //     }
+
+  //     const data = await response.json();
+  //     return data;
+  //   } catch (error) {
+  //     throw new Error(error.message);
+  //   }
+  // };
+
   // Password strength checker
+
   const checkPasswordStrength = (password) => {
     let strength = 0;
     if (password.length >= 8) strength += 25;
@@ -86,6 +143,23 @@ const Signup = () => {
         shakeForm();
         return;
       }
+
+      if (!regNo) {
+        setFormError("Please enter your registration number");
+        shakeForm();
+        return;
+      }
+      if (!branch) {
+        setFormError("Please enter your branch");
+        shakeForm();
+        return;
+      }
+      if (!semester) {
+        setFormError("Please enter your semester");
+        shakeForm();
+        return;
+      }
+
       animateFormTransition(0, 1);
       return;
     }
@@ -96,11 +170,28 @@ const Signup = () => {
         shakeForm();
         return;
       }
-      if (!/\S+@\S+\.\S+/.test(email)) {
+      if (!validateEmail(email)) {
         setFormError("Please enter a valid email address");
         shakeForm();
         return;
       }
+      // if (!/\S+@\S+\.\S+/.test(email)) {
+      //   setFormError("Please enter a valid email address");
+      //   shakeForm();
+      //   return;
+      // }
+
+      if (!mobile) {
+        setFormError("Please enter your mobile number");
+        shakeForm();
+        return;
+      }
+      if (!validateMobile(mobile)) {
+        setFormError("Please enter a valid 10-digit mobile number");
+        shakeForm();
+        return;
+      }
+
       animateFormTransition(1, 2);
       return;
     }
@@ -139,6 +230,19 @@ const Signup = () => {
         ease: "power2.inOut",
       });
 
+      // Prepare user data
+      const userData = {
+        name,
+        email,
+        password,
+        regNo,
+        branch,
+        semester,
+        mobile,
+      };
+
+      const response = await signupUser(userData);
+
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Success animation
@@ -166,11 +270,129 @@ const Signup = () => {
 
       console.log("Signup successful", { name, email, password, agreeTerms });
     } catch (error) {
-      setFormError("An error occurred. Please try again.");
+      // setFormError("An error occurred. Please try again.");
+
+      setFormError(error.message || "An error occurred. Please try again.");
+
+      // // Reset button animation
+      // gsap.to(ctaButtonRef.current, {
+      //   width: "100%",
+      //   borderRadius: 12,
+      //   duration: 0.4,
+      //   ease: "power2.inOut",
+      // });
+
+      shakeForm();
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Handle form submission
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   // Step validations
+  //   if (formStep === 0) {
+  //     if (!name || !regNo || !branch || !semester) {
+  //       setFormError("Please fill all required fields");
+  //       shakeForm();
+  //       return;
+  //     }
+  //     animateFormTransition(0, 1);
+  //     return;
+  //   }
+
+  //   if (formStep === 1) {
+  //     if (!validateEmail(email)) {
+  //       setFormError("Please enter a valid email address");
+  //       shakeForm();
+  //       return;
+  //     }
+  //     if (!validateMobile(mobile)) {
+  //       setFormError("Please enter a valid 10-digit mobile number");
+  //       shakeForm();
+  //       return;
+  //     }
+  //     animateFormTransition(1, 2);
+  //     return;
+  //   }
+
+  //   if (formStep === 2) {
+  //     if (!password || password.length < 8 || passwordStrength < 50) {
+  //       setFormError(
+  //         "Password must be at least 8 characters and strong enough"
+  //       );
+  //       shakeForm();
+  //       return;
+  //     }
+  //     animateFormTransition(2, 3);
+  //     return;
+  //   }
+
+  //   if (!agreeTerms) {
+  //     setFormError("You must agree to the terms and conditions");
+  //     shakeForm();
+  //     return;
+  //   }
+
+  //   setFormError("");
+  //   setIsLoading(true);
+
+  //   try {
+  //     // Prepare user data
+  //     const userData = {
+  //       name,
+  //       email,
+  //       password,
+  //       regNo,
+  //       branch,
+  //       semester: Number(semester),
+  //       mobile: Number(mobile),
+  //     };
+
+  //     // Start loading animation
+  //     gsap.to(ctaButtonRef.current, {
+  //       width: 60,
+  //       borderRadius: 30,
+  //       duration: 0.4,
+  //       ease: "power2.inOut",
+  //     });
+
+  //     // API call
+  //     await signupUser(userData);
+
+  //     // Simulate loading for better UX
+  //     await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  //     // Success state
+  //     setSignupSuccess(true);
+  //     gsap.to(formRef.current, {
+  //       y: 20,
+  //       opacity: 0,
+  //       duration: 0.5,
+  //       onComplete: () => {
+  //         gsap.fromTo(
+  //           ".success-message",
+  //           { y: -20, opacity: 0 },
+  //           { y: 0, opacity: 1, duration: 0.5 }
+  //         );
+  //       },
+  //     });
+  //   } catch (error) {
+  //     setFormError(error.message);
+  //     shakeForm();
+  //   } finally {
+  //     setIsLoading(false);
+  //     // Reset button animation
+  //     gsap.to(ctaButtonRef.current, {
+  //       width: "100%",
+  //       borderRadius: 12,
+  //       duration: 0.4,
+  //       ease: "power2.inOut",
+  //     });
+  //   }
+  // };
 
   // Animate between form steps
   const animateFormTransition = (fromStep, toStep) => {
