@@ -221,16 +221,4 @@ const Hero = () => {
   );
 };
 
-// Add these animations to your global CSS file
-// @keyframes float {
-//   0%, 100% { transform: translateY(0px); }
-//   50% { transform: translateY(-20px); }
-// }
-// @keyframes float-slow {
-//   0%, 100% { transform: translateY(0px); }
-//   50% { transform: translateY(-10px); }
-// }
-// .animate-float { animation: float 6s ease-in-out infinite; }
-// .animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
-
 export default Hero;

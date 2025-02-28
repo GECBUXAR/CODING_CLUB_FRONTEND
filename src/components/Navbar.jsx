@@ -22,7 +22,7 @@ const Navbar = () => {
   // Navigation links with icons
   const navLinks = [
     {
-      id: "events",
+      id: "/events",
       label: "EVENTS",
       icon: <FaCalendarAlt className="w-4 h-4" />,
     },
@@ -215,50 +215,38 @@ const Navbar = () => {
   return (
     <nav
       ref={navbarRef}
-      className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md py-4 transition-all duration-300 scrolled:bg-white scrolled:shadow-lg scrolled:py-2 opacity-95 "
+      className="fixed top-0 w-full z-50 bg-white/90  py-4 transition-all duration-300 scrolled:bg-white scrolled:shadow-lg scrolled:py-2 opacity-95 "
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         {/* Logo */}
-        <a
-          ref={logoRef}
-          href="#home"
-          className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-all duration-300 flex items-center group"
-          onClick={(e) => {
-            e.preventDefault();
-            handleLinkClick("home", e);
-          }}
-        >
-          <div className="w-10 h-10 rounded-lg  flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform duration-300">
-            {/* <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+        <Link to={"/"}>
+          <a
+            ref={logoRef}
+            href="#home"
+            className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-all duration-300 flex items-center group"
+            // onClick={(e) => {
+            //   e.preventDefault();
+            //   handleLinkClick("home", e);
+            // }}
+          >
+            <div className="w-10 h-10 rounded-lg  flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform duration-300">
+              <img
+                src="./CodingClubLogoSmall.png"
+                alt="Coding Club"
+                className="size-10"
               />
-            </svg> */}
-            <img
-              src="./CodingClubLogoSmall.png"
-              alt="Coding Club"
-              className="size-10"
-            />
-          </div>
-          <span className="relative">
-            {/* code crusaders */}
-            <img
-              src="./CodingClubLogo.png"
-              alt="Coding Club"
-              className="w-38"
-            />
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
-          </span>
-        </a>
+            </div>
+            <span className="relative">
+              {/* code crusaders */}
+              <img
+                src="./CodingClubLogo.png"
+                alt="Coding Club"
+                className="w-40"
+              />
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
+            </span>
+          </a>
+        </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
@@ -277,21 +265,23 @@ const Navbar = () => {
                 handleLinkClick(link.id, e);
               }}
             >
-              <span
-                className={`${
-                  activeLink === link.id
-                    ? "text-blue-600"
-                    : "text-gray-500 group-hover:text-blue-600"
-                } transition-colors duration-300`}
-              >
-                {link.icon}
-              </span>
-              <span>{link.label}</span>
-              <span
-                className={`absolute -bottom-1 left-0 h-0.5 bg-blue-600 transition-all duration-300 ${
-                  activeLink === link.id ? "w-full" : "w-0 group-hover:w-full"
-                }`}
-              ></span>
+              <Link to={link.id} className="flex items-center gap-2">
+                <span
+                  className={`${
+                    activeLink === link.id
+                      ? "text-blue-600"
+                      : "text-gray-500 group-hover:text-blue-600"
+                  } transition-colors duration-300`}
+                >
+                  {link.icon}
+                </span>
+                <span>{link.label}</span>
+                <span
+                  className={`absolute -bottom-1 left-0 h-0.5 bg-blue-600 transition-all duration-300 ${
+                    activeLink === link.id ? "w-full" : "w-0 group-hover:w-full"
+                  }`}
+                ></span>
+              </Link>
             </a>
           ))}
           <Link to="/login">
@@ -351,8 +341,10 @@ const Navbar = () => {
                 handleLinkClick(link.id, e);
               }}
             >
-              {React.cloneElement(link.icon, { className: "w-5 h-5" })}
-              <span>{link.label}</span>
+              <Link to={link.id} className="flex items-center gap-2">
+                {React.cloneElement(link.icon, { className: "w-5 h-5" })}
+                <span>{link.label}</span>
+              </Link>
             </a>
           ))}
           <Link to="/login">
