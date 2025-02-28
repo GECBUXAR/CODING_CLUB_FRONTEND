@@ -5,7 +5,9 @@ import Login from "../components/Login.jsx";
 const LoginPage = () => {
   return (
     <>
-      <Login />
+      <div className="h-dvh flex justify-center items-center">
+        <Login />
+      </div>
     </>
   );
 };

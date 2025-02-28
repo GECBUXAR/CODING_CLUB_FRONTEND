@@ -157,7 +157,7 @@ const ResultPanel = ({ event, onClose }) => {
               <th className="pb-3 text-gray-400 font-medium text-sm">Name</th>
               <th className="pb-3 text-gray-400 font-medium text-sm">Status</th>
               <th className="pb-3 text-gray-400 font-medium text-sm text-right">
-                Score
+                marks
               </th>
             </tr>
           </thead>
@@ -182,7 +182,7 @@ const ResultPanel = ({ event, onClose }) => {
                     </span>
                   </td>
                   <td className="py-4 text-right font-mono">
-                    {result.score !== null ? result.score : "—"}
+                    {result.marks !== null ? result.marks : "—"}
                   </td>
                 </tr>
               ))

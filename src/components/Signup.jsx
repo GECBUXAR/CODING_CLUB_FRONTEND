@@ -32,7 +32,11 @@ const Signup = () => {
   const [formStep, setFormStep] = useState(0);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [name, setName] = useState("");
+  const [regNo, setRegNo] = useState("");
+  const [branch, setBranch] = useState("");
+  const [semester, setSemester] = useState("");
   const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -175,7 +179,7 @@ const Signup = () => {
     const tl = gsap.timeline();
     tl.to(formSteps[fromStep], {
       x: fromStep < toStep ? -50 : 50,
-      opacity: 0,
+      opacity: 100,
       duration: 0.3,
       ease: "power2.in",
       onComplete: () => {
@@ -184,13 +188,13 @@ const Signup = () => {
         gsap.set(formSteps[toStep], {
           display: "block",
           x: toStep < fromStep ? 50 : -50,
-          opacity: 0,
+          opacity: 100,
         });
       },
     });
     tl.to(formSteps[toStep], {
       x: 0,
-      opacity: 1,
+      opacity: 100,
       duration: 0.3,
       ease: "power2.out",
     });
@@ -215,20 +219,20 @@ const Signup = () => {
     const timeline = gsap.timeline({ defaults: { ease: "power3.out" } });
     timeline.from(containerRef.current, {
       y: 50,
-      opacity: 0,
+      opacity: 100,
       duration: 1,
       ease: "power4.out",
     });
     timeline.from(
       leftSectionRef.current,
-      { x: -100, opacity: 0, duration: 1, ease: "power3.inOut" },
+      { x: -100, opacity: 100, duration: 1, ease: "power3.inOut" },
       0.2
     );
     timeline.from(
       logoRef.current,
       {
         y: -30,
-        opacity: 0,
+        opacity: 100,
         duration: 0.8,
         rotate: -10,
       },
@@ -240,7 +244,7 @@ const Signup = () => {
     timeline.from(
       headingSplit.chars,
       {
-        opacity: 0,
+        opacity: 100,
         y: 20,
         rotationX: -90,
         stagger: 0.02,
@@ -250,19 +254,19 @@ const Signup = () => {
     );
     timeline.from(
       taglineRef.current,
-      { y: 30, opacity: 0, duration: 0.8 },
+      { y: 30, opacity: 100, duration: 0.8 },
       0.8
     );
     timeline.from(
       descriptionRef.current,
-      { y: 20, opacity: 0, duration: 0.8 },
+      { y: 20, opacity: 100, duration: 0.8 },
       1
     );
     timeline.from(
       spaceshipRef.current,
       {
         scale: 0.6,
-        opacity: 0,
+        opacity: 100,
         rotation: -30,
         duration: 1.5,
         ease: "elastic.out(1, 0.4)",
@@ -282,7 +286,7 @@ const Signup = () => {
     if (starsRef.current) {
       const stars = starsRef.current.children;
       gsap.to(stars, {
-        opacity: gsap.utils.wrap([1, 0.5]),
+        opacity: gsap.utils.wrap([100, 0.5]),
         scale: gsap.utils.wrap([1.2, 0.8]),
         duration: gsap.utils.wrap([1, 2]),
         repeat: -1,
@@ -301,9 +305,9 @@ const Signup = () => {
     }
     gsap.fromTo(
       formRef.current.children,
-      { opacity: 0, y: 30 },
+      { opacity: 100, y: 30 },
       {
-        opacity: 1,
+        opacity: 100,
         y: 0,
         stagger: 0.15,
         duration: 0.8,
@@ -384,13 +388,13 @@ const Signup = () => {
           {/* Left Section */}
           <div
             ref={leftSectionRef}
-            className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 p-8 md:p-12 text-white md:w-1/2 overflow-hidden"
+            className="hidden md:block relative bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 p-8 md:p-12 text-white md:w-1/2 overflow-hidden"
           >
             <FloatingParticles count={20} />
             <div className="mb-12">
               <img
                 ref={logoRef}
-                src="/vite.svg"
+                src="/CodingClubLogoSmall.png"
                 alt="Cosmic Connect Logo"
                 className="w-36"
               />
@@ -407,13 +411,13 @@ const Signup = () => {
                 <br />
                 Potential Today
               </h1>
-              <p
+              {/* <p
                 ref={descriptionRef}
-                className="text-lg text-white/90 font-medium"
+                className="text-lg text-white/90 font-medium "
               >
                 Create an account to access 5000+ premium mockups, stunning 3D
                 illustrations, and exclusive design resources.
-              </p>
+              </p> */}
             </div>
             {/* Space elements */}
             <div ref={starsRef} className="absolute inset-0 z-0 opacity-60">
@@ -437,7 +441,7 @@ const Signup = () => {
             <div className="absolute bottom-0 right-0 w-1/2 md:w-2/3 lg:w-3/4">
               <img
                 ref={spaceshipRef}
-                src="/placeholder.svg?height=300&width=300"
+                src="/rocket.png"
                 alt="Spaceship Illustration"
                 className="object-contain"
               />
@@ -525,7 +529,7 @@ const Signup = () => {
                   )}
 
                   <div ref={formStepsRef} className="space-y-4">
-                    {/* Step 1: Name */}
+                    {/* Step 1: Name, Reg No./Roll No., branch, semester */}
                     <div className={formStep === 0 ? "block" : "hidden"}>
                       <h3 className="text-lg font-medium text-gray-900 mb-4">
                         Tell us about yourself
@@ -541,12 +545,54 @@ const Signup = () => {
                           onChange={(e) => setName(e.target.value)}
                           onFocus={inputFocusEffect}
                           onBlur={inputBlurEffect}
+                          className="mb-2 h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
+                        />
+                      </div>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <Input
+                          type="text"
+                          placeholder="Reg No./Roll No."
+                          value={regNo}
+                          onChange={(e) => setRegNo(e.target.value)}
+                          onFocus={inputFocusEffect}
+                          onBlur={inputBlurEffect}
+                          className="mb-2 h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
+                        />
+                      </div>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <Input
+                          type="text"
+                          placeholder="Branch "
+                          value={branch}
+                          onChange={(e) => setBranch(e.target.value)}
+                          onFocus={inputFocusEffect}
+                          onBlur={inputBlurEffect}
+                          className="mb-2 h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
+                        />
+                      </div>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <Input
+                          type="text"
+                          placeholder="Semester"
+                          value={semester}
+                          onChange={(e) => setSemester(e.target.value)}
+                          onFocus={inputFocusEffect}
+                          onBlur={inputBlurEffect}
                           className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
                         />
                       </div>
                     </div>
 
-                    {/* Step 2: Email */}
+                    {/* Step 2: Email, Mobile No. */}
                     <div className={formStep === 1 ? "block" : "hidden"}>
                       <h3 className="text-lg font-medium text-gray-900 mb-4">
                         How can we reach you?
@@ -560,6 +606,20 @@ const Signup = () => {
                           placeholder="Email Address"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
+                          onFocus={inputFocusEffect}
+                          onBlur={inputBlurEffect}
+                          className="mb-2 h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
+                        />
+                      </div>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                          <Mail className="h-5 w-5" />
+                        </div>
+                        <Input
+                          type=""
+                          placeholder="Mobile No."
+                          value={mobile}
+                          onChange={(e) => setMobile(e.target.value)}
                           onFocus={inputFocusEffect}
                           onBlur={inputBlurEffect}
                           className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"

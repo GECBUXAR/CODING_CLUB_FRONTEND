@@ -15,52 +15,52 @@ const Events = () => {
   const events = [
     {
       id: 1,
-      title: "Web Development Workshop",
+      title: "Quiz Competition on C Programing",
       date: "2023-11-15",
       time: "10:00 AM - 4:00 PM",
       location: "Academic buildings, Room 110",
       category: "Workshop",
       skillLevel: "Beginner",
       description:
-        "Learn the fundamentals of web development and build your first website using modern technologies.",
-      speakers: ["Jane Doe", "John Smith"],
+        "Learn the fundamentals of C Programing and make your Consept clear with the help of Quiz Competition.",
+      speakers: ["Club Coordinators"],
     },
-    {
-      id: 2,
-      title: "AI and Machine Learning Bootcamp",
-      date: "2023-11-20",
-      time: "9:00 AM - 5:00 PM",
-      location: "Innovation Lab",
-      category: "Bootcamp",
-      skillLevel: "Intermediate",
-      description:
-        "Dive into AI and ML concepts with hands-on projects and expert guidance. Perfect for those with basic Python knowledge.",
-      speakers: ["Alex Johnson", "Maria Garcia"],
-    },
-    {
-      id: 3,
-      title: "Blockchain Basics Seminar",
-      date: "2023-11-25",
-      time: "2:00 PM - 6:00 PM",
-      location: "Virtual Event",
-      category: "Seminar",
-      skillLevel: "Beginner",
-      description:
-        "Understand blockchain technology and its applications in various industries with real-world examples.",
-      speakers: ["Michael Chen"],
-    },
-    {
-      id: 4,
-      title: "UX/UI Design Meetup",
-      date: "2023-12-05",
-      time: "11:00 AM - 3:00 PM",
-      location: "Student Union, Creative Commons",
-      category: "Meetup",
-      skillLevel: "All Levels",
-      description:
-        "Join fellow design enthusiasts to discuss user experience and interface design through practical exercises.",
-      speakers: ["Sarah Wilson"],
-    },
+    // {
+    //   id: 2,
+    //   title: "AI and Machine Learning Bootcamp",
+    //   date: "2023-11-20",
+    //   time: "9:00 AM - 5:00 PM",
+    //   location: "Innovation Lab",
+    //   category: "Bootcamp",
+    //   skillLevel: "Intermediate",
+    //   description:
+    //     "Dive into AI and ML concepts with hands-on projects and expert guidance. Perfect for those with basic Python knowledge.",
+    //   speakers: ["Alex Johnson", "Maria Garcia"],
+    // },
+    // {
+    //   id: 3,
+    //   title: "Blockchain Basics Seminar",
+    //   date: "2023-11-25",
+    //   time: "2:00 PM - 6:00 PM",
+    //   location: "Virtual Event",
+    //   category: "Seminar",
+    //   skillLevel: "Beginner",
+    //   description:
+    //     "Understand blockchain technology and its applications in various industries with real-world examples.",
+    //   speakers: ["Michael Chen"],
+    // },
+    // {
+    //   id: 4,
+    //   title: "UX/UI Design Meetup",
+    //   date: "2023-12-05",
+    //   time: "11:00 AM - 3:00 PM",
+    //   location: "Student Union, Creative Commons",
+    //   category: "Meetup",
+    //   skillLevel: "All Levels",
+    //   description:
+    //     "Join fellow design enthusiasts to discuss user experience and interface design through practical exercises.",
+    //   speakers: ["Sarah Wilson"],
+    // },
   ];
 
   useGSAP(
@@ -241,9 +241,11 @@ const Events = () => {
                 <span className="text-sm font-medium px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
                   {event.skillLevel}
                 </span>
-                <button className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors text-sm font-medium">
-                  RSVP
-                </button>
+                <Link to={"/events"}>
+                  <button className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors text-sm font-medium">
+                    View
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
