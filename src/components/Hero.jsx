@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
+import { LinkIcon } from "lucide-react";
+import { NavLink, Link } from "react-router-dom";
 
 const Hero = () => {
   const heroRef = useRef(null);
@@ -122,10 +124,12 @@ const Hero = () => {
               className="flex flex-wrap justify-start items-center gap-4"
             >
               <button
-                className="bg-orange-400 px-8 py-3 font-semibold rounded-xl transition-all duration-300 hover:bg-orange-500 transform hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-300 active:translate-y-0"
+                className="bg-indigo-600 px-8 py-3 font-semibold rounded-xl transition-all duration-300 hover:bg-indigo-500 transform hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 active:translate-y-0"
                 aria-label="Get started with learning to code"
               >
-                GET STARTED
+                <Link to={"/signup"}>
+                  <span className="mr-2">{"GET STARTED"} </span>
+                </Link>
               </button>
 
               <button
