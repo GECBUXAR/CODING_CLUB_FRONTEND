@@ -434,14 +434,19 @@ const Signup = () => {
   useEffect(() => {
     const timeline = gsap.timeline({ defaults: { ease: "power3.out" } });
     timeline.from(containerRef.current, {
-      y: 50,
+      // y: 50,
       opacity: 100,
       duration: 1,
       ease: "power4.out",
     });
     timeline.from(
       leftSectionRef.current,
-      { x: -100, opacity: 100, duration: 1, ease: "power3.inOut" },
+      {
+        // x: -100,
+        opacity: 100,
+        duration: 1,
+        ease: "power3.inOut",
+      },
       0.2
     );
     timeline.from(
@@ -470,7 +475,11 @@ const Signup = () => {
     // );
     timeline.from(
       taglineRef.current,
-      { y: 30, opacity: 100, duration: 0.8 },
+      {
+        // y: 30,
+        opacity: 100,
+        duration: 0.8,
+      },
       0.8
     );
     timeline.from(
@@ -521,7 +530,10 @@ const Signup = () => {
     }
     gsap.fromTo(
       formRef.current.children,
-      { opacity: 100, y: 30 },
+      {
+        opacity: 100,
+        y: 30,
+      },
       {
         opacity: 100,
         y: 0,
@@ -538,24 +550,24 @@ const Signup = () => {
       ease: "elastic.out(1, 0.5)",
       delay: 1.8,
     });
-    gsap.to(spaceshipRef.current, {
-      y: -100,
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: true,
-      },
-    });
-    gsap.to(headingRef.current, {
-      y: 50,
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: true,
-      },
-    });
+    // gsap.to(spaceshipRef.current, {
+    //   y: -100,
+    //   scrollTrigger: {
+    //     trigger: containerRef.current,
+    //     start: "top top",
+    //     end: "bottom top",
+    //     scrub: true,
+    //   },
+    // });
+    // gsap.to(headingRef.current, {
+    //   y: 50,
+    //   scrollTrigger: {
+    //     trigger: containerRef.current,
+    //     start: "top top",
+    //     end: "bottom top",
+    //     scrub: true,
+    //   },
+    // });
   }, []);
 
   // Button hover animations
@@ -595,19 +607,19 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen md:min-h-0 flex items-center justify-center p-4 md:p-6 lg:p-8 bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen ">
       <div
         ref={containerRef}
-        className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+        className=" overflow-hidden rounded-xl shadow-2xl"
       >
         <div className="flex flex-col md:flex-row">
           {/* Left Section */}
           <div
             ref={leftSectionRef}
-            className="hidden md:block relative bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 p-8 md:p-12 text-white md:w-1/2 overflow-hidden"
+            className=" hidden md:block relative z-60 bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 p-4 md:p-8 text-white md:w-1/2 overflow-hidden"
           >
             <FloatingParticles count={20} />
-            <div className="mb-12">
+            <div className="mt-5 mb-12">
               <img
                 ref={logoRef}
                 src="/CodingClubLogoSmall.png"
@@ -615,17 +627,17 @@ const Signup = () => {
                 className="w-36"
               />
             </div>
-            <div className="relative z-10 space-y-8 max-w-lg">
+            <div className="relative z-10 space-y-4 max-w-lg">
               <h1 ref={headingRef} className="text-4xl font-bold leading-tight">
-                <span
+                <div
                   ref={taglineRef}
                   className="block text-5xl font-black uppercase tracking-wide text-white mb-2"
                 >
                   Join Us
-                </span>
-                Unlock Your Creative
+                </div>
+                <span>Unlock Your Creative</span>
                 <br />
-                Potential Today
+                <span>Potential Today</span>
               </h1>
               {/* <p
                 ref={descriptionRef}
@@ -667,7 +679,7 @@ const Signup = () => {
           </div>
 
           {/* Right Section */}
-          <div className="flex flex-col p-8 md:w-1/2 md:p-12">
+          <div className="flex flex-col p-4 md:w-1/2 md:p-8 ">
             <ThreeDCard className="mx-auto w-full max-w-md space-y-8">
               <div>
                 <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent mb-3">
