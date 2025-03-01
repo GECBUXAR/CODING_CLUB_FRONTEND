@@ -665,6 +665,7 @@ import { Label } from "../ui/label";
 import { cn } from "../utils/cn";
 import { FloatingParticles } from "./floating-particles";
 import { ThreeDCard } from "./three-d-card";
+import axios from "axios";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger, useGSAP, MotionPathPlugin);
@@ -695,7 +696,6 @@ const Login = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     // Form validation
     if (!email || !password) {
       setFormError("Please fill in all fields");
@@ -725,6 +725,11 @@ const Login = () => {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await axios.post(
+        "http://localhost:3030/api/v1/users/login",
+        { email, password }
+      );
+      console.log(response.data);
 
       // Success animation
       loadingTl.to(ctaButtonRef.current, {
@@ -735,7 +740,7 @@ const Login = () => {
       });
 
       // Redirect or show success
-      console.log("Login successful", { email, password, rememberMe });
+      // console.log("Login successful", { email, password, rememberMe });
     } catch (error) {
       setFormError("Invalid credentials. Please try again.");
     } finally {
