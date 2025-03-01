@@ -4,7 +4,7 @@ import axios from "axios";
 // import gsap from "gsap";
 import { gsap } from "gsap-trial";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap-trial/SplitText";
+//import { SplitText } from "gsap-trial/SplitText";
 import {
   Eye,
   EyeOff,
@@ -25,7 +25,7 @@ import { FloatingParticles } from "./floating-particles";
 import { ThreeDCard } from "./three-d-card";
 import { ProgressBar } from "./progress-bar";
 
-gsap.registerPlugin(ScrollTrigger, SplitText);
+gsap.registerPlugin(ScrollTrigger);
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -460,20 +460,20 @@ const Signup = () => {
       },
       0.4
     );
-    const headingSplit = new SplitText(headingRef.current, {
-      type: "chars, words",
-    });
-    timeline.from(
-      headingSplit.chars,
-      {
-        opacity: 100,
-        y: 20,
-        rotationX: -90,
-        stagger: 0.02,
-        duration: 0.8,
-      },
-      0.6
-    );
+    //  const headingSplit = new SplitText(headingRef.current, {
+    //    type: "chars, words",
+    //  });
+    // timeline.from(
+    //   headingSplit.chars,
+    //   {
+    //     opacity: 100,
+    //     y: 20,
+    //     rotationX: -90,
+    //     stagger: 0.02,
+    //     duration: 0.8,
+    //   },
+    //   0.6
+    // );
     timeline.from(
       taglineRef.current,
       { y: 30, opacity: 100, duration: 0.8 },
