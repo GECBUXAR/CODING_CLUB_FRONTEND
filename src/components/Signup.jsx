@@ -175,12 +175,6 @@ const Signup = () => {
         shakeForm();
         return;
       }
-      // if (!/\S+@\S+\.\S+/.test(email)) {
-      //   setFormError("Please enter a valid email address");
-      //   shakeForm();
-      //   return;
-      // }
-
       if (!mobile) {
         setFormError("Please enter your mobile number");
         shakeForm();
@@ -235,7 +229,7 @@ const Signup = () => {
         name,
         email,
         password,
-        regNo,
+        registrationNumber: regNo,
         branch,
         semester,
         mobile,
