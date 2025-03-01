@@ -643,8 +643,8 @@
 
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-// import gsap from "gsap";
-import { gsap } from "gsap-trial";
+import gsap from "gsap";
+// import { gsap } from "gsap-trial";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 //import { SplitText } from "gsap-trial/SplitText";
@@ -885,16 +885,16 @@ const Login = () => {
         );
       }
 
-      // Scroll animations
-      gsap.to(rocketRef.current, {
-        y: -100,
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: true,
-        },
-      });
+      // // Scroll animations
+      // gsap.to(rocketRef.current, {
+      //   y: -100,
+      //   scrollTrigger: {
+      //     trigger: containerRef.current,
+      //     start: "top top",
+      //     end: "bottom top",
+      //     scrub: true,
+      //   },
+      // });
 
       gsap.to(headingRef.current, {
         y: 50,
@@ -968,12 +968,12 @@ const Login = () => {
   };
 
   return (
-    <div className="h-[95%] flex items-center justify-center py-4 bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen   ">
       <div
         ref={containerRef}
-        className="  overflow-hidden rounded-3xl bg-white shadow-2xl"
+        className=" overflow-hidden  rounded-xl shadow-2xl"
       >
-        <div className="flex flex-col gap-0 md:flex-row">
+        <div className="flex flex-col md:flex-row gap-2">
           {/* Left Section - Hidden on mobile */}
           <div
             ref={leftSectionRef}
@@ -992,8 +992,8 @@ const Login = () => {
             </div>
 
             {/* Fixed Welcome text section with improved alignment and spacing */}
-            <div className="relative z-10 px-2 pl-8 space-y-4 max-w-lg">
-              <div className="mb-2 ml-8">
+            <div className="relative z-10   space-y-4 max-w-lg">
+              <div className="mb-2">
                 <h1
                   ref={taglineRef}
                   className="text-4xl sm:text-5xl font-black uppercase tracking-wide text-white leading-tight"
@@ -1004,7 +1004,7 @@ const Login = () => {
 
               <h2
                 ref={headingRef}
-                className="text-2xl md:text-3xl mb-4 ml-8 lg:text-4xl font-bold leading-tight"
+                className="text-2xl md:text-3xl mb-4 lg:text-4xl font-bold leading-tight"
               >
                 To Your Creative
                 <br />
@@ -1060,7 +1060,7 @@ const Login = () => {
           </div>
 
           {/* Right Section - Full width on mobile */}
-          <div className="flex flex-col p-6 md:p-8 w-full md:w-1/2 md:p-12">
+          <div className="flex flex-col p-2 md:p-4 w-full md:w-1/2 ">
             {/* Mobile-only logo and branding */}
             <div className="flex flex-col items-center mb-6 md:hidden">
               <img
