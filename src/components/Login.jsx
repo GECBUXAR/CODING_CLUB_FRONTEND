@@ -647,7 +647,7 @@ import { Link } from "react-router-dom";
 import { gsap } from "gsap-trial";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap-trial/SplitText";
+//import { SplitText } from "gsap-trial/SplitText";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import {
   Eye,
@@ -667,7 +667,7 @@ import { FloatingParticles } from "./floating-particles";
 import { ThreeDCard } from "./three-d-card";
 
 // Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger, useGSAP, SplitText, MotionPathPlugin);
+gsap.registerPlugin(ScrollTrigger, useGSAP, MotionPathPlugin);
 
 const Login = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -778,22 +778,22 @@ const Login = () => {
       );
 
       // Text animations with SplitText
-      if (headingRef.current) {
-        const headingSplit = new SplitText(headingRef.current, {
-          type: "chars, words",
-        });
-        timeline.from(
-          headingSplit.chars,
-          {
-            opacity: 100,
-            y: 20,
-            rotationX: -90,
-            stagger: 0.02,
-            duration: 0.8,
-          },
-          0.6
-        );
-      }
+      // if (headingRef.current) {
+      //   // const headingSplit = new SplitText(headingRef.current, {
+      //   //   type: "chars, words",
+      //   // });
+      //   timeline.from(
+      //     headingSplit.chars,
+      //     {
+      //       opacity: 100,
+      //       y: 20,
+      //       rotationX: -90,
+      //       stagger: 0.02,
+      //       duration: 0.8,
+      //     },
+      //     0.6
+      //   );
+      // }
 
       timeline.from(
         taglineRef.current,
