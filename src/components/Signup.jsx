@@ -1,10 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-// import gsap from "gsap";
-import { gsap } from "gsap-trial";
+import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-//import { SplitText } from "gsap-trial/SplitText";
+
 import {
   Eye,
   EyeOff,
@@ -75,7 +74,7 @@ const Signup = () => {
   const signupUser = async (userData) => {
     try {
       const response = await axios.post(
-        // `${process.env.REACT_APP_API_URL}/api/v1/users/signup`,
+
         "http://localhost:3030/api/v1/users/signup",
         userData
       );
@@ -87,33 +86,7 @@ const Signup = () => {
     }
   };
 
-  // const signupUser = async (userData) => {
 
-  //   try {
-  //     const response = await axios.post(
-  //       "http://localhost:3030/api/v1/users/signup",
-  //       {
-  //         name,
-  //         email,
-  //         password,
-  //         regNo,
-  //         branch,
-  //         semester,
-  //         mobile,
-  //       }
-  //     );
-
-  //     if (!response.ok) {
-  //       const errorData = await response.json();
-  //       throw new Error(errorData.message || "Signup failed");
-  //     }
-
-  //     const data = await response.json();
-  //     return data;
-  //   } catch (error) {
-  //     throw new Error(error.message);
-  //   }
-  // };
 
   // Password strength checker
 
@@ -228,11 +201,11 @@ const Signup = () => {
       const userData = {
         name,
         email,
-        password,
-        registrationNumber: regNo,
+        mobile,                                               
+        registrationNumber :regNo,
         branch,
         semester,
-        mobile,
+        password,
       };
 
       const response = await signupUser(userData);
@@ -268,13 +241,13 @@ const Signup = () => {
 
       setFormError(error.message || "An error occurred. Please try again.");
 
-      // // Reset button animation
-      // gsap.to(ctaButtonRef.current, {
-      //   width: "100%",
-      //   borderRadius: 12,
-      //   duration: 0.4,
-      //   ease: "power2.inOut",
-      // });
+      // Reset button animation
+       gsap.to(ctaButtonRef.current, {
+         width: "100%",
+         borderRadius: 12,
+         duration: 0.4,
+         ease: "power2.inOut",
+       });
 
       shakeForm();
     } finally {
@@ -282,113 +255,7 @@ const Signup = () => {
     }
   };
 
-  // Handle form submission
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   // Step validations
-  //   if (formStep === 0) {
-  //     if (!name || !regNo || !branch || !semester) {
-  //       setFormError("Please fill all required fields");
-  //       shakeForm();
-  //       return;
-  //     }
-  //     animateFormTransition(0, 1);
-  //     return;
-  //   }
-
-  //   if (formStep === 1) {
-  //     if (!validateEmail(email)) {
-  //       setFormError("Please enter a valid email address");
-  //       shakeForm();
-  //       return;
-  //     }
-  //     if (!validateMobile(mobile)) {
-  //       setFormError("Please enter a valid 10-digit mobile number");
-  //       shakeForm();
-  //       return;
-  //     }
-  //     animateFormTransition(1, 2);
-  //     return;
-  //   }
-
-  //   if (formStep === 2) {
-  //     if (!password || password.length < 8 || passwordStrength < 50) {
-  //       setFormError(
-  //         "Password must be at least 8 characters and strong enough"
-  //       );
-  //       shakeForm();
-  //       return;
-  //     }
-  //     animateFormTransition(2, 3);
-  //     return;
-  //   }
-
-  //   if (!agreeTerms) {
-  //     setFormError("You must agree to the terms and conditions");
-  //     shakeForm();
-  //     return;
-  //   }
-
-  //   setFormError("");
-  //   setIsLoading(true);
-
-  //   try {
-  //     // Prepare user data
-  //     const userData = {
-  //       name,
-  //       email,
-  //       password,
-  //       regNo,
-  //       branch,
-  //       semester: Number(semester),
-  //       mobile: Number(mobile),
-  //     };
-
-  //     // Start loading animation
-  //     gsap.to(ctaButtonRef.current, {
-  //       width: 60,
-  //       borderRadius: 30,
-  //       duration: 0.4,
-  //       ease: "power2.inOut",
-  //     });
-
-  //     // API call
-  //     await signupUser(userData);
-
-  //     // Simulate loading for better UX
-  //     await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  //     // Success state
-  //     setSignupSuccess(true);
-  //     gsap.to(formRef.current, {
-  //       y: 20,
-  //       opacity: 0,
-  //       duration: 0.5,
-  //       onComplete: () => {
-  //         gsap.fromTo(
-  //           ".success-message",
-  //           { y: -20, opacity: 0 },
-  //           { y: 0, opacity: 1, duration: 0.5 }
-  //         );
-  //       },
-  //     });
-  //   } catch (error) {
-  //     setFormError(error.message);
-  //     shakeForm();
-  //   } finally {
-  //     setIsLoading(false);
-  //     // Reset button animation
-  //     gsap.to(ctaButtonRef.current, {
-  //       width: "100%",
-  //       borderRadius: 12,
-  //       duration: 0.4,
-  //       ease: "power2.inOut",
-  //     });
-  //   }
-  // };
-
-  // Animate between form steps
+    // Animate between form steps
   const animateFormTransition = (fromStep, toStep) => {
     setFormError("");
     const formSteps = formStepsRef.current.children;
@@ -459,20 +326,7 @@ const Signup = () => {
       },
       0.4
     );
-    //  const headingSplit = new SplitText(headingRef.current, {
-    //    type: "chars, words",
-    //  });
-    // timeline.from(
-    //   headingSplit.chars,
-    //   {
-    //     opacity: 100,
-    //     y: 20,
-    //     rotationX: -90,
-    //     stagger: 0.02,
-    //     duration: 0.8,
-    //   },
-    //   0.6
-    // );
+
     timeline.from(
       taglineRef.current,
       {
@@ -550,24 +404,7 @@ const Signup = () => {
       ease: "elastic.out(1, 0.5)",
       delay: 1.8,
     });
-    // gsap.to(spaceshipRef.current, {
-    //   y: -100,
-    //   scrollTrigger: {
-    //     trigger: containerRef.current,
-    //     start: "top top",
-    //     end: "bottom top",
-    //     scrub: true,
-    //   },
-    // });
-    // gsap.to(headingRef.current, {
-    //   y: 50,
-    //   scrollTrigger: {
-    //     trigger: containerRef.current,
-    //     start: "top top",
-    //     end: "bottom top",
-    //     scrub: true,
-    //   },
-    // });
+
   }, []);
 
   // Button hover animations
@@ -639,13 +476,7 @@ const Signup = () => {
                 <br />
                 <span>Potential Today</span>
               </h1>
-              {/* <p
-                ref={descriptionRef}
-                className="text-lg text-white/90 font-medium "
-              >
-                Create an account to access 5000+ premium mockups, stunning 3D
-                illustrations, and exclusive design resources.
-              </p> */}
+
             </div>
             {/* Space elements */}
             <div ref={starsRef} className="absolute inset-0 z-0 opacity-60">

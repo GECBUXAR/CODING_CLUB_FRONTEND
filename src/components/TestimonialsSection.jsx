@@ -94,16 +94,6 @@ const TestimonialsSection = () => {
 
   return (
     <div ref={sectionRef} className="container mx-auto px-4">
-      {/* <h2 className="testimonials-heading text-3xl md:text-4xl font-bold text-center mb-4 text-white">
-        What Our Students Say
-      </h2>
-
-      <p className="testimonials-intro text-center text-blue-100 mb-12 max-w-2xl mx-auto">
-        Our students come from diverse backgrounds but share a common passion
-        for learning. Here's what they have to say about their educational
-        journey with us.
-      </p> */}
-
       <div className="testimonials-container opacity-0 translate-y-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {testimonials.map((testimonial, index) => (
           <TestimonialCard

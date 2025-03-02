@@ -25,43 +25,7 @@ const Events = () => {
         "Learn the fundamentals of C Programing and make your Consept clear with the help of Quiz Competition.",
       speakers: ["Club Coordinators"],
     },
-    // {
-    //   id: 2,
-    //   title: "AI and Machine Learning Bootcamp",
-    //   date: "2023-11-20",
-    //   time: "9:00 AM - 5:00 PM",
-    //   location: "Innovation Lab",
-    //   category: "Bootcamp",
-    //   skillLevel: "Intermediate",
-    //   description:
-    //     "Dive into AI and ML concepts with hands-on projects and expert guidance. Perfect for those with basic Python knowledge.",
-    //   speakers: ["Alex Johnson", "Maria Garcia"],
-    // },
-    // {
-    //   id: 3,
-    //   title: "Blockchain Basics Seminar",
-    //   date: "2023-11-25",
-    //   time: "2:00 PM - 6:00 PM",
-    //   location: "Virtual Event",
-    //   category: "Seminar",
-    //   skillLevel: "Beginner",
-    //   description:
-    //     "Understand blockchain technology and its applications in various industries with real-world examples.",
-    //   speakers: ["Michael Chen"],
-    // },
-    // {
-    //   id: 4,
-    //   title: "UX/UI Design Meetup",
-    //   date: "2023-12-05",
-    //   time: "11:00 AM - 3:00 PM",
-    //   location: "Student Union, Creative Commons",
-    //   category: "Meetup",
-    //   skillLevel: "All Levels",
-    //   description:
-    //     "Join fellow design enthusiasts to discuss user experience and interface design through practical exercises.",
-    //   speakers: ["Sarah Wilson"],
-    // },
-  ];
+ ];
 
   useGSAP(
     () => {
@@ -141,27 +105,6 @@ const Events = () => {
           </Link>
         </div>
       </div>
-
-      {/* Filter Tabs */}
-      {/* <div className="container mx-auto mb-8 overflow-x-auto">
-        <div className="flex space-x-2 pb-2">
-          <button className="px-4 py-2 bg-indigo-600 text-white rounded-full text-sm font-medium shadow whitespace-nowrap">
-            All Events
-          </button>
-          <button className="px-4 py-2 bg-white text-indigo-700 rounded-full text-sm font-medium shadow hover:bg-indigo-50 transition-colors whitespace-nowrap">
-            Workshops
-          </button>
-          <button className="px-4 py-2 bg-white text-indigo-700 rounded-full text-sm font-medium shadow hover:bg-indigo-50 transition-colors whitespace-nowrap">
-            Seminars
-          </button>
-          <button className="px-4 py-2 bg-white text-indigo-700 rounded-full text-sm font-medium shadow hover:bg-indigo-50 transition-colors whitespace-nowrap">
-            Bootcamps
-          </button>
-          <button className="px-4 py-2 bg-white text-indigo-700 rounded-full text-sm font-medium shadow hover:bg-indigo-50 transition-colors whitespace-nowrap">
-            Meetups
-          </button>
-        </div>
-      </div> */}
 
       {/* Event Cards */}
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

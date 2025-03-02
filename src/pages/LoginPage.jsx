@@ -10,10 +10,6 @@ const LoginPage = () => {
           <Login />
         </div>
       </div>
-
-      {/* <div className="h-dvh flex justify-center items-center">
-        <Login />
-      </div> */}
     </>
   );
 };
