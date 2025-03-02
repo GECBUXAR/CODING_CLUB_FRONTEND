@@ -224,10 +224,7 @@ const Navbar = () => {
             ref={logoRef}
             href="#home"
             className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-all duration-300 flex items-center group"
-            // onClick={(e) => {
-            //   e.preventDefault();
-            //   handleLinkClick("home", e);
-            // }}
+
           >
             <div className="w-10 h-10 rounded-lg  flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform duration-300">
               <img

@@ -9,9 +9,6 @@ const SignupPage = () => {
           <Signup />
         </div>
       </div>
-      {/* <div>
-        <Signup />
-      </div> */}
     </>
   );
 };

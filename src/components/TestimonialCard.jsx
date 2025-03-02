@@ -1,25 +1,3 @@
-// import React from "react";
-
-// const TestimonialCard = ({ imageSrc, altText, quote, name }) => {
-//   return (
-//     <div className="flex flex-col items-center p-4 bg-blue-600 rounded-lg transition-transform duration-300 hover:scale-105">
-//       {/* Image */}
-//       <img
-//         src={imageSrc}
-//         alt={altText}
-//         className="w-24 h-24 sm:w-32 sm:h-32 rounded-full mb-4 object-cover"
-//         loading="lazy"
-//       />
-//       {/* Quote */}
-//       <p className="text-sm sm:text-base text-center italic mb-2">{quote}</p>
-//       {/* Name */}
-//       <span className="font-semibold text-sm sm:text-base">{name}</span>
-//     </div>
-//   );
-// };
-
-// export default TestimonialCard;
-
 // TestimonialCard.jsx
 import React, { useRef, useEffect } from "react";
 import gsap from "gsap";

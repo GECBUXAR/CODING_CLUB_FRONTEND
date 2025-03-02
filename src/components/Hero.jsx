@@ -140,21 +140,7 @@ const Hero = () => {
               </button>
             </div>
 
-            {/* Stats or Social Proof
-            <div className="flex items-center gap-8 mt-8 opacity-90">
-              <div className="flex flex-col">
-                <span className="text-3xl font-bold text-blue-400">10k+</span>
-                <span className="text-sm">Students</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-3xl font-bold text-blue-400">50+</span>
-                <span className="text-sm">Courses</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-3xl font-bold text-blue-400">96%</span>
-                <span className="text-sm">Success rate</span>
-              </div>
-            </div> */}
+
           </div>
         </div>
 
