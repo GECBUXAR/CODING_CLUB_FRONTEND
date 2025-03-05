@@ -1,5 +1,11 @@
-import { defineConfig } from "vite";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+
+// Get directory name using ES modules
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -7,10 +13,14 @@ export default defineConfig({
     proxy: {
       "/api": {
         target: "http://localhost:3030",
-        // changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
 });
