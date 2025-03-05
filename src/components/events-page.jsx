@@ -49,6 +49,15 @@ export function EventsPage() {
       type: "workshop",
       status: "upcoming",
     },
+    {
+      id: 2,
+      title: "JavaScript Workshop",
+      description: "Learn the basics of JavaScript programming",
+      date: "2025-03-10",
+      time: "18:00",
+      type: "workshop",
+      status: "completed",
+    },
     // ... rest of the initial events array
   ]);
 

@@ -17,7 +17,8 @@ import {
   Github,
   Linkedin,
 } from "lucide-react";
-import { Button } from "../ui/button";
+// import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -141,8 +142,6 @@ const Login = () => {
         0.4
       );
 
-
-
       timeline.from(
         taglineRef.current,
         { y: 30, opacity: 100, duration: 0.8 },
@@ -232,8 +231,6 @@ const Login = () => {
           }
         );
       }
-
-
 
       gsap.to(headingRef.current, {
         y: 50,
@@ -349,8 +346,6 @@ const Login = () => {
                 <br />
                 Universe
               </h2>
-
-
             </div>
 
             {/* Space elements */}
