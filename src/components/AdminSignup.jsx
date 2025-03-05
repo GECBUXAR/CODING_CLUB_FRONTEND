@@ -11,8 +11,6 @@ import {
   Lock,
   User,
   ArrowRight,
-  Github,
-  Linkedin,
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,16 +24,14 @@ import { ProgressBar } from "./progress-bar";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const Signup = () => {
+const AdminSignup = () => {
   const navigate = useNavigate();
 
   // Form state
   const [formStep, setFormStep] = useState(0);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [name, setName] = useState("");
-  const [regNo, setRegNo] = useState("");
-  const [branch, setBranch] = useState("");
-  const [semester, setSemester] = useState("");
+  const [adminkey, setAdminkey] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +46,7 @@ const Signup = () => {
   const leftSectionRef = useRef(null);
   const spaceshipRef = useRef(null);
   const formRef = useRef(null);
-  const socialButtonsRef = useRef(null);
+  //   const socialButtonsRef = useRef(null);
   const headingRef = useRef(null);
   const taglineRef = useRef(null);
   const descriptionRef = useRef(null);
@@ -67,6 +63,14 @@ const Signup = () => {
 
   const validateMobile = (mobile) => {
     return /^\d{10}$/.test(mobile);
+  };
+
+  const validateName = (name) => {
+    return /^[a-zA-Z]{3,30}$/.test(name);
+  };
+
+  const validateAdminKey = (adminkey) => {
+    return /^[a-zA-Z0-9]{8,8}$/.test(adminkey);
   };
 
   // calling backend for signup
@@ -113,19 +117,19 @@ const Signup = () => {
         shakeForm();
         return;
       }
+      if (!validateName(name)) {
+        setFormError("Name must be between 3 to 30 characters");
+        shakeForm();
+        return;
+      }
 
-      if (!regNo) {
-        setFormError("Please enter your registration number");
+      if (!adminkey) {
+        setFormError("Please enter Admin Key");
         shakeForm();
         return;
       }
-      if (!branch) {
-        setFormError("Please enter your branch");
-        shakeForm();
-        return;
-      }
-      if (!semester) {
-        setFormError("Please enter your semester");
+      if (!validateAdminKey(adminkey)) {
+        setFormError("Invalid Admin Key Format");
         shakeForm();
         return;
       }
@@ -199,9 +203,7 @@ const Signup = () => {
         name,
         email,
         mobile,
-        registrationNumber: regNo,
-        branch,
-        semester,
+        adminkey,
         password,
       };
 
@@ -394,13 +396,6 @@ const Signup = () => {
         delay: 1,
       }
     );
-    // gsap.from(socialButtonsRef.current.children, {
-    //   scale: 0,
-    //   stagger: 0.1,
-    //   duration: 0.7,
-    //   ease: "elastic.out(1, 0.5)",
-    //   delay: 1.8,
-    // });
   }, []);
 
   // Button hover animations
@@ -509,10 +504,16 @@ const Signup = () => {
             <ThreeDCard className="mx-auto w-full max-w-md space-y-8">
               <div>
                 <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent mb-3">
-                  Create Your Account
+                  Create Admin Account
                 </h2>
                 <p className="text-gray-600">
-                  Join our creative community in just a few steps
+                  Join our creative community as{" "}
+                  <span className="text-neutral-700 font-semibold">
+                    Admin User
+                  </span>{" "}
+                  in
+                  <br />
+                  just a few steps
                 </p>
                 {/* Progress bar */}
                 <div className="mt-6 mb-8">
@@ -583,7 +584,7 @@ const Signup = () => {
                   )}
 
                   <div ref={formStepsRef} className="space-y-4">
-                    {/* Step 1: Name, Reg No./Roll No., branch, semester */}
+                    {/* Step 1: Name, Admin key */}
                     <div className={formStep === 0 ? "block" : "hidden"}>
                       <h3 className="text-lg font-medium text-gray-900 mb-4">
                         Tell us about yourself
@@ -608,40 +609,12 @@ const Signup = () => {
                         </div>
                         <Input
                           type="text"
-                          placeholder="Reg No./Roll No."
-                          value={regNo}
-                          onChange={(e) => setRegNo(e.target.value)}
+                          placeholder="Admin Key"
+                          value={adminkey}
+                          onChange={(e) => setAdminkey(e.target.value)}
                           onFocus={inputFocusEffect}
                           onBlur={inputBlurEffect}
                           className="mb-2 h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
-                        />
-                      </div>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
-                          <User className="h-5 w-5" />
-                        </div>
-                        <Input
-                          type="text"
-                          placeholder="Branch "
-                          value={branch}
-                          onChange={(e) => setBranch(e.target.value)}
-                          onFocus={inputFocusEffect}
-                          onBlur={inputBlurEffect}
-                          className="mb-2 h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
-                        />
-                      </div>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
-                          <User className="h-5 w-5" />
-                        </div>
-                        <Input
-                          type="text"
-                          placeholder="Semester"
-                          value={semester}
-                          onChange={(e) => setSemester(e.target.value)}
-                          onFocus={inputFocusEffect}
-                          onBlur={inputBlurEffect}
-                          className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
                         />
                       </div>
                     </div>
@@ -910,33 +883,6 @@ const Signup = () => {
                       </Link>
                     </p>
                   </div>
-
-                  {formStep === 0 && (
-                    <>
-                      <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                          <div className="w-full border-t border-gray-200" />
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                          <span className="bg-white px-4 text-gray-500">
-                            Or continue with
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-center mb-2">
-                        <p className="relative z-0 text-gray-600">
-                          {"Do you want to become an admin? "}
-                          <br />
-                          <Link
-                            to="/admin/signup"
-                            className="font-semibold text-indigo-600 underline-offset-4 hover:underline"
-                          >
-                            Click Here
-                          </Link>
-                        </p>
-                      </div>
-                    </>
-                  )}
                 </>
               )}
             </ThreeDCard>
@@ -947,4 +893,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default AdminSignup;
