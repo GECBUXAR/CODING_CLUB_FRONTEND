@@ -1,0 +1,6 @@
+// jsconfig.json
+{
+  "extends": "./jsconfig.app.json",
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
