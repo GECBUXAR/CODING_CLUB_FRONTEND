@@ -27,6 +27,11 @@ const Navbar = () => {
       icon: <FaCalendarAlt className="w-4 h-4" />,
     },
     {
+      id: "/exams",
+      label: "EXAMS",
+      icon: <FaCalendarAlt className="w-4 h-4" />,
+    },
+    {
       id: "curriculum",
       label: "CURRICULUM",
       icon: <FaBook className="w-4 h-4" />,
@@ -349,7 +354,7 @@ const Navbar = () => {
       </div>
 
       {/* Mobile menu overlay */}
-      <div
+      <button
         ref={overlayRef}
         className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden hidden"
         style={{ opacity: 0 }}

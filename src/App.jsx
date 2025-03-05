@@ -6,6 +6,7 @@ import AllEventsPage from "./pages/AllEventsPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import AdminSignup from "./components/AdminSignup.jsx";
+import { UserExamPanel } from "./components/user-exam-panel.jsx";
 
 const App = () => {
   return (
@@ -14,6 +15,7 @@ const App = () => {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/events" element={<AllEventsPage />} />
+      <Route path="/exams" element={<UserExamPanel />} />
 
       {/* Admin Routes */}
       <Route path="/admin/signup" element={<AdminSignup />} />
