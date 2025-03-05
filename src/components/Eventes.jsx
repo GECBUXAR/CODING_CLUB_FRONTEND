@@ -7,7 +7,6 @@ import { useGSAP } from "@gsap/react";
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const Events = () => {
-  // Refs for animations
   const sectionRef = useRef(null);
   const headerRef = useRef(null);
   const cardsRef = useRef([]);
@@ -25,7 +24,7 @@ const Events = () => {
         "Learn the fundamentals of C Programing and make your Consept clear with the help of Quiz Competition.",
       speakers: ["Club Coordinators"],
     },
- ];
+  ];
 
   useGSAP(
     () => {
