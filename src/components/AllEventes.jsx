@@ -19,8 +19,8 @@ const events = [
     eventName: "Quiz Competition on C Programing",
     description:
       "Learn the fundamentals of C Programing and make your Consept clear with the help of Quiz Competition.",
-    date: "March 15, 2025",
-    time: "4:00 AM",
+    date: "February 25, 2025",
+    time: "4:00 PM",
     location: "Academic buildings, Room 110",
     attendees: 100,
     category: "Tech",
@@ -162,7 +162,7 @@ const events = [
       { reg_no: "24CS110", name: "Dimpal Kumari", status: "passed", marks: 20 },
       { reg_no: "24CS80", name: "Ayush Anand", status: "passed", marks: 22 },
     ],
-  }, 
+  },
 ];
 
 const AllEvents = () => {
@@ -418,5 +418,3 @@ const AllEvents = () => {
 };
 
 export default AllEvents;
-
-
