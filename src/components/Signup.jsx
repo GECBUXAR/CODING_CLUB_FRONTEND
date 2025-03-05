@@ -15,11 +15,11 @@ import {
   Linkedin,
   CheckCircle2,
 } from "lucide-react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
-import { cn } from "../utils/cn";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { FloatingParticles } from "./floating-particles";
 import { ThreeDCard } from "./three-d-card";
 import { ProgressBar } from "./progress-bar";
@@ -74,7 +74,6 @@ const Signup = () => {
   const signupUser = async (userData) => {
     try {
       const response = await axios.post(
-
         "http://localhost:3030/api/v1/users/signup",
         userData
       );
@@ -85,8 +84,6 @@ const Signup = () => {
       );
     }
   };
-
-
 
   // Password strength checker
 
@@ -201,8 +198,8 @@ const Signup = () => {
       const userData = {
         name,
         email,
-        mobile,                                               
-        registrationNumber :regNo,
+        mobile,
+        registrationNumber: regNo,
         branch,
         semester,
         password,
@@ -242,12 +239,12 @@ const Signup = () => {
       setFormError(error.message || "An error occurred. Please try again.");
 
       // Reset button animation
-       gsap.to(ctaButtonRef.current, {
-         width: "100%",
-         borderRadius: 12,
-         duration: 0.4,
-         ease: "power2.inOut",
-       });
+      gsap.to(ctaButtonRef.current, {
+        width: "100%",
+        borderRadius: 12,
+        duration: 0.4,
+        ease: "power2.inOut",
+      });
 
       shakeForm();
     } finally {
@@ -255,7 +252,7 @@ const Signup = () => {
     }
   };
 
-    // Animate between form steps
+  // Animate between form steps
   const animateFormTransition = (fromStep, toStep) => {
     setFormError("");
     const formSteps = formStepsRef.current.children;
@@ -404,7 +401,6 @@ const Signup = () => {
       ease: "elastic.out(1, 0.5)",
       delay: 1.8,
     });
-
   }, []);
 
   // Button hover animations
@@ -476,7 +472,6 @@ const Signup = () => {
                 <br />
                 <span>Potential Today</span>
               </h1>
-
             </div>
             {/* Space elements */}
             <div ref={starsRef} className="absolute inset-0 z-0 opacity-60">
