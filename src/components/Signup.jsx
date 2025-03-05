@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -23,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { FloatingParticles } from "./floating-particles";
 import { ThreeDCard } from "./three-d-card";
 import { ProgressBar } from "./progress-bar";
+import axiosInstance from "@/lib/axios";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -73,10 +73,7 @@ const Signup = () => {
 
   const signupUser = async (userData) => {
     try {
-      const response = await axios.post(
-        "http://localhost:3030/api/v1/users/signup",
-        userData
-      );
+      const response = await axiosInstance.post("/users/signup", userData);
       return response.data;
     } catch (error) {
       throw new Error(

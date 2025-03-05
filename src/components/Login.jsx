@@ -25,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { FloatingParticles } from "./floating-particles";
 import { ThreeDCard } from "./three-d-card";
-import axios from "axios";
+import axiosInstance from "@/lib/axios";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger, useGSAP, MotionPathPlugin);
@@ -85,10 +85,10 @@ const Login = () => {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      const response = await axios.post(
-        "http://localhost:3030/api/v1/users/login",
-        { email, password }
-      );
+      const response = await axiosInstance.post("/users/login", {
+        email,
+        password,
+      });
       console.log(response.data);
 
       // Success animation
