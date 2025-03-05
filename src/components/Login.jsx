@@ -19,10 +19,10 @@ import {
 } from "lucide-react";
 // import { Button } from "../ui/button";
 import { Button } from "@/components/ui/button";
-import { Input } from "../ui/input";
-import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
-import { cn } from "../utils/cn";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { FloatingParticles } from "./floating-particles";
 import { ThreeDCard } from "./three-d-card";
 import axios from "axios";
