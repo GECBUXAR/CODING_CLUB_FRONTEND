@@ -3,7 +3,7 @@
 "use client";
 import { useState, useRef } from "react";
 import PropTypes from "prop-types";
-import { cn } from "../utils/cn";
+import { cn } from "@/lib/utils";
 
 export const ThreeDCard = ({ children, className, intensity = 10 }) => {
   const [rotate, setRotate] = useState({
@@ -67,5 +67,3 @@ ThreeDCard.propTypes = {
   className: PropTypes.string,
   intensity: PropTypes.number,
 };
-
-
