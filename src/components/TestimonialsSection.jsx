@@ -11,7 +11,7 @@ const TestimonialsSection = () => {
   // Enhanced testimonials data
   const testimonials = [
     {
-      imageSrc: "/api/placeholder/150/150",
+      imageSrc: "../../public/rajshekar.jpg",
       altText: "Dr. Chandra Shekar",
       quote:
         "Creating web games was easier than I thought. The step-by-step tutorials made complex concepts accessible.",
@@ -19,7 +19,7 @@ const TestimonialsSection = () => {
       role: "Computer Science Professor  & Head of Department",
     },
     {
-      imageSrc: "/api/placeholder/150/150",
+      imageSrc: "../../public/rina.jpg",
       altText: "Dr. Rina Kumari",
       quote:
         "The chat with the tutors is good because I can get help as soon as I get stuck. It's like having a mentor available 24/7.",
@@ -27,7 +27,7 @@ const TestimonialsSection = () => {
       role: "Asssiant Professor",
     },
     {
-      imageSrc: "/api/placeholder/150/150",
+      imageSrc: "../../public/dipika.jpg",
       altText: "Prof. Deepika Shukla",
       quote:
         "The interactive lessons are engaging and fun. I can't wait to see what I'll create next!",
@@ -36,7 +36,7 @@ const TestimonialsSection = () => {
       role: "Computer Science Major",
     },
     {
-      imageSrc: "/api/placeholder/150/150",
+      imageSrc: "../../public/alam.jpg",
       altText: "Md Mohtab Alam",
       quote:
         "Learning to code changed my career path. I was a teacher, and now I work as a full-stack developer.",
@@ -44,15 +44,15 @@ const TestimonialsSection = () => {
       role: "Assistant Professor",
     },
     {
-      imageSrc: "/api/placeholder/150/150",
-      altText: "Prof. Santoosh prasad",
+      imageSrc: "../../public/santosh.jpg",
+      altText: "Prof. Santosh prasad",
       quote:
         "I love the interactive lessons and challenges. The faculty is knowledgeable and supportive throughout the learning process.",
-      name: "Prof. Santoosh prasad",
+      name: "Prof. Santosh prasad",
       role: "Assistant Professor",
     },
     {
-      imageSrc: "/api/placeholder/150/150",
+      imageSrc: "../../public/surbhi.jpg",
       altText: "Prof. Surbhi Rani",
       quote:
         "The faculty is knowledgeable and supportive. They provide helpful feedback and guidance.",
