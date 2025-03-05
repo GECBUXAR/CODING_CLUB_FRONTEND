@@ -12,43 +12,52 @@ const TestimonialsSection = () => {
   const testimonials = [
     {
       imageSrc: "/api/placeholder/150/150",
-      altText: "Liza Furgezan",
+      altText: "Dr. Chandra Shekar",
       quote:
         "Creating web games was easier than I thought. The step-by-step tutorials made complex concepts accessible.",
-      name: "Liza Furgezan",
-      role: "Game Development Student",
+      name: "Dr. Chandra Shekar",
+      role: "Computer Science Professor  & Head of Department",
     },
     {
       imageSrc: "/api/placeholder/150/150",
-      altText: "Mark Anderson",
+      altText: "Dr. Rina Kumari",
       quote:
         "The chat with the tutors is good because I can get help as soon as I get stuck. It's like having a mentor available 24/7.",
-      name: "Mark Anderson",
-      role: "Web Development Bootcamp",
+      name: "Dr. Rina Kumari",
+      role: "Asssiant Professor",
     },
     {
       imageSrc: "/api/placeholder/150/150",
-      altText: "Emily Cleara",
+      altText: "Prof. Deepika Shukla",
       quote:
-        "It's like solving a puzzle. Coding is fun, and the interactive challenges keep me motivated to learn more.",
-      name: "Emily Cleara",
+        "The interactive lessons are engaging and fun. I can't wait to see what I'll create next!",
+     
+      name: "Prof. Deepika Shukla",
       role: "Computer Science Major",
     },
     {
       imageSrc: "/api/placeholder/150/150",
-      altText: "John Doe",
+      altText: "Md Mohtab Alam",
       quote:
         "Learning to code changed my career path. I was a teacher, and now I work as a full-stack developer.",
-      name: "John Doe",
-      role: "Career Switcher",
+      name: "Md Mohtab Alam",
+      role: "Assistant Professor",
     },
     {
       imageSrc: "/api/placeholder/150/150",
-      altText: "Jane Smith",
+      altText: "Prof. Santoosh prasad",
       quote:
         "I love the interactive lessons and challenges. The faculty is knowledgeable and supportive throughout the learning process.",
-      name: "Jane Smith",
-      role: "Data Science Student",
+      name: "Prof. Santoosh prasad",
+      role: "Assistant Professor",
+    },
+    {
+      imageSrc: "/api/placeholder/150/150",
+      altText: "Prof. Surbhi Rani",
+      quote:
+        "The faculty is knowledgeable and supportive. They provide helpful feedback and guidance.",
+      name: "Prof. Surbhi Rani",
+      role: "Assistant Professor",
     },
   ];
 
