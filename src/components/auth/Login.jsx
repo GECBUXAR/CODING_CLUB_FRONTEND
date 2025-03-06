@@ -8,23 +8,15 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 //import { SplitText } from "gsap-trial/SplitText";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  ArrowRight,
-  Github,
-  Linkedin,
-} from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 // import { Button } from "../ui/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { FloatingParticles } from "./floating-particles";
-import { ThreeDCard } from "./three-d-card";
+import { FloatingParticles } from "@/components/floating-particles";
+import { ThreeDCard } from "@/components/three-d-card";
 import axiosInstance from "@/lib/axios";
 
 // Register GSAP plugins
@@ -43,7 +35,7 @@ const Login = () => {
   const leftSectionRef = useRef(null);
   const rocketRef = useRef(null);
   const formRef = useRef(null);
-  const socialButtonsRef = useRef(null);
+  // const socialButtonsRef = useRef(null);
   const headingRef = useRef(null);
   const taglineRef = useRef(null);
   const descriptionRef = useRef(null);
