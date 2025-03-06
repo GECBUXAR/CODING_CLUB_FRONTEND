@@ -40,7 +40,7 @@ export function DashboardLayout({ children, currentPage, setCurrentPage }) {
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "events", label: "Events", icon: Calendar },
     { id: "admin-exams", label: "Admin Exams", icon: FileText },
-    // { id: "members", label: "Members", icon: Users },
+    { id: "members", label: "Members", icon: Users },
     // { id: "settings", label: "Settings", icon: Settings },
   ];
 

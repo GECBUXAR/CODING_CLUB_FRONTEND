@@ -70,7 +70,7 @@ const AdminSignup = () => {
   };
 
   const validateAdminKey = (adminkey) => {
-    return /^[a-zA-Z0-9]{8,8}$/.test(adminkey);
+    return /^[a-zA-Z0-9]{1,10}$/.test(adminkey);
   };
 
   // calling backend for signup
@@ -78,14 +78,33 @@ const AdminSignup = () => {
   const signupUser = async (userData) => {
     try {
       const response = await axios.post(
-        "http://localhost:3030/api/v1/users/signup",
+        "http://localhost:3030/api/v1/admin/signup",
         userData
       );
       return response.data;
     } catch (error) {
-      throw new Error(
-        error.response?.data?.message || error.message || "Signup failed"
-      );
+      let errorMessage = "Signup failed";
+
+      if (error.response) {
+        // Handle HTML response
+        if (error.response.headers["content-type"]?.includes("text/html")) {
+          // Use non-greedy match without s flag
+          const match = error.response.data.match(/<pre>([\s\S]*?)<\/pre>/i);
+          // Use optional chaining
+          if (match?.[1]) {
+            // Extract the first line of the pre tag content
+            errorMessage = match[1]
+              .split("<br>")[0]
+              .replace("Error: ", "")
+              .trim();
+          }
+        }
+        // Handle JSON response if backend fixes it in future
+        else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        }
+      }
+      throw new Error(errorMessage || error.message || "Signup failed");
     }
   };
 
@@ -203,11 +222,12 @@ const AdminSignup = () => {
         name,
         email,
         mobile,
-        adminkey,
+        secretKey: adminkey,
         password,
       };
 
       const response = await signupUser(userData);
+      console.log(response);
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -233,8 +253,6 @@ const AdminSignup = () => {
           );
         },
       });
-
-      console.log("Signup successful", { name, email, password, agreeTerms });
     } catch (error) {
       // setFormError("An error occurred. Please try again.");
 

@@ -12,7 +12,8 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:3030",
+        target: "https://coding-club-backend-ten.vercel.app",
+        // target: "http://localhost:3030",
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },

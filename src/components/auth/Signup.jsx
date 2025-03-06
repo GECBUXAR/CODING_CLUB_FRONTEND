@@ -48,7 +48,7 @@ const Signup = () => {
   const leftSectionRef = useRef(null);
   const spaceshipRef = useRef(null);
   const formRef = useRef(null);
-  const socialButtonsRef = useRef(null);
+  // const socialButtonsRef = useRef(null);
   const headingRef = useRef(null);
   const taglineRef = useRef(null);
   const descriptionRef = useRef(null);
@@ -74,9 +74,28 @@ const Signup = () => {
       const response = await axiosInstance.post("/users/signup", userData);
       return response.data;
     } catch (error) {
-      throw new Error(
-        error.response?.data?.message || error.message || "Signup failed"
-      );
+      let errorMessage = "Signup failed";
+
+      if (error.response) {
+        // Handle HTML response
+        if (error.response.headers["content-type"]?.includes("text/html")) {
+          // Use non-greedy match without s flag
+          const match = error.response.data.match(/<pre>([\s\S]*?)<\/pre>/i);
+          // Use optional chaining
+          if (match?.[1]) {
+            // Extract the first line of the pre tag content
+            errorMessage = match[1]
+              .split("<br>")[0]
+              .replace("Error: ", "")
+              .trim();
+          }
+        }
+        // Handle JSON response if backend fixes it in future
+        else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        }
+      }
+      throw new Error(errorMessage || error.message || "Signup failed");
     }
   };
 
@@ -201,6 +220,7 @@ const Signup = () => {
       };
 
       const response = await signupUser(userData);
+      console.log(response);
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -226,8 +246,6 @@ const Signup = () => {
           );
         },
       });
-
-      console.log("Signup successful", { name, email, password, agreeTerms });
     } catch (error) {
       // setFormError("An error occurred. Please try again.");
 
