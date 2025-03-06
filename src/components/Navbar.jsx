@@ -27,6 +27,11 @@ const Navbar = () => {
       icon: <FaCalendarAlt className="w-4 h-4" />,
     },
     {
+      id: "/exams",
+      label: "EXAMS",
+      icon: <FaCalendarAlt className="w-4 h-4" />,
+    },
+    {
       id: "curriculum",
       label: "CURRICULUM",
       icon: <FaBook className="w-4 h-4" />,
@@ -220,11 +225,9 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         {/* Logo */}
         <Link to={"/"}>
-          <a
+          <span
             ref={logoRef}
-            href="#home"
             className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-all duration-300 flex items-center group"
-
           >
             <div className="w-10 h-10 rounded-lg  flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform duration-300">
               <img
@@ -242,25 +245,25 @@ const Navbar = () => {
               />
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
             </span>
-          </a>
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link, index) => (
-            <a
+            <span
               key={link.id}
-              ref={(el) => (linksRef.current[index] = el)}
-              href={`#${link.id}`}
+              // ref={(el) => (linksRef.current[index] = el)}
+              // href={`#${link.id}`}
               className={`group relative font-medium text-sm tracking-wider flex items-center gap-2 ${
                 activeLink === link.id
                   ? "text-blue-600"
                   : "text-gray-700 hover:text-blue-500"
               } transition-colors duration-300`}
-              onClick={(e) => {
-                e.preventDefault();
-                handleLinkClick(link.id, e);
-              }}
+              // onClick={(e) => {
+              //   e.preventDefault();
+              //   handleLinkClick(link.id, e);
+              // }}
             >
               <Link to={link.id} className="flex items-center gap-2">
                 <span
@@ -279,7 +282,7 @@ const Navbar = () => {
                   }`}
                 ></span>
               </Link>
-            </a>
+            </span>
           ))}
           <Link to="/login">
             <button
@@ -325,24 +328,19 @@ const Navbar = () => {
       >
         <div className="flex flex-col items-center gap-4 p-6">
           {navLinks.map((link) => (
-            <a
+            <span
               key={link.id}
-              href={`#${link.id}`}
               className={`text-lg font-medium flex items-center gap-2 ${
                 activeLink === link.id
                   ? "text-blue-600"
                   : "text-gray-700 hover:text-blue-500"
               } transition-colors duration-300`}
-              onClick={(e) => {
-                e.preventDefault();
-                handleLinkClick(link.id, e);
-              }}
             >
               <Link to={link.id} className="flex items-center gap-2">
                 {React.cloneElement(link.icon, { className: "w-5 h-5" })}
                 <span>{link.label}</span>
               </Link>
-            </a>
+            </span>
           ))}
           <Link to="/login">
             <button
@@ -356,7 +354,7 @@ const Navbar = () => {
       </div>
 
       {/* Mobile menu overlay */}
-      <div
+      <button
         ref={overlayRef}
         className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden hidden"
         style={{ opacity: 0 }}
