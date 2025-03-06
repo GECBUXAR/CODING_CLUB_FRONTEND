@@ -34,9 +34,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { EventModal } from "@/components/event-modal";
-import { UploadResultsModal } from "@/components/upload-results-modal";
-import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
+import { EventModal } from "@/components/admin/event-modal";
+import { UploadResultsModal } from "@/components/admin/upload-results-modal";
+import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
 
 export function EventsPage() {
   const [events, setEvents] = useState([

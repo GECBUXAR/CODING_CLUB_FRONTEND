@@ -35,10 +35,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
-import { ExamFormModal } from "@/components/exam-form-modal";
-import { QuestionFormModal } from "@/components/question-form-modal";
-import { ExamSettingsModal } from "@/components/exam-settings-modal";
+import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
+import { ExamFormModal } from "@/components/admin/exam-form-modal";
+import { QuestionFormModal } from "@/components/admin/question-form-modal";
+import { ExamSettingsModal } from "@/components/admin/exam-settings-modal";
 
 export function AdminExamPanel() {
   const [exams, setExams] = useState([
