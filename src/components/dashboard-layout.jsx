@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Calendar, LayoutDashboard, Settings, Users } from "lucide-react";
+import {
+  Calendar,
+  LayoutDashboard,
+  Settings,
+  Users,
+  FileText,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -33,6 +39,7 @@ export function DashboardLayout({ children, currentPage, setCurrentPage }) {
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "events", label: "Events", icon: Calendar },
+    { id: "admin-exams", label: "Admin Exams", icon: FileText },
     // { id: "members", label: "Members", icon: Users },
     // { id: "settings", label: "Settings", icon: Settings },
   ];
