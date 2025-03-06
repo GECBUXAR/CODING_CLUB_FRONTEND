@@ -113,7 +113,7 @@ export function UserExamPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">My Exams</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-indigo-600">My Exams</h2>
         <p className="text-muted-foreground">
           View and take your coding club exams
         </p>
@@ -169,10 +169,10 @@ export function UserExamPanel() {
                   </CardContent>
                   <CardFooter>
                     <Button
-                      className="w-full"
+                      className="w-full bg-indigo-600 hover:bg-indigo-700"
                       onClick={() => handleStartExam(exam)}
                     >
-                      Start Exam <ArrowRight className="ml-2 h-4 w-4" />
+                      Start Exam  <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </CardFooter>
                 </Card>
