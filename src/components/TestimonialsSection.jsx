@@ -11,23 +11,23 @@ const TestimonialsSection = () => {
   // Enhanced testimonials data
   const testimonials = [
     {
-      imageSrc: "../../public/rajshekar.jpg",
+      imageSrc: "../../rajshekar.jpg",
       altText: "Dr. Chandra Shekar",
       quote:
-        "Creating web games was easier than I thought. The step-by-step tutorials made complex concepts accessible.",
+        "The expect in anything was once a beginner. so, keep learning and keep growing. I'm excited to help you learn to code. ",
       name: "Dr. Chandra Shekar",
       role: "Computer Science Professor  & Head of Department",
     },
     {
-      imageSrc: "../../public/rina.jpg",
+      imageSrc: "../../rina.jpg",
       altText: "Dr. Rina Kumari",
       quote:
-        "The chat with the tutors is good because I can get help as soon as I get stuck. It's like having a mentor available 24/7.",
+        "The science of today is the technology of tomorrow. I'm excited to help you learn to code and create your own projects.",
       name: "Dr. Rina Kumari",
       role: "Asssiant Professor",
     },
     {
-      imageSrc: "../../public/dipika.jpg",
+      imageSrc: "../../dipika.jpg",
       altText: "Prof. Deepika Shukla",
       quote:
         "The interactive lessons are engaging and fun. I can't wait to see what I'll create next!",
@@ -36,26 +36,26 @@ const TestimonialsSection = () => {
       role: "Computer Science Major",
     },
     {
-      imageSrc: "../../public/alam.jpg",
+      imageSrc: "../../alam.jpg",
       altText: "Md Mohtab Alam",
       quote:
-        "Learning to code changed my career path. I was a teacher, and now I work as a full-stack developer.",
+        "Programming isn't as hard as I thought. The lessons are broken down into manageable chunks, which makes learning to code less intimidating.",
       name: "Md Mohtab Alam",
       role: "Assistant Professor",
     },
     {
-      imageSrc: "../../public/santosh.jpg",
+      imageSrc: "../../santosh.jpg",
       altText: "Prof. Santosh prasad",
       quote:
-        "I love the interactive lessons and challenges. The faculty is knowledgeable and supportive throughout the learning process.",
+        "I love the interactive lessons and challenges. As a faculty member, I will share my experiences and thoughts with you during your learning journey.",
       name: "Prof. Santosh prasad",
       role: "Assistant Professor",
     },
     {
-      imageSrc: "../../public/surbhi.jpg",
+      imageSrc: "../../shurbhi.jpg",
       altText: "Prof. Surbhi Rani",
       quote:
-        "The faculty is knowledgeable and supportive. They provide helpful feedback and guidance.",
+        "Programming is a valuable skill to learn. I'm excited to help you learn to code and create your own projects.",
       name: "Prof. Surbhi Rani",
       role: "Assistant Professor",
     },
