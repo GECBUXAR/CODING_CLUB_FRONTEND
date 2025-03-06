@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -10,8 +10,6 @@ import {
   Lock,
   User,
   ArrowRight,
-  Github,
-  Linkedin,
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,9 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { FloatingParticles } from "./floating-particles";
-import { ThreeDCard } from "./three-d-card";
-import { ProgressBar } from "./progress-bar";
+import { FloatingParticles } from "@/components/floating-particles";
+import { ThreeDCard } from "@/components/three-d-card";
+import { ProgressBar } from "@/components/progress-bar";
 import axiosInstance from "@/lib/axios";
 
 gsap.registerPlugin(ScrollTrigger);

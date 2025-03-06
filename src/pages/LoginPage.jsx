@@ -1,6 +1,4 @@
-import React from "react";
-import { NavLink, Link } from "react-router";
-import Login from "../components/Login.jsx";
+import Login from "../components/auth/Login.jsx";
 
 const LoginPage = () => {
   return (

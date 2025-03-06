@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { DashboardLayout } from "@/components/dashboard-layout";
-import { DashboardOverview } from "@/components/dashboard-overview";
-import { EventsPage } from "@/components/events-page";
-import { AdminExamPanel } from "@/components/admin-exam-panel";
-// import { MembersPage } from "@/components/members-page"
-// import { SettingsPage } from "@/components/settings-page"
+import { DashboardLayout } from "@/components/admin/dashboard-layout";
+import { DashboardOverview } from "@/components/admin/dashboard-overview";
+import { EventsPage } from "@/components/admin/events-page";
+import { AdminExamPanel } from "@/components/admin/admin-exam-panel";
+// import { MembersPage } from "@/components/admin/members-page"
+// import { SettingsPage } from "@/components/admin/settings-page"
 
 export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState("dashboard");
