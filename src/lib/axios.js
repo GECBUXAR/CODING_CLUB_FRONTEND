@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:3030/api/v1",
+  // baseURL: "http://localhost:3030/api/v1",
+  baseURL: "https://coding-club-backend-ten.vercel.app/api/v1",
   timeout: 10000,
 });
 axiosInstance.interceptors.request.use(
