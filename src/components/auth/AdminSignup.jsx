@@ -75,11 +75,11 @@ const AdminSignup = () => {
 
   // calling backend for signup
 
-  const signupUser = async (userData) => {
+  const signupUser = async (adminData) => {
     try {
       const response = await axios.post(
         "http://localhost:3030/api/v1/admin/signup",
-        userData
+        adminData
       );
       return response.data;
     } catch (error) {
