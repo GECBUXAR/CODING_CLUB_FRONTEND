@@ -1,4 +1,4 @@
-import Login from "../components/auth/Login.jsx";
+import Login from "../../components/auth/LoginFrom.jsx";
 
 const LoginPage = () => {
   return (

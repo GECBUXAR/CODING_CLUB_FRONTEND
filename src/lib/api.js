@@ -1,7 +1,8 @@
 import { corsProxy } from "@/utils/cors-proxy";
 
-// Use localhost for development
-const API_BASE_URL = "http://localhost:39303/api/v1";
+// Update the API base URL - hardcoding for simplicity
+// In production, should use https://coding-club-backend-ten.vercel.app/api/v1
+const API_BASE_URL = "http://localhost:3030/api/v1";
 
 // API timeout in milliseconds - increased to give more time for slow development environments
 const API_TIMEOUT = 5000;

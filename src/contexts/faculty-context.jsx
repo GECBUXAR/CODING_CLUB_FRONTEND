@@ -10,9 +10,12 @@ import React, {
 } from "react";
 import axios from "axios";
 
-// API base URL and timeout - match the values from api.js
-const API_BASE_URL = "http://localhost:39303/api/v1";
-const API_TIMEOUT = 5000; // Increased to 5 seconds
+// Replace the incorrect API_BASE_URL with the correct one
+// In production, should use https://coding-club-backend-ten.vercel.app/api/v1
+const API_BASE_URL = "http://localhost:3030/api/v1";
+
+// 15-minute timeout for API requests
+const API_TIMEOUT = 15 * 60 * 1000;
 
 // Helper function to detect offline development mode - same as in api.js
 const isLikelyOfflineDevelopment = () => {
@@ -241,7 +244,7 @@ export function FacultyProvider({ children }) {
 
       dispatch({
         type: ActionTypes.FETCH_TESTIMONIALS_SUCCESS,
-        payload: result.data,
+        payload: result.data.data || result.data, // Handle both formats
       });
     } catch (error) {
       console.error("Error fetching testimonials:", error);

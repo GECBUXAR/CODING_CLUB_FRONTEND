@@ -1,12 +1,85 @@
-# React + Vite
+# Coding Club Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern web application for managing coding club activities, exams, and user interactions.
 
-Currently, two official plugins are available:
+## File Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The project follows a well-organized structure:
 
-## Expanding the ESLint configuration
+```
+src/
+├── assets/               # Static assets
+│   ├── images/           # Image files
+│   └── icons/            # Icon files
+├── components/           # Reusable components
+│   ├── auth/             # Authentication components
+│   ├── common/           # Shared components
+│   ├── dashboard/        # Dashboard components
+│   ├── exams/            # Exam-related components
+│   ├── layout/           # Layout components (Footer, Container)
+│   ├── navigation/       # Navigation components
+│   └── ui/               # UI components (buttons, inputs, etc.)
+├── contexts/             # React context providers
+│   ├── auth-context.jsx  # Authentication context
+│   ├── exam-context.jsx  # Exam data context
+│   └── ...               # Other contexts
+├── hooks/                # Custom React hooks
+├── pages/                # Page components
+│   ├── admin/            # Admin pages
+│   ├── auth/             # Authentication pages
+│   ├── common/           # Public pages
+│   ├── errors/           # Error pages
+│   └── user/             # User pages
+├── services/             # API services
+├── styles/               # Global styles
+├── utils/                # Utility functions
+├── App.jsx               # Main App component
+├── main.jsx              # Entry point
+└── routes.jsx            # Application routes
+```
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Getting Started
+
+### Prerequisites
+
+- Node.js 16.x or higher
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies
+
+```bash
+npm install
+# or
+yarn
+```
+
+3. Start the development server
+
+```bash
+npm run dev
+# or
+yarn dev
+```
+
+## Features
+
+- Role-based access control (Student, Admin)
+- User authentication
+- Exam management
+- User progress tracking
+- Responsive design
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
