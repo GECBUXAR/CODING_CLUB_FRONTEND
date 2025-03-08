@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Plus,
   Search,
@@ -10,6 +10,15 @@ import {
   Check,
   X,
   Settings,
+  Users,
+  Filter,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  MoreVertical,
+  AlertTriangle,
+  CheckCircle,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +27,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +36,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import {
   Table,
@@ -39,355 +52,675 @@ import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation
 import { ExamFormModal } from "@/components/admin/exam-form-modal";
 import { QuestionFormModal } from "@/components/admin/question-form-modal";
 import { ExamSettingsModal } from "@/components/admin/exam-settings-modal";
+import { ExamResponsesPanel } from "@/components/admin/exam-responses-panel";
+import { ExamProvider, useExamContext } from "@/contexts/exam-context";
+import { useNotification } from "@/contexts/notification-context";
+import { getExams, deleteExam } from "@/lib/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
+// ErrorFallback component to display when errors occur
+function ErrorFallback({ error }) {
+  return (
+    <div className="p-8 text-center">
+      <h2 className="text-2xl font-bold text-red-600 mb-4">
+        Something went wrong
+      </h2>
+      <p className="mb-4">{error?.message || "An unexpected error occurred"}</p>
+      <Button
+        onClick={() => window.location.reload()}
+        variant="default"
+        size="default"
+        className="px-4 py-2"
+      >
+        Try Again
+      </Button>
+    </div>
+  );
+}
+
+// SafeComponent to handle context errors
+function SafeComponent({ fallback, render }) {
+  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (hasError) {
+      // Log the error
+      console.error("Error in SafeComponent:", error);
+    }
+  }, [hasError, error]);
+
+  if (hasError) {
+    return fallback(error);
+  }
+
+  try {
+    return render();
+  } catch (err) {
+    setHasError(true);
+    setError(err);
+    return fallback(err);
+  }
+}
+
+// Wrapper component that provides the ExamContext
 export function AdminExamPanel() {
-  const [exams, setExams] = useState([
-    {
-      id: 1,
-      title: "JavaScript Fundamentals",
-      description: "Test your knowledge of JavaScript basics",
-      timeLimit: 60, // in minutes
-      questionCount: 15,
-      status: "draft",
-      createdAt: "2025-02-10",
-      settings: {
-        randomizeQuestions: false,
-        showResultsImmediately: true,
-        passingScore: 70,
-        allowRetakes: false,
-      },
-    },
-    {
-      id: 2,
-      title: "React Components",
-      description: "Assessment on React component patterns and lifecycle",
-      timeLimit: 45,
-      questionCount: 10,
-      status: "published",
-      createdAt: "2025-02-15",
-      settings: {
-        randomizeQuestions: true,
-        showResultsImmediately: false,
-        passingScore: 75,
-        allowRetakes: false,
-      },
-    },
-    {
-      id: 3,
-      title: "CSS Grid & Flexbox",
-      description: "Test your layout skills with CSS Grid and Flexbox",
-      timeLimit: 30,
-      questionCount: 8,
-      status: "published",
-      createdAt: "2025-02-20",
-      settings: {
-        randomizeQuestions: true,
-        showResultsImmediately: true,
-        passingScore: 60,
-        allowRetakes: true,
-      },
-    },
-    {
-      id: 4,
-      title: "Python Basics",
-      description: "Introduction to Python programming language",
-      timeLimit: 60,
-      questionCount: 20,
-      status: "completed",
-      createdAt: "2025-01-15",
-      settings: {
-        randomizeQuestions: false,
-        showResultsImmediately: false,
-        passingScore: 65,
-        allowRetakes: false,
-      },
-    },
-  ]);
+  return (
+    <div className="container mx-auto p-4">
+      <ExamProvider>
+        <SafeComponent
+          fallback={(error) => <ErrorFallback error={error} />}
+          render={() => <AdminExamPanelContent />}
+        />
+      </ExamProvider>
+    </div>
+  );
+}
 
-  const [searchQuery, setSearchQuery] = useState("");
+// Content component that consumes the ExamContext
+function AdminExamPanelContent() {
+  // All hooks at the top level - NEVER inside conditions
+  const examContext = useExamContext();
+  const { showNotification } = useNotification();
+
+  // Component state
+  const [currentExam, setCurrentExam] = useState(null);
   const [isExamModalOpen, setIsExamModalOpen] = useState(false);
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentExam, setCurrentExam] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isResponsePanelOpen, setIsResponsePanelOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("all");
 
-  // All handler functions remain the same without type annotations
-  const handleAddExam = () => {
-    setCurrentExam(null);
+  // Destructure safely
+  const { state, dispatch, getExamById } = examContext || {};
+  const exams = state?.exams || [];
+
+  // Filter exams based on search query and status
+  const filteredExams = exams.filter((exam) => {
+    const matchesSearch = exam?.title
+      ?.toLowerCase()
+      .includes(searchQuery?.toLowerCase() || "");
+    const matchesStatus =
+      selectedStatus === "all" || exam?.status === selectedStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const statusOptions = [
+    { value: "all", label: "All Statuses" },
+    { value: "published", label: "Published" },
+    { value: "draft", label: "Draft" },
+    { value: "closed", label: "Closed" },
+  ];
+
+  // Calculate some stats
+  const examStats = {
+    total: exams.length,
+    published: exams.filter((exam) => exam.status === "published").length,
+    draft: exams.filter((exam) => exam.status === "draft").length,
+    closed: exams.filter((exam) => exam.status === "closed").length,
+  };
+
+  // Fetch exams on component mount
+  useEffect(() => {
+    const fetchExamsData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        setIsOfflineMode(false);
+
+        // Try to fetch from API
+        const response = await getExams();
+
+        if (response?.success) {
+          // Use data from API
+          dispatch({
+            type: "SET_EXAMS",
+            payload: response.data || [],
+          });
+          console.log("Successfully loaded exams from API");
+        } else {
+          // Check if we're in development with fallback data
+          if (response?.usingFallbackData) {
+            console.log("Using sample data for development testing");
+          } else {
+            console.warn(
+              "Failed to fetch exams from API, using sample data",
+              response?.error || ""
+            );
+          }
+
+          // Set offline mode flag
+          setIsOfflineMode(true);
+
+          // Show offline mode notification to user
+          if (typeof showNotification === "function") {
+            showNotification(
+              "Using local sample data for testing",
+              "info",
+              3000
+            );
+          }
+        }
+      } catch (error) {
+        console.warn("Error fetching exams, using sample data:", error);
+
+        // Set offline mode flag
+        setIsOfflineMode(true);
+
+        // Show offline mode notification to user
+        if (typeof showNotification === "function") {
+          showNotification("Using local sample data for testing", "info", 3000);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExamsData();
+  }, [dispatch, showNotification]);
+
+  // Error fallback
+  if (error) {
+    return <ErrorFallback error={error} />;
+  }
+
+  // Function to handle editing an exam
+  const handleEditExam = (examId) => {
+    setCurrentExam(getExamById(examId));
     setIsExamModalOpen(true);
   };
 
-  const handleEditExam = (exam) => {
-    setCurrentExam(exam);
-    setIsExamModalOpen(true);
+  // Function to handle deleting an exam
+  const handleDeleteExam = async () => {
+    if (!currentExam) return;
+
+    try {
+      const response = await deleteExam(currentExam.id);
+
+      if (response.success) {
+        dispatch({
+          type: "DELETE_EXAM",
+          payload: currentExam.id,
+        });
+
+        // Check if showNotification is a function before calling it
+        if (typeof showNotification === "function") {
+          showNotification("Exam deleted successfully", "success");
+        } else {
+          // Fallback notification method - just console log for now
+          console.log("Success: Exam deleted successfully");
+        }
+      } else {
+        throw new Error(response.error || "Failed to delete exam");
+      }
+    } catch (error) {
+      console.error("Error deleting exam:", error);
+
+      // Safely handle notification
+      if (typeof showNotification === "function") {
+        showNotification(`Error: ${error.message}`, "error");
+      } else {
+        // Fallback alert in development
+        console.error(`Failed to delete exam: ${error.message}`);
+
+        // If in development, we know it's likely a timeout - give more helpful message
+        if (error.message.includes("timed out")) {
+          alert(
+            "Development mode: Exam deleted from local state (API timeout expected)"
+          );
+
+          // Still update the local state in development mode
+          dispatch({
+            type: "DELETE_EXAM",
+            payload: currentExam.id,
+          });
+        }
+      }
+    } finally {
+      setIsDeleteModalOpen(false);
+    }
   };
 
-  const handleDeleteExam = (exam) => {
-    setCurrentExam(exam);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleAddQuestions = (exam) => {
-    setCurrentExam(exam);
+  // Function to handle adding questions to an exam
+  const handleAddQuestions = (examId) => {
+    setCurrentExam(getExamById(examId));
     setIsQuestionModalOpen(true);
   };
 
-  const handleEditSettings = (exam) => {
-    setCurrentExam(exam);
-    setIsSettingsModalOpen(true);
-  };
+  // Function to test API connection
+  const handleTestConnection = async () => {
+    try {
+      setIsTestingConnection(true);
+      const { checkApiConnection } = await import("@/lib/api");
+      const result = await checkApiConnection();
 
-  const handlePublishExam = (exam) => {
-    setExams(
-      exams.map((e) =>
-        e.id === exam.id
-          ? { ...e, status: e.status === "draft" ? "published" : "draft" }
-          : e
-      )
-    );
-  };
-
-  const handlePublishResults = (exam) => {
-    console.log(`Publishing results for ${exam.title}`);
-    alert(`Results for "${exam.title}" have been published to users.`);
-  };
-
-  const confirmDeleteExam = () => {
-    if (currentExam) {
-      setExams(exams.filter((exam) => exam.id !== currentExam.id));
-      setIsDeleteDialogOpen(false);
-    }
-  };
-
-  const handleSaveExam = (examData) => {
-    if (currentExam) {
-      setExams(
-        exams.map((exam) =>
-          exam.id === currentExam.id ? { ...exam, ...examData } : exam
-        )
-      );
-    } else {
-      const newExam = {
-        id: exams.length + 1,
-        ...examData,
-        questionCount: 0,
-        status: "draft",
-        createdAt: new Date().toISOString().split("T")[0],
-        settings: {
-          randomizeQuestions: false,
-          showResultsImmediately: true,
-          passingScore: 70,
-          allowRetakes: false,
-        },
-      };
-      setExams([...exams, newExam]);
-    }
-    setIsExamModalOpen(false);
-  };
-
-  const handleSaveQuestions = (questions) => {
-    if (currentExam) {
-      setExams(
-        exams.map((exam) =>
-          exam.id === currentExam.id
-            ? { ...exam, questionCount: questions.length }
-            : exam
-        )
-      );
-    }
-    setIsQuestionModalOpen(false);
-  };
-
-  const handleSaveSettings = (settings) => {
-    if (currentExam) {
-      setExams(
-        exams.map((exam) =>
-          exam.id === currentExam.id ? { ...exam, settings } : exam
-        )
-      );
-    }
-    setIsSettingsModalOpen(false);
-  };
-
-  const filteredExams = exams.filter(
-    (exam) =>
-      exam.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      exam.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "draft":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-yellow-50 text-yellow-700 border-yellow-200"
-          >
-            Draft
-          </Badge>
+      if (result.online) {
+        showNotification(
+          "API connection successful! Try reloading the page.",
+          "success"
         );
-      case "published":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-blue-50 text-blue-700 border-blue-200"
-          >
-            Published
-          </Badge>
-        );
-      case "completed":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-green-50 text-green-700 border-green-200"
-          >
-            Completed
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+        setIsOfflineMode(false);
+      } else {
+        showNotification("API still unavailable. Using sample data.", "info");
+      }
+    } catch (error) {
+      console.error("Error testing connection:", error);
+      showNotification("Error testing connection", "error");
+    } finally {
+      setIsTestingConnection(false);
     }
   };
+
+  // Function to handle viewing responses for an exam
+  const handleViewResponses = (examId) => {
+    setCurrentExam(getExamById(examId));
+    setIsResponsePanelOpen(true);
+  };
+
+  // Main render for the admin exam panel
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Exams</h2>
-        <Button onClick={handleAddExam}>
-          <Plus className="mr-2 h-4 w-4" /> Create Exam
+    <div className="space-y-6 pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800">Exam Management</h1>
+          <p className="text-slate-500 mt-1">
+            Create, manage and monitor assessment exams
+          </p>
+        </div>
+
+        <Button
+          onClick={() => {
+            setCurrentExam(null);
+            setIsExamModalOpen(true);
+          }}
+          size="default"
+          variant="default"
+          className="shadow-sm"
+        >
+          <Plus className="mr-2 h-4 w-4" /> Create New Exam
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Exams</CardTitle>
-          <CardDescription>
-            Manage coding club exams and assessments
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center mb-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      {isOfflineMode && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4 text-sm">
+          <div className="flex items-center">
+            <AlertTriangle className="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-blue-700 font-medium text-sm mb-1">
+                Development Mode
+              </p>
+              <p className="text-blue-600 text-sm mb-2">
+                Using local sample data for testing. Changes will not be saved
+                to a server.
+              </p>
+              <div className="flex">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs h-7 bg-white"
+                  onClick={handleTestConnection}
+                  disabled={isTestingConnection}
+                >
+                  {isTestingConnection ? (
+                    <span className="flex items-center">
+                      <span className="animate-spin h-3 w-3 mr-2 border-t-2 border-blue-500 border-r-2 rounded-full" />
+                      Testing...
+                    </span>
+                  ) : (
+                    "Test API Connection"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isResponsePanelOpen && currentExam ? (
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">
+              Responses for: {currentExam.title}
+            </h2>
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-3"
+              onClick={() => setIsResponsePanelOpen(false)}
+            >
+              Back to Exams
+            </Button>
+          </div>
+          <ExamResponsesPanel examId={currentExam.id} />
+        </div>
+      ) : (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <StatCard
+              title="Total Exams"
+              value={examStats.total}
+              icon={<FileText className="h-5 w-5 text-indigo-500" />}
+              bgColor="bg-indigo-50"
+              textColor="text-indigo-700"
+            />
+            <StatCard
+              title="Published"
+              value={examStats.published}
+              icon={<CheckCircle className="h-5 w-5 text-green-500" />}
+              bgColor="bg-green-50"
+              textColor="text-green-700"
+            />
+            <StatCard
+              title="Draft"
+              value={examStats.draft}
+              icon={<Edit className="h-5 w-5 text-amber-500" />}
+              bgColor="bg-amber-50"
+              textColor="text-amber-700"
+            />
+            <StatCard
+              title="Closed"
+              value={examStats.closed}
+              icon={<Lock className="h-5 w-5 text-slate-500" />}
+              bgColor="bg-slate-100"
+              textColor="text-slate-700"
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+            <div className="relative w-full sm:w-auto flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                type="search"
                 placeholder="Search exams..."
-                className="pl-8"
+                className="pl-9 h-10 w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-full sm:w-[180px] h-10">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent className="min-w-[180px]">
+                {statusOptions.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="capitalize"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Exam Title</TableHead>
-                <TableHead>Questions</TableHead>
-                <TableHead>Time Limit</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center my-16 space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
+              <p className="text-slate-500">Loading exams...</p>
+            </div>
+          ) : filteredExams.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredExams.map((exam) => (
-                <TableRow key={exam.id}>
-                  <TableCell className="font-medium">
-                    <div>
-                      <div>{exam.title}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {exam.description}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{exam.questionCount}</TableCell>
-                  <TableCell>{exam.timeLimit} min</TableCell>
-                  <TableCell>{getStatusBadge(exam.status)}</TableCell>
-                  <TableCell>{exam.createdAt}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <FileText className="h-4 w-4" />
-                          <span className="sr-only">Actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditExam(exam)}>
-                          <Edit className="mr-2 h-4 w-4" /> Edit Exam
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleAddQuestions(exam)}
-                        >
-                          <Plus className="mr-2 h-4 w-4" /> Manage Questions
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleEditSettings(exam)}
-                        >
-                          <Settings className="mr-2 h-4 w-4" /> Exam Settings
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handlePublishExam(exam)}
-                        >
-                          {exam.status === "draft" ? (
-                            <>
-                              <Check className="mr-2 h-4 w-4" /> Publish Exam
-                            </>
-                          ) : exam.status === "published" ? (
-                            <>
-                              <X className="mr-2 h-4 w-4" /> Unpublish Exam
-                            </>
-                          ) : null}
-                        </DropdownMenuItem>
-                        {exam.status === "completed" && (
-                          <DropdownMenuItem
-                            onClick={() => handlePublishResults(exam)}
-                          >
-                            <Check className="mr-2 h-4 w-4" /> Publish Results
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteExam(exam)}
-                        >
-                          <Trash className="mr-2 h-4 w-4" /> Delete Exam
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                <ExamCard
+                  key={exam.id}
+                  exam={exam}
+                  onEdit={() => handleEditExam(exam.id)}
+                  onAddQuestions={() => handleAddQuestions(exam.id)}
+                  onDelete={() => {
+                    setCurrentExam(getExamById(exam.id));
+                    setIsDeleteModalOpen(true);
+                  }}
+                  onViewResponses={() => handleViewResponses(exam.id)}
+                />
               ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </div>
+          ) : (
+            <EmptyState
+              searchQuery={searchQuery}
+              selectedStatus={selectedStatus}
+              onCreateExam={() => {
+                setCurrentExam(null);
+                setIsExamModalOpen(true);
+              }}
+            />
+          )}
+        </>
+      )}
+
+      {/* Modals */}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteExam}
+        title="Delete Exam"
+        description="Are you sure you want to delete this exam? This action cannot be undone and will also remove all associated questions and responses."
+      />
 
       <ExamFormModal
         isOpen={isExamModalOpen}
         onClose={() => setIsExamModalOpen(false)}
-        onSave={handleSaveExam}
+        onSave={(examData) => {
+          if (currentExam) {
+            // Update existing exam
+            dispatch({
+              type: "UPDATE_EXAM",
+              payload: {
+                id: currentExam.id,
+                ...examData,
+              },
+            });
+            if (typeof showNotification === "function") {
+              showNotification("Exam updated successfully", "success");
+            }
+          } else {
+            // Create new exam
+            const newExam = {
+              id: Date.now().toString(),
+              ...examData,
+              status: "draft",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              questionCount: 0,
+              responseCount: 0,
+            };
+            dispatch({
+              type: "ADD_EXAM",
+              payload: newExam,
+            });
+            if (typeof showNotification === "function") {
+              showNotification("Exam created successfully", "success");
+            }
+          }
+          setIsExamModalOpen(false);
+        }}
         exam={currentExam}
       />
 
       <QuestionFormModal
         isOpen={isQuestionModalOpen}
         onClose={() => setIsQuestionModalOpen(false)}
-        onSave={handleSaveQuestions}
+        onSave={(questions) => {
+          if (currentExam) {
+            // Update exam with new questions count
+            dispatch({
+              type: "UPDATE_EXAM",
+              payload: {
+                id: currentExam.id,
+                questionCount: questions.length,
+                updatedAt: new Date().toISOString(),
+              },
+            });
+            if (typeof showNotification === "function") {
+              showNotification(
+                `${questions.length} questions saved successfully`,
+                "success"
+              );
+            }
+          }
+          setIsQuestionModalOpen(false);
+        }}
         exam={currentExam}
-      />
-
-      <ExamSettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-        onSave={handleSaveSettings}
-        settings={currentExam?.settings}
-      />
-
-      <DeleteConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={confirmDeleteExam}
-        title="Delete Exam"
-        description={`Are you sure you want to delete "${currentExam?.title}"? This action cannot be undone.`}
       />
     </div>
   );
 }
+
+// Stat card component
+const StatCard = ({ title, value, icon, bgColor, textColor }) => (
+  <Card className="border-slate-200 shadow-sm overflow-hidden">
+    <div className={`p-1 ${bgColor}`} />
+    <CardContent className="p-4">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
+          <p className={`text-2xl font-bold ${textColor}`}>{value}</p>
+        </div>
+        <div className={`p-3 rounded-full ${bgColor} mt-1`}>{icon}</div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+// Exam card component
+const ExamCard = ({
+  exam,
+  onEdit,
+  onAddQuestions,
+  onDelete,
+  onViewResponses,
+}) => {
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "published":
+        return "success";
+      case "draft":
+        return "outline";
+      case "closed":
+        return "destructive";
+      default:
+        return "secondary";
+    }
+  };
+
+  return (
+    <Card className="overflow-hidden border-slate-200 shadow-sm">
+      <CardHeader className="p-4 pb-0">
+        <div className="flex justify-between items-start">
+          <div className="space-y-1">
+            <CardTitle className="text-lg font-semibold text-slate-800 line-clamp-1">
+              {exam.title}
+            </CardTitle>
+            <CardDescription className="text-sm text-slate-500 line-clamp-2">
+              {exam.description}
+            </CardDescription>
+          </div>
+          <Badge variant={getStatusColor(exam.status)} className="capitalize">
+            {exam.status}
+          </Badge>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-4 pt-3">
+        <div className="flex items-center gap-4 text-sm text-slate-600 mt-2">
+          <div className="flex items-center">
+            <Clock className="mr-1 h-4 w-4 text-slate-400" />
+            <span>{exam.timeLimit} minutes</span>
+          </div>
+          <div className="flex items-center">
+            <FileText className="mr-1 h-4 w-4 text-slate-400" />
+            <span>{exam.questionCount} questions</span>
+          </div>
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span>
+              Created: {new Date(exam.createdAt).toLocaleDateString()}
+            </span>
+            <span>{exam.responseCount} responses</span>
+          </div>
+        </div>
+      </CardContent>
+
+      <CardFooter className="p-3 bg-slate-50 flex justify-between">
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 text-xs px-2"
+          onClick={onViewResponses}
+        >
+          <Users className="h-3 w-3 mr-1" /> Responses
+        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0"
+            onClick={onEdit}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0"
+            onClick={onAddQuestions}
+          >
+            <FileText className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={onDelete}
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+};
+
+// Empty state component
+const EmptyState = ({ searchQuery, selectedStatus, onCreateExam }) => (
+  <div className="text-center py-16 px-4 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50">
+    <div className="mx-auto w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+      <Search className="h-8 w-8 text-slate-400" />
+    </div>
+    <h3 className="text-lg font-medium text-slate-800 mb-2">No exams found</h3>
+    {searchQuery || selectedStatus !== "all" ? (
+      <p className="text-slate-500 max-w-md mx-auto mb-6">
+        No exams match your current filters. Try adjusting your search or filter
+        criteria.
+      </p>
+    ) : (
+      <p className="text-slate-500 max-w-md mx-auto mb-6">
+        Get started by creating your first exam. You'll be able to add questions
+        and share it with students.
+      </p>
+    )}
+    <Button
+      onClick={onCreateExam}
+      variant="default"
+      size="default"
+      className="px-4 py-2"
+    >
+      <Plus className="mr-2 h-4 w-4" /> Create Exam
+    </Button>
+  </div>
+);

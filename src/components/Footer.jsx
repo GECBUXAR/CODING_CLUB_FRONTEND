@@ -20,7 +20,7 @@ const Footer = () => {
     { icon: "github", url: "https://github.com/coding-club" },
     { icon: "twitter", url: "https://twitter.com/coding-club" },
     { icon: "discord", url: "https://discord.gg/coding-club" },
-    { icon: "instagram", url: "https://www.instagram.com/code_crusaders_?igsh=MXh5M3pxcmdlMDYzYQ%3D%3D&utm_source=qr" },
+    { icon: "instagram", url: "https://instagram.com/coding-club" },
   ];
 
   // GSAP animations
@@ -175,7 +175,7 @@ const Footer = () => {
                 </svg>
               </div>
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-300">
-                Code Crusaders
+                Coding Club
               </span>
             </div>
             <p className="text-gray-300 mb-6">

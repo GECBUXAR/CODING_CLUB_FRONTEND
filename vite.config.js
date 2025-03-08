@@ -10,10 +10,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // https://vite.dev/config/
 export default defineConfig({
   server: {
+    port: 5173,
     proxy: {
       "/api": {
         target: "https://coding-club-backend-ten.vercel.app",
-        // target: "http://localhost:3030",
+        changeOrigin: true,
+        secure: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },

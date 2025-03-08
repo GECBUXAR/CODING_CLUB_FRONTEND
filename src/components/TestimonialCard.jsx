@@ -57,7 +57,7 @@ const TestimonialCard = ({ imageSrc, altText, quote, name, role, index }) => {
       ref={cardRef}
       className="relative flex flex-col bg-white rounded-xl overflow-hidden shadow-lg"
     >
-      <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-blue-500 rounded-full z-0 opacity-20"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-blue-500 rounded-full z-0 opacity-20" />
 
       <div className="flex flex-col md:flex-row items-center p-6 z-10">
         <div className="mb-4 md:mb-0 md:mr-6">
@@ -79,7 +79,7 @@ const TestimonialCard = ({ imageSrc, altText, quote, name, role, index }) => {
             {quote}
           </p>
           <div className="flex items-center">
-            <div className="h-px bg-blue-200 w-12 mr-3"></div>
+            <div className="h-px bg-blue-200 w-12 mr-3" />
             <div>
               <p className="font-bold text-blue-600">{name}</p>
               {role && <p className="text-xs text-gray-500">{role}</p>}

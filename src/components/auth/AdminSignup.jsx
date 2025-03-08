@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { FloatingParticles } from "@/components/floating-particles";
 import { ThreeDCard } from "@/components/three-d-card";
 import { ProgressBar } from "@/components/progress-bar";
+import axiosInstance from "@/lib/axios";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -77,10 +78,7 @@ const AdminSignup = () => {
 
   const signupUser = async (adminData) => {
     try {
-      const response = await axios.post(
-        "http://localhost:3030/api/v1/admin/signup",
-        adminData
-      );
+      const response = await axiosInstance.post("/users/signup", adminData);
       return response.data;
     } catch (error) {
       let errorMessage = "Signup failed";
