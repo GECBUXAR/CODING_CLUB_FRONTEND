@@ -41,7 +41,7 @@ export function DashboardLayout({ children, currentPage, setCurrentPage }) {
     { id: "events", label: "Events", icon: Calendar },
     { id: "admin-exams", label: "Admin Exams", icon: FileText },
     { id: "members", label: "Members", icon: Users },
-    // { id: "settings", label: "Settings", icon: Settings },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   return (

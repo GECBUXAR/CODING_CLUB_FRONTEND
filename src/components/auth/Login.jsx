@@ -1,3 +1,5 @@
+// using Same login page for both user and admin
+
 "use client";
 
 import { useRef, useState } from "react";
