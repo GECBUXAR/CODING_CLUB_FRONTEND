@@ -24,12 +24,13 @@ import { cn } from "@/lib/utils";
 import { FloatingParticles } from "@/components/floating-particles";
 import { ThreeDCard } from "@/components/three-d-card";
 import { ProgressBar } from "@/components/progress-bar";
-import axiosInstance from "@/lib/axios";
+import { useAuth } from "@/contexts/auth-context";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   // Form state
   const [formStep, setFormStep] = useState(0);
@@ -52,7 +53,6 @@ const Signup = () => {
   const leftSectionRef = useRef(null);
   const spaceshipRef = useRef(null);
   const formRef = useRef(null);
-  // const socialButtonsRef = useRef(null);
   const headingRef = useRef(null);
   const taglineRef = useRef(null);
   const descriptionRef = useRef(null);
@@ -64,61 +64,89 @@ const Signup = () => {
 
   // Input validation
   const validateEmail = (email) => {
-    return /\S+@\S+\.\S+/.test(email);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
   const validateMobile = (mobile) => {
-    return /^\d{10}$/.test(mobile);
+    const mobileRegex = /^[6-9]\d{9}$/;
+    return mobileRegex.test(mobile);
   };
 
-  // calling backend for signup
+  const validateName = (name) => {
+    const nameRegex = /^[a-zA-Z\s]{3,50}$/;
+    return nameRegex.test(name);
+  };
 
-  const signupUser = async (userData) => {
-    try {
-      const response = await axiosInstance.post("/users/signup", userData);
-      return response.data;
-    } catch (error) {
-      let errorMessage = "Signup failed";
+  const validateRegNo = (regNo) => {
+    const regNoRegex = /^[A-Z0-9]{8,12}$/;
+    return regNoRegex.test(regNo);
+  };
 
-      if (error.response) {
-        // Handle HTML response
-        if (error.response.headers["content-type"]?.includes("text/html")) {
-          // Use non-greedy match without s flag
-          const match = error.response.data.match(/<pre>([\s\S]*?)<\/pre>/i);
-          // Use optional chaining
-          if (match?.[1]) {
-            // Extract the first line of the pre tag content
-            errorMessage = match[1]
-              .split("<br>")[0]
-              .replace("Error: ", "")
-              .trim();
-          }
-        }
-        // Handle JSON response if backend fixes it in future
-        else if (error.response.data?.message) {
-          errorMessage = error.response.data.message;
-        }
-      }
-      throw new Error(errorMessage || error.message || "Signup failed");
-    }
+  const validateBranch = (branch) => {
+    const validBranches = [
+      "Computer Science",
+      "Information Technology",
+      "Electronics",
+      "Electrical",
+      "Mechanical",
+      "Civil",
+    ];
+    return validBranches.includes(branch);
+  };
+
+  const validateSemester = (semester) => {
+    const sem = Number.parseInt(semester, 10);
+    return !Number.isNaN(sem) && sem >= 1 && sem <= 8;
   };
 
   // Password strength checker
-
   const checkPasswordStrength = (password) => {
     let strength = 0;
-    if (password.length >= 8) strength += 25;
-    if (/[A-Z]/.test(password)) strength += 25;
-    if (/[0-9]/.test(password)) strength += 25;
-    if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+    let feedback = [];
+
+    // Length check
+    if (password.length >= 8) {
+      strength += 25;
+    } else {
+      feedback.push("Password should be at least 8 characters long");
+    }
+
+    // Uppercase check
+    if (/[A-Z]/.test(password)) {
+      strength += 25;
+    } else {
+      feedback.push("Include at least one uppercase letter");
+    }
+
+    // Number check
+    if (/[0-9]/.test(password)) {
+      strength += 25;
+    } else {
+      feedback.push("Include at least one number");
+    }
+
+    // Special character check
+    if (/[^A-Za-z0-9]/.test(password)) {
+      strength += 25;
+    } else {
+      feedback.push("Include at least one special character");
+    }
+
     setPasswordStrength(strength);
+    return feedback;
   };
 
   // Handle password change
   const handlePasswordChange = (e) => {
     const newPassword = e.target.value;
     setPassword(newPassword);
-    checkPasswordStrength(newPassword);
+    const feedback = checkPasswordStrength(newPassword);
+    if (feedback.length > 0) {
+      setFormError(feedback[0]);
+    } else {
+      setFormError("");
+    }
   };
 
   // Handle form submission
@@ -126,24 +154,30 @@ const Signup = () => {
     e.preventDefault();
 
     if (formStep === 0) {
-      if (!name) {
-        setFormError("Please enter your name");
+      if (!name || !validateName(name)) {
+        setFormError(
+          "Please enter a valid name (3-50 characters, letters only)"
+        );
         shakeForm();
         return;
       }
 
-      if (!regNo) {
-        setFormError("Please enter your registration number");
+      if (!regNo || !validateRegNo(regNo)) {
+        setFormError(
+          "Please enter a valid registration number (8-12 alphanumeric characters)"
+        );
         shakeForm();
         return;
       }
-      if (!branch) {
-        setFormError("Please enter your branch");
+
+      if (!branch || !validateBranch(branch)) {
+        setFormError("Please select a valid branch");
         shakeForm();
         return;
       }
-      if (!semester) {
-        setFormError("Please enter your semester");
+
+      if (!semester || !validateSemester(semester)) {
+        setFormError("Please enter a valid semester (1-8)");
         shakeForm();
         return;
       }
@@ -153,23 +187,16 @@ const Signup = () => {
     }
 
     if (formStep === 1) {
-      if (!email) {
-        setFormError("Please enter your email");
-        shakeForm();
-        return;
-      }
-      if (!validateEmail(email)) {
+      if (!email || !validateEmail(email)) {
         setFormError("Please enter a valid email address");
         shakeForm();
         return;
       }
-      if (!mobile) {
-        setFormError("Please enter your mobile number");
-        shakeForm();
-        return;
-      }
-      if (!validateMobile(mobile)) {
-        setFormError("Please enter a valid 10-digit mobile number");
+
+      if (!mobile || !validateMobile(mobile)) {
+        setFormError(
+          "Please enter a valid 10-digit mobile number starting with 6-9"
+        );
         shakeForm();
         return;
       }
@@ -184,11 +211,14 @@ const Signup = () => {
         shakeForm();
         return;
       }
-      if (passwordStrength < 50) {
-        setFormError("Please use a stronger password");
+
+      const passwordFeedback = checkPasswordStrength(password);
+      if (passwordFeedback.length > 0) {
+        setFormError(passwordFeedback[0]);
         shakeForm();
         return;
       }
+
       animateFormTransition(2, 3);
       return;
     }
@@ -214,46 +244,51 @@ const Signup = () => {
 
       // Prepare user data
       const userData = {
-        name,
-        email,
-        mobile,
-        registrationNumber: regNo,
-        branch,
-        semester,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        mobile: mobile.trim(),
+        registrationNumber: regNo.trim().toUpperCase(),
+        branch: branch.trim(),
+        semester: parseInt(semester),
         password,
       };
 
-      const response = await signupUser(userData);
-      console.log(response);
+      const result = await register(userData);
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (result.success) {
+        // Success animation
+        loadingTl.to(ctaButtonRef.current, {
+          width: "100%",
+          borderRadius: 12,
+          duration: 0.4,
+          ease: "power2.inOut",
+        });
 
-      // Success animation
-      loadingTl.to(ctaButtonRef.current, {
-        width: "100%",
-        borderRadius: 12,
-        duration: 0.4,
-        ease: "power2.inOut",
-      });
+        setSignupSuccess(true);
 
-      setSignupSuccess(true);
+        gsap.to(formRef.current, {
+          y: 20,
+          opacity: 0,
+          duration: 0.5,
+          onComplete: () => {
+            gsap.fromTo(
+              ".success-message",
+              { y: -20, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.5 }
+            );
+          },
+        });
 
-      gsap.to(formRef.current, {
-        y: 20,
-        opacity: 0,
-        duration: 0.5,
-        onComplete: () => {
-          gsap.fromTo(
-            ".success-message",
-            { y: -20, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.5 }
-          );
-        },
-      });
+        // Redirect to login after success
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      } else {
+        throw new Error(result.error || "Registration failed");
+      }
     } catch (error) {
-      // setFormError("An error occurred. Please try again.");
-
-      setFormError(error.message || "An error occurred. Please try again.");
+      setFormError(error.message || "Registration failed. Please try again.");
+      shakeForm();
 
       // Reset button animation
       gsap.to(ctaButtonRef.current, {
@@ -262,8 +297,6 @@ const Signup = () => {
         duration: 0.4,
         ease: "power2.inOut",
       });
-
-      shakeForm();
     } finally {
       setIsLoading(false);
     }

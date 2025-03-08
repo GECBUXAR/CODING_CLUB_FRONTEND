@@ -5,9 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "cross-env USE_LOCAL_BACKEND=true vite",
+    "dev:remote": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "format": "prettier --write \"src/**/*.{js,jsx}\"",
+    "organize": "node organize-files.js"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -32,6 +36,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.10",
+    "fs-extra": "^11.3.0",
     "gsap": "^3.12.7",
     "gsap-trial": "^3.12.7",
     "lucide-react": "^0.476.0",
