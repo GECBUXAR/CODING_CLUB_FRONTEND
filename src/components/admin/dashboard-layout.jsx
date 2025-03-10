@@ -40,8 +40,8 @@ export function DashboardLayout({ children, currentPage, setCurrentPage }) {
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "events", label: "Events", icon: Calendar },
     { id: "admin-exams", label: "Admin Exams", icon: FileText },
-    { id: "members", label: "Members", icon: Users },
-    // { id: "settings", label: "Settings", icon: Settings },
+    { id: "faculty", label: "Faculty", icon: Users },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   return (
@@ -53,13 +53,13 @@ export function DashboardLayout({ children, currentPage, setCurrentPage }) {
               <code className="flex h-8 w-8 items-center justify-center rounded-lg border bg-muted">
                 <img
                   className="object-cover size-7"
-                  src="/CodingClubLogoSmall.png"
+                  src="./image/CodingClubLogoSmall.png"
                   alt="Coding Club Logo"
                 />
               </code>
               <span className="text-lg">
                 <img
-                  src="./CodingClubLogo.png"
+                  src="./image/CodingClubLogo.png"
                   alt="Coding Club"
                   className="w-30"
                 />

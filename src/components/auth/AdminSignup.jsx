@@ -1,115 +1,46 @@
-import { useRef, useState, useEffect } from "react";
+"use client";
+
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Eye, EyeOff, User, Mail, Phone, Lock, Key } from "lucide-react";
+import { useAuth } from "../../contexts/auth-context";
 
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  User,
-  ArrowRight,
-  CheckCircle2,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { FloatingParticles } from "@/components/floating-particles";
-import { ThreeDCard } from "@/components/three-d-card";
-import { ProgressBar } from "@/components/progress-bar";
-
-gsap.registerPlugin(ScrollTrigger);
-
-const AdminSignup = () => {
+const AdminSignupPage = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
 
-  // Form state
   const [formStep, setFormStep] = useState(0);
+  const [formData, setFormData] = useState({
+    name: "",
+    adminKey: "",
+    email: "",
+    mobile: "",
+    password: "",
+    confirmPassword: "",
+    agreeTerms: false,
+  });
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [name, setName] = useState("");
-  const [adminkey, setAdminkey] = useState("");
-  const [email, setEmail] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [password, setPassword] = useState("");
-  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+    useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [passwordStrength, setPasswordStrength] = useState(0);
-  const [signupSuccess, setSignupSuccess] = useState(false);
 
-  // Refs for animations
-  const containerRef = useRef(null);
-  const leftSectionRef = useRef(null);
-  const spaceshipRef = useRef(null);
-  const formRef = useRef(null);
-  //   const socialButtonsRef = useRef(null);
-  const headingRef = useRef(null);
-  const taglineRef = useRef(null);
-  const descriptionRef = useRef(null);
-  const logoRef = useRef(null);
-  const starsRef = useRef(null);
-  const planetRef = useRef(null);
-  const ctaButtonRef = useRef(null);
-  const formStepsRef = useRef(null);
+  // Handle input change
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
 
-  // Input validation
-  const validateEmail = (email) => {
-    return /\S+@\S+\.\S+/.test(email);
-  };
-
-  const validateMobile = (mobile) => {
-    return /^\d{10}$/.test(mobile);
-  };
-
-  const validateName = (name) => {
-    return /^[a-zA-Z]{3,30}$/.test(name);
-  };
-
-  const validateAdminKey = (adminkey) => {
-    return /^[a-zA-Z0-9]{1,10}$/.test(adminkey);
-  };
-
-  // calling backend for signup
-
-  const signupUser = async (adminData) => {
-    try {
-      const response = await axios.post(
-        "http://localhost:3030/api/v1/admin/signup",
-        adminData
-      );
-      return response.data;
-    } catch (error) {
-      let errorMessage = "Signup failed";
-
-      if (error.response) {
-        // Handle HTML response
-        if (error.response.headers["content-type"]?.includes("text/html")) {
-          // Use non-greedy match without s flag
-          const match = error.response.data.match(/<pre>([\s\S]*?)<\/pre>/i);
-          // Use optional chaining
-          if (match?.[1]) {
-            // Extract the first line of the pre tag content
-            errorMessage = match[1]
-              .split("<br>")[0]
-              .replace("Error: ", "")
-              .trim();
-          }
-        }
-        // Handle JSON response if backend fixes it in future
-        else if (error.response.data?.message) {
-          errorMessage = error.response.data.message;
-        }
-      }
-      throw new Error(errorMessage || error.message || "Signup failed");
+    // Check password strength when password changes
+    if (name === "password") {
+      checkPasswordStrength(value);
     }
   };
 
   // Password strength checker
-
   const checkPasswordStrength = (password) => {
     let strength = 0;
     if (password.length >= 8) strength += 25;
@@ -119,88 +50,74 @@ const AdminSignup = () => {
     setPasswordStrength(strength);
   };
 
-  // Handle password change
-  const handlePasswordChange = (e) => {
-    const newPassword = e.target.value;
-    setPassword(newPassword);
-    checkPasswordStrength(newPassword);
-  };
-
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // First step validation
     if (formStep === 0) {
-      if (!name) {
-        setFormError("Please enter your name");
-        shakeForm();
-        return;
-      }
-      if (!validateName(name)) {
-        setFormError("Name must be between 3 to 30 characters");
-        shakeForm();
+      if (!formData.name || !formData.adminKey) {
+        setFormError("Please fill in all fields");
         return;
       }
 
-      if (!adminkey) {
-        setFormError("Please enter Admin Key");
-        shakeForm();
-        return;
-      }
-      if (!validateAdminKey(adminkey)) {
-        setFormError("Invalid Admin Key Format");
-        shakeForm();
+      if (formData.name.length < 3) {
+        setFormError("Name must be at least 3 characters");
         return;
       }
 
-      animateFormTransition(0, 1);
+      if (formData.adminKey.length < 6) {
+        setFormError("Admin key must be at least 6 characters");
+        return;
+      }
+
+      setFormError("");
+      setFormStep(1);
       return;
     }
 
+    // Second step validation
     if (formStep === 1) {
-      if (!email) {
-        setFormError("Please enter your email");
-        shakeForm();
+      if (!formData.email || !formData.mobile) {
+        setFormError("Please fill in all fields");
         return;
       }
-      if (!validateEmail(email)) {
+
+      // Simple email validation
+      if (!/\S+@\S+\.\S+/.test(formData.email)) {
         setFormError("Please enter a valid email address");
-        shakeForm();
         return;
       }
-      if (!mobile) {
-        setFormError("Please enter your mobile number");
-        shakeForm();
-        return;
-      }
-      if (!validateMobile(mobile)) {
+
+      // Simple mobile validation (10 digits)
+      if (!/^\d{10}$/.test(formData.mobile)) {
         setFormError("Please enter a valid 10-digit mobile number");
-        shakeForm();
         return;
       }
 
-      animateFormTransition(1, 2);
+      setFormError("");
+      setFormStep(2);
       return;
     }
 
-    if (formStep === 2) {
-      if (!password || password.length < 8) {
-        setFormError("Password must be at least 8 characters");
-        shakeForm();
-        return;
-      }
-      if (passwordStrength < 50) {
-        setFormError("Please use a stronger password");
-        shakeForm();
-        return;
-      }
-      animateFormTransition(2, 3);
+    // Final step validation
+    if (!formData.password || !formData.confirmPassword) {
+      setFormError("Please create a password");
       return;
     }
 
-    if (!agreeTerms) {
+    if (formData.password.length < 8) {
+      setFormError("Password must be at least 8 characters long");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setFormError("Passwords do not match");
+      return;
+    }
+
+    if (!formData.agreeTerms) {
       setFormError("You must agree to the terms and conditions");
-      shakeForm();
       return;
     }
 
@@ -208,512 +125,241 @@ const AdminSignup = () => {
     setIsLoading(true);
 
     try {
-      // Animation for loading state
-      const loadingTl = gsap.timeline();
-      loadingTl.to(ctaButtonRef.current, {
-        width: 60,
-        borderRadius: 30,
-        duration: 0.4,
-        ease: "power2.inOut",
-      });
-
-      // Prepare user data
-      const userData = {
-        name,
-        email,
-        mobile,
-        secretKey: adminkey,
-        password,
+      // Add role to form data
+      const adminData = {
+        ...formData,
+        role: "admin",
+        secretKey: formData.adminKey, // Rename for backend compatibility
       };
 
-      const response = await signupUser(userData);
-      console.log(response);
+      const result = await register(adminData);
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Success animation
-      loadingTl.to(ctaButtonRef.current, {
-        width: "100%",
-        borderRadius: 12,
-        duration: 0.4,
-        ease: "power2.inOut",
-      });
-
-      setSignupSuccess(true);
-
-      gsap.to(formRef.current, {
-        y: 20,
-        opacity: 0,
-        duration: 0.5,
-        onComplete: () => {
-          gsap.fromTo(
-            ".success-message",
-            { y: -20, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.5 }
-          );
-        },
-      });
+      if (result.success) {
+        // Redirect to login page on successful registration
+        navigate("/login", {
+          state: { message: "Admin registration successful! Please log in." },
+        });
+      } else {
+        throw new Error(result.error || "Registration failed");
+      }
     } catch (error) {
-      // setFormError("An error occurred. Please try again.");
-
-      setFormError(error.message || "An error occurred. Please try again.");
-
-      // Reset button animation
-      gsap.to(ctaButtonRef.current, {
-        width: "100%",
-        borderRadius: 12,
-        duration: 0.4,
-        ease: "power2.inOut",
-      });
-
-      shakeForm();
+      setFormError(error.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Animate between form steps
-  const animateFormTransition = (fromStep, toStep) => {
-    setFormError("");
-    const formSteps = formStepsRef.current.children;
-    const tl = gsap.timeline();
-    tl.to(formSteps[fromStep], {
-      x: fromStep < toStep ? -50 : 50,
-      opacity: 100,
-      duration: 0.3,
-      ease: "power2.in",
-      onComplete: () => {
-        setFormStep(toStep);
-        gsap.set(formSteps[fromStep], { display: "none" });
-        gsap.set(formSteps[toStep], {
-          display: "block",
-          x: toStep < fromStep ? 50 : -50,
-          opacity: 100,
-        });
-      },
-    });
-    tl.to(formSteps[toStep], {
-      x: 0,
-      opacity: 100,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-    gsap.to(".progress-indicator", {
-      width: `${(toStep / 3) * 100}%`,
-      duration: 0.5,
-      ease: "power2.inOut",
-    });
-  };
-
-  // Shake form for error feedback
-  const shakeForm = () => {
-    gsap.to(formRef.current, {
-      x: [-10, 10, -10, 10, -5, 5, -2, 2, 0],
-      duration: 0.6,
-      ease: "power2.out",
-    });
-  };
-
-  // Main animations setup using useEffect
-  useEffect(() => {
-    const timeline = gsap.timeline({ defaults: { ease: "power3.out" } });
-    timeline.from(containerRef.current, {
-      // y: 50,
-      opacity: 100,
-      duration: 1,
-      ease: "power4.out",
-    });
-    timeline.from(
-      leftSectionRef.current,
-      {
-        // x: -100,
-        opacity: 100,
-        duration: 1,
-        ease: "power3.inOut",
-      },
-      0.2
-    );
-    timeline.from(
-      logoRef.current,
-      {
-        y: -30,
-        opacity: 100,
-        duration: 0.8,
-        rotate: -10,
-      },
-      0.4
-    );
-
-    timeline.from(
-      taglineRef.current,
-      {
-        // y: 30,
-        opacity: 100,
-        duration: 0.8,
-      },
-      0.8
-    );
-    timeline.from(
-      descriptionRef.current,
-      { y: 20, opacity: 100, duration: 0.8 },
-      1
-    );
-    timeline.from(
-      spaceshipRef.current,
-      {
-        scale: 0.6,
-        opacity: 100,
-        rotation: -30,
-        duration: 1.5,
-        ease: "elastic.out(1, 0.4)",
-      },
-      1.2
-    );
-    gsap.to(spaceshipRef.current, {
-      y: 30,
-      x: -10,
-      rotation: "-=5",
-      duration: 3,
-      repeat: -1,
-      yoyo: true,
-      ease: "power1.inOut",
-      delay: 1.5,
-    });
-    if (starsRef.current) {
-      const stars = starsRef.current.children;
-      gsap.to(stars, {
-        opacity: gsap.utils.wrap([100, 0.5]),
-        scale: gsap.utils.wrap([1.2, 0.8]),
-        duration: gsap.utils.wrap([1, 2]),
-        repeat: -1,
-        yoyo: true,
-        stagger: 0.2,
-        ease: "sine.inOut",
-      });
-    }
-    if (planetRef.current) {
-      gsap.to(planetRef.current, {
-        rotation: 360,
-        duration: 60,
-        repeat: -1,
-        ease: "none",
-      });
-    }
-    gsap.fromTo(
-      formRef.current.children,
-      {
-        opacity: 100,
-        y: 30,
-      },
-      {
-        opacity: 100,
-        y: 0,
-        stagger: 0.15,
-        duration: 0.8,
-        ease: "back.out(1.4)",
-        delay: 1,
-      }
-    );
-  }, []);
-
-  // Button hover animations
-  const buttonHoverEffect = (e) => {
-    gsap.to(e.currentTarget, {
-      scale: 1.05,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-  };
-
-  const buttonHoverEndEffect = (e) => {
-    gsap.to(e.currentTarget, {
-      scale: 1,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-  };
-
-  // Input focus animations
-  const inputFocusEffect = (e) => {
-    gsap.to(e.currentTarget, {
-      borderColor: "#7fdca1",
-      boxShadow: "0 0 0 4px rgba(244, 63, 94, 0.1)",
-      duration: 0.4,
-    });
-  };
-
-  const inputBlurEffect = (e) => {
-    if (!e.currentTarget.value) {
-      gsap.to(e.currentTarget, {
-        borderColor: "#7fdca1",
-        boxShadow: "none",
-        duration: 0.4,
-      });
-    }
-  };
-
   return (
-    <div className="flex items-center justify-center min-h-screen ">
-      <div
-        ref={containerRef}
-        className=" overflow-hidden rounded-xl shadow-2xl"
-      >
-        <div className="flex flex-col md:flex-row">
-          {/* Left Section */}
-          <div
-            ref={leftSectionRef}
-            className=" hidden md:block relative z-60 bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 p-4 md:p-8 text-white md:w-1/2 overflow-hidden"
-          >
-            <FloatingParticles count={20} />
-            <div className="mt-5 mb-12">
-              <img
-                ref={logoRef}
-                src="/CodingClubLogoSmall.png"
-                alt="Cosmic Connect Logo"
-                className="w-36"
-              />
-            </div>
-            <div className="relative z-10 space-y-4 max-w-lg">
-              <h1 ref={headingRef} className="text-4xl font-bold leading-tight">
-                <div
-                  ref={taglineRef}
-                  className="block text-5xl font-black uppercase tracking-wide text-white mb-2"
-                >
-                  Join Us
-                </div>
-                <span>Unlock Your Creative</span>
-                <br />
-                <span>Potential Today</span>
-              </h1>
-            </div>
-            {/* Space elements */}
-            <div ref={starsRef} className="absolute inset-0 z-0 opacity-60">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute rounded-full bg-white"
-                  style={{
-                    width: Math.random() * 3 + 1 + "px",
-                    height: Math.random() * 3 + 1 + "px",
-                    left: Math.random() * 100 + "%",
-                    top: Math.random() * 100 + "%",
-                  }}
-                />
-              ))}
-            </div>
-            <div
-              ref={planetRef}
-              className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full bg-gradient-to-br from-purple-300 to-purple-600 opacity-30"
+    <div className="flex min-h-screen w-full bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Left Section - Branding (hidden on mobile) */}
+      <div className="hidden w-1/2 bg-purple-600/10 p-10 lg:flex flex-col justify-center">
+        <div className="mx-auto max-w-md">
+          <img
+            src="/CodingClubLogoSmall.png"
+            alt="Logo"
+            className="w-32 mb-8"
+          />
+
+          <h1 className="text-4xl font-bold text-purple-600 mb-2">
+            Admin Registration
+          </h1>
+          <p className="text-xl text-slate-600 mb-6">
+            Create an admin account to manage the coding club resources and
+            members
+          </p>
+
+          <div className="mt-10 bg-white/30 rounded-xl p-6 backdrop-blur-sm">
+            <p className="text-slate-700">
+              "As an admin, you'll have the power to create events, manage
+              members, and ensure the smooth operation of our coding community."
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Section - Signup Form */}
+      <div className="w-full lg:w-1/2 flex flex-1 items-center justify-center p-6">
+        <div className="w-full max-w-md space-y-8">
+          {/* Mobile Logo (visible only on mobile) */}
+          <div className="flex flex-col items-center mb-8 lg:hidden">
+            <img
+              src="/CodingClubLogoSmall.png"
+              alt="Logo"
+              className="w-24 mb-4"
             />
-            <div className="absolute bottom-0 right-0 w-1/2 md:w-2/3 lg:w-3/4">
-              <img
-                ref={spaceshipRef}
-                src="/rocket.png"
-                alt="Spaceship Illustration"
-                className="object-contain"
-              />
-            </div>
-            <div className="absolute top-20 right-20 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-            <div className="absolute bottom-40 left-10 w-32 h-32 bg-purple-300/20 rounded-full blur-xl"></div>
+            <h1 className="text-2xl font-bold text-purple-600">
+              Admin Registration
+            </h1>
           </div>
 
-          {/* Right Section */}
-          <div className="flex flex-col p-4 md:w-1/2 md:p-8 ">
-            <ThreeDCard className="mx-auto w-full max-w-md space-y-8">
-              <div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent mb-3">
-                  Create Admin Account
-                </h2>
-                <p className="text-gray-600">
-                  Join our creative community as{" "}
-                  <span className="text-neutral-700 font-semibold">
-                    Admin User
-                  </span>{" "}
-                  in
-                  <br />
-                  just a few steps
-                </p>
-                {/* Progress bar */}
-                <div className="mt-6 mb-8">
-                  <ProgressBar value={(formStep / 3) * 100} />
-                  <div className="flex justify-between text-xs text-gray-500 mt-2">
-                    <span
-                      className={
-                        formStep >= 0 ? "text-indigo-600 font-medium" : ""
-                      }
-                    >
-                      Personal
-                    </span>
-                    <span
-                      className={
-                        formStep >= 1 ? "text-indigo-600 font-medium" : ""
-                      }
-                    >
-                      Contact
-                    </span>
-                    <span
-                      className={
-                        formStep >= 2 ? "text-indigo-600 font-medium" : ""
-                      }
-                    >
-                      Security
-                    </span>
-                    <span
-                      className={
-                        formStep >= 3 ? "text-indigo-600 font-medium" : ""
-                      }
-                    >
-                      Finish
-                    </span>
-                  </div>
-                </div>
-              </div>
+          <div className="bg-white rounded-xl p-8 shadow-lg">
+            <h2 className="text-2xl font-semibold text-slate-800 mb-6">
+              Create Admin Account
+            </h2>
 
-              {signupSuccess ? (
-                <div className="success-message text-center py-10 space-y-6">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-                    <CheckCircle2 className="h-8 w-8 text-green-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    Registration Successful!
-                  </h3>
-                  <p className="text-gray-600">
-                    Your account has been created successfully. Check your email
-                    for verification.
-                  </p>
-                  <Button
-                    className="mt-6 bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white px-8 py-2 rounded-xl"
-                    onMouseEnter={buttonHoverEffect}
-                    onMouseLeave={buttonHoverEndEffect}
-                  >
-                    <Link to="/login">Go to Login</Link>
-                  </Button>
-                </div>
-              ) : (
-                <form
-                  ref={formRef}
-                  className="space-y-5"
-                  onSubmit={handleSubmit}
+            {/* Progress Indicator */}
+            <div className="mb-6">
+              <div className="flex justify-between text-xs text-gray-500 mb-2">
+                <span
+                  className={formStep >= 0 ? "text-purple-600 font-medium" : ""}
                 >
-                  {formError && (
-                    <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm border border-red-200">
-                      {formError}
-                    </div>
-                  )}
+                  Authentication
+                </span>
+                <span
+                  className={formStep >= 1 ? "text-purple-600 font-medium" : ""}
+                >
+                  Contact
+                </span>
+                <span
+                  className={formStep >= 2 ? "text-purple-600 font-medium" : ""}
+                >
+                  Security
+                </span>
+              </div>
+              <div className="h-2 w-full bg-gray-200 rounded-full">
+                <div
+                  className="h-full bg-purple-600 rounded-full transition-all duration-300"
+                  style={{ width: `${(formStep / 2) * 100}%` }}
+                ></div>
+              </div>
+            </div>
 
-                  <div ref={formStepsRef} className="space-y-4">
-                    {/* Step 1: Name, Admin key */}
-                    <div className={formStep === 0 ? "block" : "hidden"}>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">
-                        Tell us about yourself
-                      </h3>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Error message */}
+              {formError && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
+                  {formError}
+                </div>
+              )}
+
+              {/* Step 1: Authentication Information */}
+              {formStep === 0 && (
+                <>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor="name" className="text-sm font-medium">
+                        Full Name
+                      </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
-                          <User className="h-5 w-5" />
-                        </div>
-                        <Input
+                        <input
+                          id="name"
+                          name="name"
                           type="text"
-                          placeholder="Full Name"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          onFocus={inputFocusEffect}
-                          onBlur={inputBlurEffect}
-                          className="mb-2 h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
+                          value={formData.name}
+                          onChange={handleChange}
+                          className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          placeholder="Enter your full name"
                         />
-                      </div>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
-                          <User className="h-5 w-5" />
-                        </div>
-                        <Input
-                          type="text"
-                          placeholder="Admin Key"
-                          value={adminkey}
-                          onChange={(e) => setAdminkey(e.target.value)}
-                          onFocus={inputFocusEffect}
-                          onBlur={inputBlurEffect}
-                          className="mb-2 h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
-                        />
+                        <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                       </div>
                     </div>
 
-                    {/* Step 2: Email, Mobile No. */}
-                    <div className={formStep === 1 ? "block" : "hidden"}>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">
-                        How can we reach you?
-                      </h3>
+                    <div className="space-y-2">
+                      <label htmlFor="adminKey" className="text-sm font-medium">
+                        Admin Key
+                      </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
-                          <Mail className="h-5 w-5" />
-                        </div>
-                        <Input
+                        <input
+                          id="adminKey"
+                          name="adminKey"
+                          type="password"
+                          value={formData.adminKey}
+                          onChange={handleChange}
+                          className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          placeholder="Enter admin key"
+                        />
+                        <Key className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        The admin key is provided by the system administrator.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Step 2: Contact Information */}
+              {formStep === 1 && (
+                <>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="text-sm font-medium">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="email"
+                          name="email"
                           type="email"
-                          placeholder="Email Address"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          onFocus={inputFocusEffect}
-                          onBlur={inputBlurEffect}
-                          className="mb-2 h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
+                          value={formData.email}
+                          onChange={handleChange}
+                          className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          placeholder="Enter your email"
                         />
-                      </div>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
-                          <Mail className="h-5 w-5" />
-                        </div>
-                        <Input
-                          type=""
-                          placeholder="Mobile No."
-                          value={mobile}
-                          onChange={(e) => setMobile(e.target.value)}
-                          onFocus={inputFocusEffect}
-                          onBlur={inputBlurEffect}
-                          className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-4 text-lg transition-all focus:outline-none"
-                        />
+                        <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                       </div>
                     </div>
 
-                    {/* Step 3: Password */}
-                    <div className={formStep === 2 ? "block" : "hidden"}>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">
-                        Create a secure password
-                      </h3>
+                    <div className="space-y-2">
+                      <label htmlFor="mobile" className="text-sm font-medium">
+                        Mobile Number
+                      </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
-                          <Lock className="h-5 w-5" />
-                        </div>
-                        <Input
-                          type={isPasswordVisible ? "text" : "password"}
-                          placeholder="Create Password"
-                          value={password}
-                          onChange={handlePasswordChange}
-                          onFocus={inputFocusEffect}
-                          onBlur={inputBlurEffect}
-                          className="h-14 w-full rounded-xl border-2 border-gray-200 bg-white pl-12 pr-12 text-lg transition-all focus:outline-none"
+                        <input
+                          id="mobile"
+                          name="mobile"
+                          type="tel"
+                          value={formData.mobile}
+                          onChange={handleChange}
+                          className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          placeholder="Enter 10-digit mobile number"
                         />
+                        <Phone className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Step 3: Create Password */}
+              {formStep === 2 && (
+                <>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor="password" className="text-sm font-medium">
+                        Create Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="password"
+                          name="password"
+                          type={isPasswordVisible ? "text" : "password"}
+                          value={formData.password}
+                          onChange={handleChange}
+                          className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 pr-10 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          placeholder="Create password"
+                        />
+                        <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                         <button
                           type="button"
                           onClick={() =>
                             setIsPasswordVisible(!isPasswordVisible)
                           }
-                          className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                         >
                           {isPasswordVisible ? (
                             <EyeOff className="h-5 w-5" />
                           ) : (
                             <Eye className="h-5 w-5" />
                           )}
-                          <span className="sr-only">
-                            Toggle password visibility
-                          </span>
                         </button>
                       </div>
 
                       {/* Password strength indicator */}
-                      <div className="mt-3">
-                        <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div className="mt-2">
+                        <div className="h-2 w-full bg-gray-200 rounded-full">
                           <div
-                            className={cn(
-                              "h-full transition-all duration-300",
+                            className={`h-full rounded-full transition-all duration-300 ${
                               passwordStrength <= 25
                                 ? "bg-red-500"
                                 : passwordStrength <= 50
@@ -721,189 +367,144 @@ const AdminSignup = () => {
                                 : passwordStrength <= 75
                                 ? "bg-blue-500"
                                 : "bg-green-500"
-                            )}
+                            }`}
                             style={{ width: `${passwordStrength}%` }}
                           />
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {passwordStrength <= 25 && "Weak password"}
-                          {passwordStrength > 25 &&
-                            passwordStrength <= 50 &&
-                            "Fair password"}
-                          {passwordStrength > 50 &&
-                            passwordStrength <= 75 &&
-                            "Good password"}
-                          {passwordStrength > 75 && "Strong password"}
-                        </p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 mt-4">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-4 h-4 rounded-full ${
-                              password.length >= 8
-                                ? "bg-green-500"
-                                : "bg-gray-300"
-                            }`}
-                          />
-                          <span className="text-xs text-gray-600">
-                            8+ characters
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-4 h-4 rounded-full ${
-                              /[A-Z]/.test(password)
-                                ? "bg-green-500"
-                                : "bg-gray-300"
-                            }`}
-                          />
-                          <span className="text-xs text-gray-600">
-                            Uppercase
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-4 h-4 rounded-full ${
-                              /[0-9]/.test(password)
-                                ? "bg-green-500"
-                                : "bg-gray-300"
-                            }`}
-                          />
-                          <span className="text-xs text-gray-600">Number</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-4 h-4 rounded-full ${
-                              /[^A-Za-z0-9]/.test(password)
-                                ? "bg-green-500"
-                                : "bg-gray-300"
-                            }`}
-                          />
-                          <span className="text-xs text-gray-600">
-                            Special char
-                          </span>
+                        <div className="flex justify-between mt-1 text-xs text-gray-500">
+                          <span>Weak</span>
+                          <span>Strong</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Step 4: Terms */}
-                    <div className={formStep === 3 ? "block" : "hidden"}>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">
-                        Almost there!
-                      </h3>
-                      <div className="flex items-start space-x-3 mb-6">
-                        <Checkbox
-                          id="terms"
-                          checked={agreeTerms}
-                          onCheckedChange={setAgreeTerms}
-                          className="h-5 w-5 mt-1 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="confirmPassword"
+                        className="text-sm font-medium"
+                      >
+                        Confirm Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type={isConfirmPasswordVisible ? "text" : "password"}
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 pr-10 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          placeholder="Confirm password"
                         />
-                        <Label
-                          htmlFor="terms"
-                          className="text-sm text-gray-600"
+                        <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setIsConfirmPasswordVisible(
+                              !isConfirmPasswordVisible
+                            )
+                          }
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                         >
-                          I agree to the{" "}
-                          <a
-                            href="#"
-                            className="font-medium text-indigo-600 hover:text-indigo-700"
-                          >
-                            Terms & Conditions
-                          </a>{" "}
-                          and{" "}
-                          <a
-                            href="#"
-                            className="font-medium text-indigo-600 hover:text-indigo-700"
-                          >
-                            Privacy Policy
-                          </a>
-                        </Label>
-                      </div>
-                      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
-                        <h4 className="font-medium text-indigo-800 mb-2">
-                          You're about to create:
-                        </h4>
-                        <ul className="space-y-2">
-                          <li className="flex items-center text-sm text-indigo-700">
-                            <CheckCircle2 className="h-4 w-4 mr-2 text-indigo-600" />
-                            Account for {name || "your name"}
-                          </li>
-                          <li className="flex items-center text-sm text-indigo-700">
-                            <CheckCircle2 className="h-4 w-4 mr-2 text-indigo-600" />
-                            Using email {email || "your email"}
-                          </li>
-                          <li className="flex items-center text-sm text-indigo-700">
-                            <CheckCircle2 className="h-4 w-4 mr-2 text-indigo-600" />
-                            With a{" "}
-                            {passwordStrength > 75
-                              ? "strong"
-                              : passwordStrength > 50
-                              ? "good"
-                              : "basic"}{" "}
-                            password
-                          </li>
-                        </ul>
+                          {isConfirmPasswordVisible ? (
+                            <EyeOff className="h-5 w-5" />
+                          ) : (
+                            <Eye className="h-5 w-5" />
+                          )}
+                        </button>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex justify-between">
-                    {formStep > 0 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          animateFormTransition(formStep, formStep - 1)
-                        }
-                        className="h-14 px-6 rounded-xl border-2 border-gray-200 bg-white text-gray-700"
+                    <div className="flex items-start space-x-2 mt-4">
+                      <input
+                        id="agreeTerms"
+                        name="agreeTerms"
+                        type="checkbox"
+                        checked={formData.agreeTerms}
+                        onChange={handleChange}
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <label
+                        htmlFor="agreeTerms"
+                        className="text-sm text-gray-600"
                       >
-                        Back
-                      </Button>
-                    )}
-
-                    <Button
-                      ref={ctaButtonRef}
-                      type="submit"
-                      disabled={isLoading}
-                      onMouseEnter={buttonHoverEffect}
-                      onMouseLeave={buttonHoverEndEffect}
-                      className={cn(
-                        "h-14 px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600",
-                        "text-lg font-semibold text-white shadow-lg transition-all hover:shadow-xl",
-                        "flex items-center justify-center gap-2",
-                        isLoading && "opacity-80",
-                        formStep < 3 ? "ml-auto" : "w-full"
-                      )}
-                    >
-                      {isLoading ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      ) : (
-                        <>
-                          {formStep < 3 ? "Continue" : "Create Account"}
-                          <ArrowRight className="h-5 w-5" />
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              )}
-
-              {!signupSuccess && (
-                <>
-                  <div className="text-center">
-                    <p className="relative z-50 text-gray-600">
-                      {"Already have an account?"}
-                      <Link
-                        to="/login"
-                        className="font-semibold text-indigo-600 underline-offset-4 hover:underline"
-                      >
-                        Sign In
-                      </Link>
-                    </p>
+                        I agree to the{" "}
+                        <a
+                          href="/terms"
+                          className="text-purple-600 hover:underline"
+                        >
+                          Terms & Conditions
+                        </a>{" "}
+                        and{" "}
+                        <a
+                          href="/privacy"
+                          className="text-purple-600 hover:underline"
+                        >
+                          Privacy Policy
+                        </a>
+                      </label>
+                    </div>
                   </div>
                 </>
               )}
-            </ThreeDCard>
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between pt-4">
+                {formStep > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFormStep(formStep - 1)}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  >
+                    Back
+                  </button>
+                )}
+
+                <button
+                  type="submit"
+                  className={`px-6 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 ${
+                    formStep < 2 ? "ml-auto" : "w-full"
+                  } ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    </span>
+                  ) : formStep < 2 ? (
+                    "Continue"
+                  ) : (
+                    "Create Admin Account"
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {/* Sign in link */}
+            <div className="mt-6 text-center text-sm">
+              <p>
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="text-purple-600 hover:underline font-medium"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -911,4 +512,4 @@ const AdminSignup = () => {
   );
 };
 
-export default AdminSignup;
+export default AdminSignupPage;

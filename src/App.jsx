@@ -1,25 +1,31 @@
-import { Routes, Route } from "react-router-dom";
-import LandingPage from "./pages/LandingPage.jsx";
-import LoginPage from "./pages/LoginPage.jsx";
-import AllEventsPage from "./pages/AllEventsPage.jsx";
-import SignupPage from "./pages/SignupPage.jsx";
-import Dashboard from "./pages/AdminDashboardPage.jsx";
-import AdminSignup from "./components/auth/AdminSignup.jsx";
-import ExamPage from "./pages/ExamPage.jsx";
+import React from "react";
+import { AuthProvider } from "./contexts/auth-context";
+import { NotificationProvider } from "./contexts/notification-context";
+import { ResponseEvaluationProvider } from "./contexts/response-evaluation-context";
+import { ExamProvider } from "./contexts/exam-context";
+import { EventProvider } from "./contexts/event-context";
+import { FacultyProvider } from "./contexts/faculty-context";
+import NotificationCenter from "./components/common/notification-center";
+import CorsWarning from "./components/common/cors-warning";
+import AppRoutes from "./routes";
 
 const App = () => {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
-      <Route path="/events" element={<AllEventsPage />} />
-      <Route path="/exams" element={<ExamPage />} />
-
-      {/* Admin Routes */}
-      <Route path="/admin/signup" element={<AdminSignup />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-    </Routes>
+    <AuthProvider>
+      <NotificationProvider>
+        <NotificationCenter />
+        <ResponseEvaluationProvider>
+          <ExamProvider>
+            <EventProvider>
+              <FacultyProvider>
+                <AppRoutes />
+                <CorsWarning />
+              </FacultyProvider>
+            </EventProvider>
+          </ExamProvider>
+        </ResponseEvaluationProvider>
+      </NotificationProvider>
+    </AuthProvider>
   );
 };
 
