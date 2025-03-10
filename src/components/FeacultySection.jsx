@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import TestimonialsSection from "./TestimonialsSection.jsx";
+import FacultyDetails from "./FacultyDetails.jsx";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -49,15 +49,8 @@ const Faculty = () => {
             </p>
           </div>
 
-          {/* Testimonials Section */}
-          <TestimonialsSection />
-
-          {/* Call to Action */}
-          <div className="mt-16 text-center">
-            <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-blue-50 transition-all duration-300 transform hover:scale-105">
-              Meet All Faculty Members
-            </button>
-          </div>
+          {/* FacultyDetails */}
+          <FacultyDetails />
         </div>
       </div>
     </section>

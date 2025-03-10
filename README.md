@@ -64,10 +64,22 @@ npm run dev
 yarn dev
 ```
 
+## Test Accounts
+
+For development and testing purposes, you can use the following test accounts:
+
+| Role    | Email            | Password    |
+|---------|------------------|-------------|
+| User    | user@test.com    | password123 |
+| Admin   | admin@test.com   | admin123    |
+| Faculty | faculty@test.com | faculty123  |
+
+These accounts are automatically available in development mode and can be used to test different user roles and permissions throughout the application.
+
 ## Features
 
-- Role-based access control (Student, Admin)
-- User authentication
+- Role-based access control (Student, Admin, Faculty)
+- User authentication with a unified login system
 - Exam management
 - User progress tracking
 - Responsive design

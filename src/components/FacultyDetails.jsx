@@ -1,12 +1,13 @@
 import React, { useRef, useEffect, useCallback } from "react";
-import TestimonialCard from "./TestimonialCard.jsx";
+// import FacultyCard from "./FacultyCard.jsx";
+import FacultyCard from "../components/FacultyCard";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useFaculty } from "@/contexts/faculty-context";
 
 gsap.registerPlugin(useGSAP);
 
-const TestimonialsSection = () => {
+const FacultyDetails = () => {
   const sectionRef = useRef(null);
   const { testimonials, loading, fetchTestimonials } = useFaculty();
 
@@ -20,7 +21,7 @@ const TestimonialsSection = () => {
   // Use local data as fallback if context fails
   const localTestimonials = [
     {
-      id: "testimonial-raj",
+      id: "Faculty-raj",
       imageSrc: "/rajshekar.jpg",
       altText: "Dr. Chandra Shekar",
       quote:
@@ -29,7 +30,7 @@ const TestimonialsSection = () => {
       role: "Computer Science Professor  & Head of Department",
     },
     {
-      id: "testimonial-rina",
+      id: "Faculty-rina",
       imageSrc: "/rina.jpg",
       altText: "Dr. Rina Kumari",
       quote:
@@ -139,7 +140,7 @@ const TestimonialsSection = () => {
             key={testimonial.id}
             className="testimonial-card flex-shrink-0 w-full max-w-md"
           >
-            <TestimonialCard
+            <FacultyCard
               imageSrc={testimonial.imageSrc}
               altText={testimonial.altText}
               quote={testimonial.quote}
@@ -154,4 +155,4 @@ const TestimonialsSection = () => {
   );
 };
 
-export default TestimonialsSection;
+export default FacultyDetails;

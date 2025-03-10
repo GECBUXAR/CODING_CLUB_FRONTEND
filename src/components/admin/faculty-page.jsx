@@ -38,7 +38,7 @@ import {
 import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
 import { useFaculty } from "@/contexts/faculty-context";
 
-export function MembersPage() {
+export function FacultyPage() {
   // Get faculty data and functions from context
   const {
     faculty,

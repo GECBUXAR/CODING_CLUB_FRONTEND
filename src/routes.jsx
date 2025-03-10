@@ -1,25 +1,29 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { RequireAuth, useAuth } from "./contexts/auth-context";
+import { RequireAuth } from "./contexts/auth-context";
 
 // Public Pages
-import HomePage from "./pages/common/HomePage";
+import LandingPage from "./pages/common/LandingPage";
 import AboutPage from "./pages/common/AboutPage";
 import ContactPage from "./pages/common/ContactPage";
+import HomePage from "./pages/common/HomePage";
 
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage.jsx";
 import SignupPage from "./pages/auth/SignupPage.jsx";
+import AdminSignupPage from "./pages/auth/AdminSignupPage.jsx";
 
 // User Pages
 import ProfilePage from "./pages/user/ProfilePage";
 import ExamsPage from "./pages/user/ExamsPage";
+import EventsPage from "./pages/user/EventsPage";
 import UserDashboardPage from "./pages/user/UserDashboardPage";
 import MyExamsPage from "./pages/user/MyExamsPage.jsx";
 import ExamDetailPage from "./pages/user/ExamDetailPage";
 
 // Admin Pages
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import { AdminExamPanel } from "./pages/admin/AdminExamPanel";
 
 // Error Pages
 import NotFoundPage from "./pages/errors/NotFoundPage";
@@ -35,23 +39,22 @@ const AdminRoute = ({ children }) => {
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
-
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />
-
-      {/* Auth Routes */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/admin-signup" element={<AdminSignupPage />} />
       <Route
-        path="/login"
-        element={isAuthenticated ? <Navigate to="/" /> : <LoginPage />}
-      />
-      <Route
-        path="/signup"
-        element={isAuthenticated ? <Navigate to="/" /> : <SignupPage />}
+        path="/home"
+        element={
+          <UserRoute>
+            <HomePage />
+          </UserRoute>
+        }
       />
 
       {/* User Routes */}
@@ -71,6 +74,7 @@ const AppRoutes = () => {
           </UserRoute>
         }
       />
+      <Route path="/events" element={<EventsPage />} />
       <Route path="/exams" element={<ExamsPage />} />
       <Route path="/exams/:examId" element={<ExamDetailPage />} />
       <Route
@@ -103,7 +107,7 @@ const AppRoutes = () => {
         path="/admin/exams"
         element={
           <AdminRoute>
-            <div>Admin Exams Page - Coming Soon</div>
+            <AdminExamPanel />
           </AdminRoute>
         }
       />
