@@ -1,8 +1,8 @@
-// TestimonialCard.jsx
+// FacultyCard.jsx
 import React, { useRef, useEffect } from "react";
 import gsap from "gsap";
 
-const TestimonialCard = ({ imageSrc, altText, quote, name, role, index }) => {
+const FacultyCard = ({ imageSrc, altText, quote, name, role, index }) => {
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -91,4 +91,4 @@ const TestimonialCard = ({ imageSrc, altText, quote, name, role, index }) => {
   );
 };
 
-export default TestimonialCard;
+export default FacultyCard;

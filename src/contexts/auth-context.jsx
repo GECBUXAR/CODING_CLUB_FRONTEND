@@ -112,6 +112,77 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     dispatch({ type: "SET_LOADING", payload: true });
     try {
+      // Test users for development (mock authentication)
+      // For simplicity, we'll always enable test users
+      const isDevelopment = true; // Set to true to enable test accounts
+
+      if (isDevelopment) {
+        const testUsers = {
+          "user@test.com": {
+            password: "password123",
+            user: {
+              id: "1",
+              name: "Test User",
+              email: "user@test.com",
+              role: "user",
+              createdAt: new Date().toISOString(),
+            },
+            token: "test-user-token",
+          },
+          "admin@test.com": {
+            password: "admin123",
+            user: {
+              id: "2",
+              name: "Test Admin",
+              email: "admin@test.com",
+              role: "admin",
+              createdAt: new Date().toISOString(),
+            },
+            token: "test-admin-token",
+          },
+          "faculty@test.com": {
+            password: "faculty123",
+            user: {
+              id: "3",
+              name: "Test Faculty",
+              email: "faculty@test.com",
+              role: "faculty",
+              createdAt: new Date().toISOString(),
+            },
+            token: "test-faculty-token",
+          },
+        };
+
+        // Check if the user exists and password matches
+        const testUser = testUsers[email];
+        if (testUser && testUser.password === password) {
+          const token = testUser.token;
+          localStorage.setItem("token", token);
+
+          dispatch({
+            type: "LOGIN_SUCCESS",
+            payload: {
+              user: testUser.user,
+              token: token,
+              isAdmin: testUser.user.role === "admin",
+            },
+          });
+
+          return {
+            success: true,
+            isAdmin: testUser.user.role === "admin",
+          };
+        }
+
+        // If no match in test users, return error
+        dispatch({
+          type: "LOGIN_FAILURE",
+          payload: "Invalid credentials",
+        });
+        return { success: false, error: "Invalid credentials" };
+      }
+
+      // Real auth service for production
       const result = await authService.login({ email, password });
 
       if (result.success) {
