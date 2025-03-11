@@ -55,7 +55,7 @@ import { ExamSettingsModal } from "@/components/admin/exam-settings-modal";
 import { ExamResponsesPanel } from "@/components/admin/exam-responses-panel";
 import { ExamProvider, useExamContext } from "@/contexts/exam-context";
 import { useNotification } from "@/contexts/notification-context";
-import { getExams, deleteExam } from "@/lib/api";
+import { getExams, deleteExam } from "../../lib/api";
 import {
   Select,
   SelectContent,

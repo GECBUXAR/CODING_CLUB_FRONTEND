@@ -112,11 +112,11 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     dispatch({ type: "SET_LOADING", payload: true });
     try {
-      // Test users for development (mock authentication)
-      // For simplicity, we'll always enable test users
-      const isDevelopment = true; // Set to true to enable test accounts
+      // For development testing - you can use test accounts
+      // Set to false to always use the real API
+      const useTestAccounts = false;
 
-      if (isDevelopment) {
+      if (useTestAccounts) {
         const testUsers = {
           "user@test.com": {
             password: "password123",
@@ -173,17 +173,12 @@ export function AuthProvider({ children }) {
             isAdmin: testUser.user.role === "admin",
           };
         }
-
-        // If no match in test users, return error
-        dispatch({
-          type: "LOGIN_FAILURE",
-          payload: "Invalid credentials",
-        });
-        return { success: false, error: "Invalid credentials" };
       }
 
-      // Real auth service for production
+      // Always call the real auth service
+      console.log("Calling authService.login with:", { email, password });
       const result = await authService.login({ email, password });
+      console.log("Auth service result:", result);
 
       if (result.success) {
         localStorage.setItem("token", result.data.token);
@@ -207,6 +202,8 @@ export function AuthProvider({ children }) {
       });
       return { success: false, error: result.error };
     } catch (error) {
+      console.error("Login error:", error);
+
       // Check if this is a CORS or network error
       if (error.isCorsError) {
         // Dispatch CORS error event

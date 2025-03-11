@@ -8,7 +8,7 @@ import { defineConfig } from "vite";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Determine backend URL - default to production URL
-const useLocalBackend = false; // Set to true to use local backend
+const useLocalBackend = true; // Set to true to use local backend
 const backendUrl = useLocalBackend
   ? "http://localhost:3030"
   : "https://coding-club-backend-ten.vercel.app";
@@ -19,10 +19,30 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "https://coding-club-backend-ten.vercel.app",
+        target: backendUrl,
         changeOrigin: true,
-        secure: true,
+        secure: false,
         rewrite: (path) => path,
+        configure: (proxy, _) => {
+          proxy.on("error", (err, _req, _res) => {
+            console.log("proxy error", err);
+          });
+          proxy.on("proxyReq", (proxyReq, req, _) => {
+            console.log("Sending Request to the Target:", req.method, req.url);
+          });
+          proxy.on("proxyRes", (proxyRes, req, _) => {
+            console.log(
+              "Received Response from the Target:",
+              proxyRes.statusCode,
+              req.url
+            );
+          });
+        },
+      },
+      "/.well-known": {
+        target: backendUrl,
+        changeOrigin: true,
+        secure: false,
       },
     },
     cors: true, // Enable CORS for development server
@@ -37,9 +57,10 @@ export default defineConfig({
     minify: "terser",
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: false, // Set to false for debugging
       },
     },
+    sourcemap: true, // Add sourcemaps for better debugging
   },
   // Add env variables for frontend access
   define: {

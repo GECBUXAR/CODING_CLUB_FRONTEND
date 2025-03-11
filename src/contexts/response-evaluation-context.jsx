@@ -9,7 +9,7 @@ import {
   getExamResponses,
   getExamResponseById,
   updateExamResponse,
-} from "@/lib/api";
+} from "../lib/api";
 import { useNotification } from "./notification-context";
 
 // Create context
@@ -316,9 +316,9 @@ export const ResponseEvaluationProvider = ({ children }) => {
     return evaluationCriteria[`${examId}-${questionId}`] || null;
   };
 
-  // Get all responses for an exam
-  const getExamResponses = (examId) => {
-    return Object.values(examResponses[examId] || {});
+  // Rename this function to avoid conflict with the imported function
+  const getLocalExamResponses = (examId) => {
+    return examResponses[examId] || [];
   };
 
   // Compute statistics for an exam
@@ -403,7 +403,7 @@ export const ResponseEvaluationProvider = ({ children }) => {
 
     // Data access methods
     getResponse,
-    getExamResponses,
+    getLocalExamResponses,
     getEvaluation,
     getCriteria,
     computeExamStatistics,
