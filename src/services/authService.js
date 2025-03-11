@@ -2,48 +2,70 @@ import apiClient from "./api";
 
 // User login
 export const login = async (credentials) => {
+  console.log("authService.login called with:", credentials);
   try {
     const response = await apiClient.post("/users/login", credentials);
+    console.log("Login response:", response.data);
     return {
       success: true,
       data: response.data,
     };
   } catch (error) {
+    console.error("Login error in authService:", error);
     return {
       success: false,
-      error: error.response?.data?.message || "Login failed",
+      error: error.response?.data?.message || error.message || "Login failed",
     };
   }
 };
 
 // Admin login
 export const adminLogin = async (credentials) => {
+  console.log("authService.adminLogin called with:", credentials);
   try {
     const response = await apiClient.post("/admin/login", credentials);
+    console.log("Admin login response:", response.data);
     return {
       success: true,
       data: response.data,
     };
   } catch (error) {
+    console.error("Admin login error in authService:", error);
     return {
       success: false,
-      error: error.response?.data?.message || "Admin login failed",
+      error:
+        error.response?.data?.message || error.message || "Admin login failed",
     };
   }
 };
 
 // User registration
 export const register = async (userData) => {
+  console.log("authService.register called with:", userData);
   try {
-    const response = await apiClient.post("/users/signup", userData);
+    // Set a shorter timeout for this specific request
+    const response = await apiClient.post("/users/signup", userData, {
+      timeout: 8000, // 8 seconds timeout for registration
+    });
+    console.log("Register response:", response.data);
     return {
       success: true,
       data: response.data,
     };
   } catch (error) {
+    console.error("Registration error in authService:", error);
+    // Check for timeout error
+    if (error?.message?.includes("timeout")) {
+      return {
+        success: false,
+        error:
+          "Connection timed out. The server might be down or your internet connection is unstable.",
+      };
+    }
     return {
       success: false,
-      error: error.response?.data?.message || "Registration failed",
+      error:
+        error.response?.data?.message || error.message || "Registration failed",
     };
   }
 };
@@ -54,10 +76,10 @@ export const logout = async () => {
     await apiClient.post("/users/logout");
     return { success: true };
   } catch (error) {
-    console.error("Logout error:", error);
+    console.error("Logout error in authService:", error);
     return {
       success: false,
-      error: error.response?.data?.message || "Logout failed",
+      error: error.response?.data?.message || error.message || "Logout failed",
     };
   }
 };
@@ -71,9 +93,13 @@ export const getCurrentUser = async () => {
       data: response.data.data,
     };
   } catch (error) {
+    console.error("Get user profile error in authService:", error);
     return {
       success: false,
-      error: error.response?.data?.message || "Failed to get user profile",
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to get user profile",
     };
   }
 };
@@ -87,9 +113,13 @@ export const updateProfile = async (userData) => {
       data: response.data.data,
     };
   } catch (error) {
+    console.error("Update profile error in authService:", error);
     return {
       success: false,
-      error: error.response?.data?.message || "Profile update failed",
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Profile update failed",
     };
   }
 };
@@ -100,9 +130,13 @@ export const changePassword = async (passwordData) => {
     await apiClient.put("/users/change-password", passwordData);
     return { success: true };
   } catch (error) {
+    console.error("Change password error in authService:", error);
     return {
       success: false,
-      error: error.response?.data?.message || "Password change failed",
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Password change failed",
     };
   }
 };
