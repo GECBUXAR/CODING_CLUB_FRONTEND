@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Search, Calendar, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";

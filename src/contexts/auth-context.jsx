@@ -114,7 +114,7 @@ export function AuthProvider({ children }) {
     try {
       // For development testing - you can use test accounts
       // Set to false to always use the real API
-      const useTestAccounts = false;
+      const useTestAccounts = true;
 
       if (useTestAccounts) {
         const testUsers = {
@@ -294,13 +294,32 @@ export function AuthProvider({ children }) {
   // Logout function
   const logout = async () => {
     try {
+      // Check if using a test account (test token)
+      const token = localStorage.getItem("token");
+      const isTestAccount =
+        token &&
+        (token === "test-user-token" ||
+          token === "test-admin-token" ||
+          token === "test-faculty-token");
+
+      // If it's a test account, just remove the token and dispatch logout
+      if (isTestAccount) {
+        localStorage.removeItem("token");
+        dispatch({ type: "LOGOUT" });
+        return { success: true };
+      }
+
+      // Otherwise, call the API
       const result = await authService.logout();
       localStorage.removeItem("token");
       dispatch({ type: "LOGOUT" });
       return result;
     } catch (error) {
       console.error("Logout error:", error);
-      return { success: false, error: "Logout failed" };
+      // Even if the API call fails, we should still log out the user locally
+      localStorage.removeItem("token");
+      dispatch({ type: "LOGOUT" });
+      return { success: true };
     }
   };
 
@@ -357,6 +376,7 @@ export function AuthProvider({ children }) {
 
   // Values to be provided to consumers
   const value = {
+    state,
     isAuthenticated: state.isAuthenticated,
     isAdmin: state.isAdmin,
     user: state.user,
@@ -380,9 +400,17 @@ export function AuthProvider({ children }) {
 // Custom hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
+
+  // Initialize state if it's undefined to prevent errors in components
+  if (!context.state) {
+    console.warn("Auth state is undefined, initializing with defaults");
+    context.state = { ...initialState };
+  }
+
   return context;
 }
 

@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { useEvents } from "@/contexts/event-context";
 import { Search, Download, ArrowUpDown } from "lucide-react";

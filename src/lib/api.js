@@ -1,9 +1,10 @@
-import axiosInstance from "../services/api";
+import axios from "axios";
+import { API_CONFIG } from "@/config";
 
 // Get all exams
 export const getExams = async () => {
   try {
-    const response = await axiosInstance.get("/events");
+    const response = await axios.get(`${API_CONFIG.BASE_URL}/events`);
     return {
       success: true,
       data: response.data.data || [],
@@ -20,7 +21,7 @@ export const getExams = async () => {
 // Get exam by ID
 export const getExamById = async (examId) => {
   try {
-    const response = await axiosInstance.get(`/events/${examId}`);
+    const response = await axios.get(`${API_CONFIG.BASE_URL}/events/${examId}`);
     return {
       success: true,
       data: response.data.data,
@@ -36,7 +37,10 @@ export const getExamById = async (examId) => {
 // Create a new exam (admin only)
 export const createExam = async (examData) => {
   try {
-    const response = await axiosInstance.post("/events", examData);
+    const response = await axios.post(
+      `${API_CONFIG.BASE_URL}/events`,
+      examData
+    );
     return {
       success: true,
       data: response.data.data,
@@ -52,7 +56,10 @@ export const createExam = async (examData) => {
 // Update an exam (admin only)
 export const updateExam = async (examId, examData) => {
   try {
-    const response = await axiosInstance.put(`/events/${examId}`, examData);
+    const response = await axios.put(
+      `${API_CONFIG.BASE_URL}/events/${examId}`,
+      examData
+    );
     return {
       success: true,
       data: response.data.data,
@@ -68,7 +75,7 @@ export const updateExam = async (examId, examData) => {
 // Delete an exam (admin only)
 export const deleteExam = async (examId) => {
   try {
-    await axiosInstance.delete(`/events/${examId}`);
+    await axios.delete(`${API_CONFIG.BASE_URL}/events/${examId}`);
     return {
       success: true,
     };
@@ -83,7 +90,9 @@ export const deleteExam = async (examId) => {
 // Get exam responses for a specific exam
 export const getExamResponses = async (examId) => {
   try {
-    const response = await axiosInstance.get(`/exams/${examId}/responses`);
+    const response = await axios.get(
+      `${API_CONFIG.BASE_URL}/exams/${examId}/responses`
+    );
     return {
       success: true,
       data: response.data.data || [],
@@ -100,8 +109,8 @@ export const getExamResponses = async (examId) => {
 // Get a specific exam response by ID
 export const getExamResponseById = async (examId, responseId) => {
   try {
-    const response = await axiosInstance.get(
-      `/exams/${examId}/responses/${responseId}`
+    const response = await axios.get(
+      `${API_CONFIG.BASE_URL}/exams/${examId}/responses/${responseId}`
     );
     return {
       success: true,
@@ -119,8 +128,8 @@ export const getExamResponseById = async (examId, responseId) => {
 // Update an exam response
 export const updateExamResponse = async (examId, responseId, updateData) => {
   try {
-    const response = await axiosInstance.put(
-      `/exams/${examId}/responses/${responseId}`,
+    const response = await axios.put(
+      `${API_CONFIG.BASE_URL}/exams/${examId}/responses/${responseId}`,
       updateData
     );
     return {
@@ -139,7 +148,9 @@ export const updateExamResponse = async (examId, responseId, updateData) => {
 // Get evaluation criteria for an exam
 export const getEvaluationCriteria = async (examId) => {
   try {
-    const response = await axiosInstance.get(`/exams/${examId}/criteria`);
+    const response = await axios.get(
+      `${API_CONFIG.BASE_URL}/exams/${examId}/criteria`
+    );
     return {
       success: true,
       data: response.data.data || [],
@@ -157,8 +168,8 @@ export const getEvaluationCriteria = async (examId) => {
 // Submit evaluation for a response
 export const submitEvaluation = async (examId, responseId, evaluationData) => {
   try {
-    const response = await axiosInstance.post(
-      `/exams/${examId}/responses/${responseId}/evaluate`,
+    const response = await axios.post(
+      `${API_CONFIG.BASE_URL}/exams/${examId}/responses/${responseId}/evaluate`,
       evaluationData
     );
     return {
@@ -174,22 +185,54 @@ export const submitEvaluation = async (examId, responseId, evaluationData) => {
   }
 };
 
-// Check API connection - used by admin panel
-export const checkApiConnection = async () => {
+/**
+ * Check if the API is reachable
+ * @returns {Promise<{online: boolean, message: string}>}
+ */
+export async function checkApiConnection() {
   try {
-    const response = await axiosInstance.get("/health-check");
-    return {
-      online: true,
-      message: response.data?.message || "Connected to API successfully",
-    };
+    const response = await axios.get(`${API_CONFIG.BASE_URL}/health-check`, {
+      timeout: 5000, // 5 seconds timeout
+    });
+
+    if (response.status === 200) {
+      return { online: true, message: "API is online" };
+    }
+    return { online: false, message: "API returned non-200 status" };
   } catch (error) {
-    console.error("API Connection check failed:", error);
+    console.error("API connection check failed:", error);
     return {
       online: false,
-      message: error.message || "Could not connect to API",
+      message: error?.message || "Could not connect to API",
     };
   }
-};
+}
+
+/**
+ * Generic API handler for error handling
+ */
+export async function apiRequest(method, endpoint, data = null, options = {}) {
+  try {
+    const response = await axios({
+      method,
+      url: `${API_CONFIG.BASE_URL}${endpoint}`,
+      data: method !== "get" ? data : null,
+      params: method === "get" ? data : null,
+      ...options,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error(`API ${method.toUpperCase()} request failed:`, error);
+
+    return {
+      success: false,
+      error: error?.response?.data || {
+        message: error?.message || "Request failed",
+      },
+    };
+  }
+}
 
 export default {
   getExams,
@@ -203,4 +246,5 @@ export default {
   getEvaluationCriteria,
   submitEvaluation,
   checkApiConnection,
+  apiRequest,
 };

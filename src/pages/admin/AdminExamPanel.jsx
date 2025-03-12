@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import {
   Plus,
@@ -19,6 +17,15 @@ import {
   AlertTriangle,
   CheckCircle,
   Lock,
+  PlusCircle,
+  List,
+  Upload,
+  BarChart,
+  Trophy,
+  Users as UsersIcon,
+  TrendingUp as TrendingUpIcon,
+  ClipboardCheck as ClipboardCheckIcon,
+  RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,6 +70,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 // ErrorFallback component to display when errors occur
 function ErrorFallback({ error }) {
@@ -141,6 +149,11 @@ function AdminExamPanelContent() {
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [showAllExams, setShowAllExams] = useState(true);
+  const [showExamFormModal, setShowExamFormModal] = useState(false);
+  const [showUploadResultsModal, setShowUploadResultsModal] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("date-desc");
 
   // Destructure safely
   const { state, dispatch, getExamById } = examContext || {};
@@ -328,178 +341,282 @@ function AdminExamPanelContent() {
     setIsResponsePanelOpen(true);
   };
 
+  const toggleExamList = () => {
+    setShowAllExams(!showAllExams);
+  };
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setSortOrder("date-desc");
+  };
+
   // Main render for the admin exam panel
   return (
-    <div className="space-y-6 pb-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Exam Management</h1>
-          <p className="text-slate-500 mt-1">
-            Create, manage and monitor assessment exams
+          <h2 className="text-3xl font-bold tracking-tight">Exam Management</h2>
+          <p className="text-muted-foreground">
+            Create, manage and evaluate exams for your coding club members.
           </p>
         </div>
-
-        <Button
-          onClick={() => {
-            setCurrentExam(null);
-            setIsExamModalOpen(true);
-          }}
-          size="default"
-          variant="default"
-          className="shadow-sm"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Create New Exam
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button
+            onClick={() => setShowExamFormModal(true)}
+            variant="default"
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Create Exam
+          </Button>
+          <Button onClick={toggleExamList} variant="outline" className="gap-2">
+            <List className="h-4 w-4" />
+            {showAllExams ? "Show Active Exams" : "Show All Exams"}
+          </Button>
+          <Button
+            onClick={() => setShowUploadResultsModal(true)}
+            variant="outline"
+            className="gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            Upload Results
+          </Button>
+        </div>
       </div>
 
-      {isOfflineMode && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4 text-sm">
-          <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-blue-700 font-medium text-sm mb-1">
-                Development Mode
+      {/* Quick Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Exams</CardTitle>
+            <FileText className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{exams.length}</div>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-xs text-muted-foreground">
+                {
+                  exams.filter((exam) => new Date(exam.date) > new Date())
+                    .length
+                }{" "}
+                upcoming
               </p>
-              <p className="text-blue-600 text-sm mb-2">
-                Using local sample data for testing. Changes will not be saved
-                to a server.
-              </p>
-              <div className="flex">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs h-7 bg-white"
-                  onClick={handleTestConnection}
-                  disabled={isTestingConnection}
-                >
-                  {isTestingConnection ? (
-                    <span className="flex items-center">
-                      <span className="animate-spin h-3 w-3 mr-2 border-t-2 border-blue-500 border-r-2 rounded-full" />
-                      Testing...
-                    </span>
-                  ) : (
-                    "Test API Connection"
-                  )}
-                </Button>
+              <div className="flex items-center text-xs font-medium text-green-600">
+                <BarChart className="h-3 w-3 mr-1" />
+                {
+                  exams.filter((exam) => exam.status === "completed").length
+                }{" "}
+                completed
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </CardContent>
+        </Card>
 
-      {isResponsePanelOpen && currentExam ? (
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">
-              Responses for: {currentExam.title}
-            </h2>
-            <Button
-              variant="outline"
-              size="sm"
-              className="px-3"
-              onClick={() => setIsResponsePanelOpen(false)}
-            >
-              Back to Exams
-            </Button>
-          </div>
-          <ExamResponsesPanel examId={currentExam.id} />
-        </div>
-      ) : (
-        <>
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <StatCard
-              title="Total Exams"
-              value={examStats.total}
-              icon={<FileText className="h-5 w-5 text-indigo-500" />}
-              bgColor="bg-indigo-50"
-              textColor="text-indigo-700"
-            />
-            <StatCard
-              title="Published"
-              value={examStats.published}
-              icon={<CheckCircle className="h-5 w-5 text-green-500" />}
-              bgColor="bg-green-50"
-              textColor="text-green-700"
-            />
-            <StatCard
-              title="Draft"
-              value={examStats.draft}
-              icon={<Edit className="h-5 w-5 text-amber-500" />}
-              bgColor="bg-amber-50"
-              textColor="text-amber-700"
-            />
-            <StatCard
-              title="Closed"
-              value={examStats.closed}
-              icon={<Lock className="h-5 w-5 text-slate-500" />}
-              bgColor="bg-slate-100"
-              textColor="text-slate-700"
-            />
-          </div>
-
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-            <div className="relative w-full sm:w-auto flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Search exams..."
-                className="pl-9 h-10 w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+            <Trophy className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">76%</div>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-xs text-muted-foreground">Across all exams</p>
+              <Badge
+                variant="outline"
+                className="bg-green-50 text-green-600 border-green-200"
+              >
+                Good
+              </Badge>
             </div>
+          </CardContent>
+        </Card>
 
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-full sm:w-[180px] h-10">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent className="min-w-[180px]">
-                {statusOptions.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="capitalize"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {loading ? (
-            <div className="flex flex-col items-center justify-center my-16 space-y-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
-              <p className="text-slate-500">Loading exams...</p>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Participation Rate
+            </CardTitle>
+            <UsersIcon className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">82%</div>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-xs text-muted-foreground">
+                Of enrolled students
+              </p>
+              <div className="flex items-center text-xs font-medium text-amber-600">
+                <TrendingUpIcon className="h-3 w-3 mr-1" />
+                +5% from last month
+              </div>
             </div>
-          ) : filteredExams.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredExams.map((exam) => (
-                <ExamCard
-                  key={exam.id}
-                  exam={exam}
-                  onEdit={() => handleEditExam(exam.id)}
-                  onAddQuestions={() => handleAddQuestions(exam.id)}
-                  onDelete={() => {
-                    setCurrentExam(getExamById(exam.id));
-                    setIsDeleteModalOpen(true);
-                  }}
-                  onViewResponses={() => handleViewResponses(exam.id)}
-                />
-              ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Pending Evaluations
+            </CardTitle>
+            <ClipboardCheckIcon className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-xs text-muted-foreground">
+                Responses to grade
+              </p>
+              <Badge
+                variant="outline"
+                className="bg-amber-50 text-amber-600 border-amber-200"
+              >
+                Requires Attention
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center p-4 rounded-lg border bg-card text-card-foreground shadow-sm">
+        <div className="flex-1 flex flex-col sm:flex-row gap-4">
+          <div className="relative w-full sm:max-w-[240px]">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search exams..."
+              className="w-full pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortOrder} onValueChange={setSortOrder}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date-desc">Newest First</SelectItem>
+              <SelectItem value="date-asc">Oldest First</SelectItem>
+              <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+              <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-full md:w-auto flex justify-end">
+          <Button variant="ghost" onClick={resetFilters} className="gap-2">
+            <RefreshCcw className="h-4 w-4" />
+            Reset Filters
+          </Button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="exams" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="exams">Exams</TabsTrigger>
+          <TabsTrigger value="responses">Responses</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+        <TabsContent value="exams" className="space-y-6">
+          {/* Existing exam list content */}
+          {isResponsePanelOpen && currentExam ? (
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">
+                  Responses for: {currentExam.title}
+                </h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="px-3"
+                  onClick={() => setIsResponsePanelOpen(false)}
+                >
+                  Back to Exams
+                </Button>
+              </div>
+              <ExamResponsesPanel examId={currentExam.id} />
             </div>
           ) : (
-            <EmptyState
-              searchQuery={searchQuery}
-              selectedStatus={selectedStatus}
-              onCreateExam={() => {
-                setCurrentExam(null);
-                setIsExamModalOpen(true);
-              }}
-            />
+            <>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <StatCard
+                  title="Total Exams"
+                  value={examStats.total}
+                  icon={<FileText className="h-5 w-5 text-indigo-500" />}
+                  bgColor="bg-indigo-50"
+                  textColor="text-indigo-700"
+                />
+                <StatCard
+                  title="Published"
+                  value={examStats.published}
+                  icon={<CheckCircle className="h-5 w-5 text-green-500" />}
+                  bgColor="bg-green-50"
+                  textColor="text-green-700"
+                />
+                <StatCard
+                  title="Draft"
+                  value={examStats.draft}
+                  icon={<Edit className="h-5 w-5 text-amber-500" />}
+                  bgColor="bg-amber-50"
+                  textColor="text-amber-700"
+                />
+                <StatCard
+                  title="Closed"
+                  value={examStats.closed}
+                  icon={<Lock className="h-5 w-5 text-slate-500" />}
+                  bgColor="bg-slate-100"
+                  textColor="text-slate-700"
+                />
+              </div>
+
+              {loading ? (
+                <div className="flex flex-col items-center justify-center my-16 space-y-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
+                  <p className="text-slate-500">Loading exams...</p>
+                </div>
+              ) : filteredExams.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredExams.map((exam) => (
+                    <ExamCard
+                      key={exam.id}
+                      exam={exam}
+                      onEdit={() => handleEditExam(exam.id)}
+                      onAddQuestions={() => handleAddQuestions(exam.id)}
+                      onDelete={() => {
+                        setCurrentExam(getExamById(exam.id));
+                        setIsDeleteModalOpen(true);
+                      }}
+                      onViewResponses={() => handleViewResponses(exam.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  searchQuery={searchQuery}
+                  selectedStatus={selectedStatus}
+                  onCreateExam={() => {
+                    setCurrentExam(null);
+                    setIsExamModalOpen(true);
+                  }}
+                />
+              )}
+            </>
           )}
-        </>
-      )}
+        </TabsContent>
+      </Tabs>
 
       {/* Modals */}
       <DeleteConfirmationDialog

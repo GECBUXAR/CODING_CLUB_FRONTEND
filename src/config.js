@@ -33,6 +33,7 @@ export const AUTH_CONFIG = {
     LOGIN: "/users/login",
     ADMIN_LOGIN: "/admin/login",
     SIGNUP: "/users/signup",
+    ADMIN_SIGNUP: "/admin/signup",
     LOGOUT: "/users/logout",
     PROFILE: "/users/profile",
   },
