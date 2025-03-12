@@ -1,5 +1,3 @@
-"use client";
-
 import React, {
   createContext,
   useContext,
@@ -8,28 +6,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import axios from "axios";
-
-// Replace the incorrect API_BASE_URL with the correct one
-// In production, should use https://coding-club-backend-ten.vercel.app/api/v1
-const API_BASE_URL = "http://localhost:3030/api/v1";
-
-// 15-minute timeout for API requests
-const API_TIMEOUT = 15 * 60 * 1000;
-
-// Helper function to detect offline development mode - same as in api.js
-const isLikelyOfflineDevelopment = () => {
-  return API_BASE_URL.includes("localhost");
-};
-
-// Function to create a promise that rejects after a timeout - same as in api.js
-const timeoutPromise = (ms) => {
-  return new Promise((_, reject) => {
-    setTimeout(() => {
-      reject(new Error(`Request timed out after ${ms}ms`));
-    }, ms);
-  });
-};
+import apiClient from "../services/api";
 
 // Initial state for faculty data
 const initialState = {
@@ -186,8 +163,8 @@ export function FacultyProvider({ children }) {
 
   // Function to fetch faculty data from the backend - using useCallback to prevent useEffect infinite loops
   const fetchFaculty = useCallback(async () => {
-    // Skip if we've already tried to fetch in development mode
-    if (isLikelyOfflineDevelopment() && fetchAttempted.current) {
+    // Skip if we've already tried to fetch and are in development with sample data
+    if (fetchAttempted.current && import.meta.env.DEV) {
       return;
     }
 
@@ -195,247 +172,176 @@ export function FacultyProvider({ children }) {
     fetchAttempted.current = true;
 
     try {
-      // Use race between fetch and timeout, like in our api.js
-      const result = await Promise.race([
-        axios.get(`${API_BASE_URL}/faculty`),
-        timeoutPromise(API_TIMEOUT),
-      ]);
+      const response = await apiClient.get("/faculty");
 
       dispatch({
         type: ActionTypes.FETCH_FACULTY_SUCCESS,
-        payload: result.data,
+        payload: response.data.data || [],
       });
     } catch (error) {
-      console.error("Error fetching faculty data:", error);
+      console.error("Error fetching faculty:", error);
 
-      // Use sample data if backend fetch fails
-      console.log("Using sample faculty data as fallback");
-
-      dispatch({
-        type: ActionTypes.FETCH_FACULTY_SUCCESS,
-        payload: sampleFaculty,
-      });
-
-      // Only dispatch error once
-      if (state.error === null) {
+      // Use sample data in development or if there's an error
+      if (import.meta.env.DEV) {
+        console.log("Using sample faculty data");
+        dispatch({
+          type: ActionTypes.FETCH_FACULTY_SUCCESS,
+          payload: sampleFaculty,
+        });
+      } else {
         dispatch({
           type: ActionTypes.FETCH_FACULTY_ERROR,
           payload: error.message || "Failed to fetch faculty data",
         });
       }
     }
-  }, [state.error]);
+  }, []);
 
-  // Function to fetch testimonials - using useCallback to prevent useEffect infinite loops
+  // Function to fetch testimonials
   const fetchTestimonials = useCallback(async () => {
-    // Skip additional requests in development mode
-    if (isLikelyOfflineDevelopment() && state.testimonials.length > 0) {
+    if (fetchAttempted.current && import.meta.env.DEV) {
       return;
     }
 
     dispatch({ type: ActionTypes.FETCH_FACULTY_START });
+    fetchAttempted.current = true;
 
     try {
-      // Use race between fetch and timeout, like in our api.js
-      const result = await Promise.race([
-        axios.get(`${API_BASE_URL}/testimonials`),
-        timeoutPromise(API_TIMEOUT),
-      ]);
+      const response = await apiClient.get("/testimonials");
 
       dispatch({
         type: ActionTypes.FETCH_TESTIMONIALS_SUCCESS,
-        payload: result.data.data || result.data, // Handle both formats
+        payload: response.data.data || [],
       });
     } catch (error) {
       console.error("Error fetching testimonials:", error);
 
-      // Use sample data if backend fetch fails - this is crucial for development
-      console.log("Using sample testimonials data as fallback");
-
-      dispatch({
-        type: ActionTypes.FETCH_TESTIMONIALS_SUCCESS,
-        payload: sampleTestimonials,
-      });
-
-      // Don't repeatedly dispatch error for testimonials
-      if (state.testimonials.length === 0 && state.error === null) {
+      // Use sample data in development or if there's an error
+      if (import.meta.env.DEV) {
+        console.log("Using sample testimonial data");
+        dispatch({
+          type: ActionTypes.FETCH_TESTIMONIALS_SUCCESS,
+          payload: sampleTestimonials,
+        });
+      } else {
         dispatch({
           type: ActionTypes.FETCH_FACULTY_ERROR,
           payload: error.message || "Failed to fetch testimonials",
         });
       }
     }
-  }, [state.testimonials.length, state.error]);
+  }, []);
 
-  // Function to add a new faculty member to the backend
-  const addFacultyMember = useCallback(
-    async (facultyData) => {
-      try {
-        // Use race between fetch and timeout
-        const result = await Promise.race([
-          axios.post(`${API_BASE_URL}/faculty`, facultyData, {
-            headers: { "Content-Type": "application/json" },
-          }),
-          timeoutPromise(API_TIMEOUT),
-        ]);
+  // Add a new faculty member
+  const addFacultyMember = useCallback(async (facultyData) => {
+    dispatch({ type: ActionTypes.FETCH_FACULTY_START });
 
-        const newFaculty = result.data;
+    try {
+      const response = await apiClient.post("/faculty", facultyData);
 
-        dispatch({
-          type: ActionTypes.ADD_FACULTY_MEMBER,
-          payload: newFaculty,
-        });
+      dispatch({
+        type: ActionTypes.ADD_FACULTY_MEMBER,
+        payload: response.data.data,
+      });
 
-        return newFaculty;
-      } catch (error) {
-        console.error("Error adding faculty member:", error);
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error("Error adding faculty member:", error);
 
-        // For development, still add to local state even if API fails
-        const newFaculty = {
-          ...facultyData,
-          id: Date.now(),
-        };
+      dispatch({
+        type: ActionTypes.FETCH_FACULTY_ERROR,
+        payload: error.message || "Failed to add faculty member",
+      });
 
-        dispatch({
-          type: ActionTypes.ADD_FACULTY_MEMBER,
-          payload: newFaculty,
-        });
-
-        if (state.error === null) {
-          dispatch({
-            type: ActionTypes.FETCH_FACULTY_ERROR,
-            payload: error.message || "Failed to add faculty member",
-          });
-        }
-
-        return newFaculty;
-      }
-    },
-    [state.error]
-  );
-
-  // Function to update a faculty member
-  const updateFacultyMember = useCallback(
-    async (id, facultyData) => {
-      try {
-        // Use race between fetch and timeout
-        const result = await Promise.race([
-          axios.put(`${API_BASE_URL}/faculty/${id}`, facultyData, {
-            headers: { "Content-Type": "application/json" },
-          }),
-          timeoutPromise(API_TIMEOUT),
-        ]);
-
-        const updatedFaculty = result.data;
-
-        dispatch({
-          type: ActionTypes.UPDATE_FACULTY_MEMBER,
-          payload: updatedFaculty,
-        });
-
-        return updatedFaculty;
-      } catch (error) {
-        console.error("Error updating faculty member:", error);
-
-        // For development mode, update the local state anyway
-        const updatedFaculty = {
-          ...facultyData,
-          id,
-        };
-
-        dispatch({
-          type: ActionTypes.UPDATE_FACULTY_MEMBER,
-          payload: updatedFaculty,
-        });
-
-        if (state.error === null) {
-          dispatch({
-            type: ActionTypes.FETCH_FACULTY_ERROR,
-            payload: error.message || "Failed to update faculty member",
-          });
-        }
-
-        return updatedFaculty;
-      }
-    },
-    [state.error]
-  );
-
-  // Function to delete a faculty member
-  const deleteFacultyMember = useCallback(
-    async (id) => {
-      try {
-        // Use race between fetch and timeout
-        await Promise.race([
-          axios.delete(`${API_BASE_URL}/faculty/${id}`),
-          timeoutPromise(API_TIMEOUT),
-        ]);
-
-        dispatch({
-          type: ActionTypes.DELETE_FACULTY_MEMBER,
-          payload: id,
-        });
-
-        return { success: true };
-      } catch (error) {
-        console.error("Error deleting faculty member:", error);
-
-        // For development, still delete from local state
-        dispatch({
-          type: ActionTypes.DELETE_FACULTY_MEMBER,
-          payload: id,
-        });
-
-        if (state.error === null) {
-          dispatch({
-            type: ActionTypes.FETCH_FACULTY_ERROR,
-            payload: error.message || "Failed to delete faculty member",
-          });
-        }
-
-        // We still consider this successful in dev mode since we updated local state
-        return { success: true, isOfflineMode: true };
-      }
-    },
-    [state.error]
-  );
-
-  // Fetch faculty and testimonials on mount
-  useEffect(() => {
-    // Only fetch if we haven't already tried in development mode
-    if (!fetchAttempted.current) {
-      fetchFaculty();
-      fetchTestimonials();
+      return {
+        success: false,
+        error: error.message || "Failed to add faculty member",
+      };
     }
+  }, []);
+
+  // Update a faculty member
+  const updateFacultyMember = useCallback(async (id, facultyData) => {
+    dispatch({ type: ActionTypes.FETCH_FACULTY_START });
+
+    try {
+      const response = await apiClient.put(`/faculty/${id}`, facultyData);
+
+      dispatch({
+        type: ActionTypes.UPDATE_FACULTY_MEMBER,
+        payload: response.data.data,
+      });
+
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error("Error updating faculty member:", error);
+
+      dispatch({
+        type: ActionTypes.FETCH_FACULTY_ERROR,
+        payload: error.message || "Failed to update faculty member",
+      });
+
+      return {
+        success: false,
+        error: error.message || "Failed to update faculty member",
+      };
+    }
+  }, []);
+
+  // Delete a faculty member
+  const deleteFacultyMember = useCallback(async (id) => {
+    dispatch({ type: ActionTypes.FETCH_FACULTY_START });
+
+    try {
+      await apiClient.delete(`/faculty/${id}`);
+
+      dispatch({
+        type: ActionTypes.DELETE_FACULTY_MEMBER,
+        payload: id,
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting faculty member:", error);
+
+      dispatch({
+        type: ActionTypes.FETCH_FACULTY_ERROR,
+        payload: error.message || "Failed to delete faculty member",
+      });
+
+      return {
+        success: false,
+        error: error.message || "Failed to delete faculty member",
+      };
+    }
+  }, []);
+
+  // Fetch faculty data on mount
+  useEffect(() => {
+    fetchFaculty();
+    fetchTestimonials();
   }, [fetchFaculty, fetchTestimonials]);
 
-  // Clear error after 5 seconds
-  useEffect(() => {
-    if (state.error) {
-      const timer = setTimeout(() => {
-        dispatch({ type: ActionTypes.FETCH_FACULTY_ERROR, payload: null });
-      }, 5000);
+  // Prepare value object for context provider
+  const value = {
+    faculty: state.faculty,
+    testimonials: state.testimonials,
+    loading: state.loading,
+    error: state.error,
+    fetchFaculty,
+    fetchTestimonials,
+    addFacultyMember,
+    updateFacultyMember,
+    deleteFacultyMember,
+  };
 
-      return () => clearTimeout(timer);
-    }
-  }, [state.error]);
-
-  // Provide context values
   return (
-    <FacultyContext.Provider
-      value={{
-        faculty: state.faculty,
-        testimonials: state.testimonials,
-        loading: state.loading,
-        error: state.error,
-        fetchFaculty,
-        fetchTestimonials,
-        addFacultyMember,
-        updateFacultyMember,
-        deleteFacultyMember,
-      }}
-    >
-      {children}
-    </FacultyContext.Provider>
+    <FacultyContext.Provider value={value}>{children}</FacultyContext.Provider>
   );
 }

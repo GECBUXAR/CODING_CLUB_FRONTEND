@@ -1,28 +1,31 @@
 import axios from "axios";
-
-// API base URL - use relative URL for dev to make use of Vite's proxy
-const API_BASE_URL = import.meta.env.PROD
-  ? "https://coding-club-backend-ten.vercel.app/api/v1"
-  : "/api/v1";
+import { API_CONFIG, AUTH_CONFIG } from "../config";
 
 // Create an axios instance with default config
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
+  baseURL: API_CONFIG.BASE_URL,
+  headers: API_CONFIG.HEADERS,
   withCredentials: true, // Important for cookies
+  timeout: API_CONFIG.TIMEOUT,
 });
 
 // Add request interceptor for auth token
 apiClient.interceptors.request.use(
   (config) => {
     // Add authorization token if available
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem(AUTH_CONFIG.TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Log requests in development
+    if (import.meta.env.DEV) {
+      console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+      if (config.data) {
+        console.log("Request data:", config.data);
+      }
+    }
+
     return config;
   },
   (error) => {
@@ -32,7 +35,13 @@ apiClient.interceptors.request.use(
 
 // Add response interceptor for error handling
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log responses in development
+    if (import.meta.env.DEV) {
+      console.log(`API Response (${response.status}):`, response.data);
+    }
+    return response;
+  },
   async (error) => {
     // Create a custom error object for consistent error handling
     const customError = {
@@ -56,7 +65,7 @@ apiClient.interceptors.response.use(
     // Handle 401 unauthorized errors (token expired)
     if (error.response?.status === 401) {
       // Clear any stored tokens
-      localStorage.removeItem("token");
+      localStorage.removeItem(AUTH_CONFIG.TOKEN_KEY);
 
       // You could implement auto-redirect here if needed
       // window.location.href = '/login';
@@ -66,11 +75,8 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Base timeout for API requests (ms)
-const API_TIMEOUT = 30000;
-
 // Helper to add timeout to requests
-export const withTimeout = (promise, ms = API_TIMEOUT) => {
+export const withTimeout = (promise, ms = API_CONFIG.TIMEOUT) => {
   const timeout = new Promise((_, reject) => {
     const id = setTimeout(() => {
       clearTimeout(id);
@@ -81,4 +87,6 @@ export const withTimeout = (promise, ms = API_TIMEOUT) => {
   return Promise.race([promise, timeout]);
 };
 
+// Export both named and default for flexibility
+export { apiClient };
 export default apiClient;

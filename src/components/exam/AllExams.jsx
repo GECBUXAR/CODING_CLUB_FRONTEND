@@ -1,5 +1,44 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import {
+  Search,
+  Clock,
+  BookOpen,
+  Filter,
+  ChevronDown,
+  Tag,
+  BarChart,
+  RefreshCw,
+  ArrowRight,
+  Trophy,
+  AlertTriangle,
+  ExternalLink,
+  Bookmark,
+  BookmarkCheck,
+} from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Mock data for exams
 const mockExams = [
@@ -12,6 +51,11 @@ const mockExams = [
     questions: 25,
     difficulty: "Beginner",
     category: "Web Development",
+    status: "Available",
+    passRate: 78,
+    recentAttempts: 125,
+    popularity: 95,
+    isEnrolled: false,
   },
   {
     id: 2,
@@ -22,6 +66,11 @@ const mockExams = [
     questions: 30,
     difficulty: "Intermediate",
     category: "Web Development",
+    status: "Available",
+    passRate: 65,
+    recentAttempts: 93,
+    popularity: 88,
+    isEnrolled: false,
   },
   {
     id: 3,
@@ -32,6 +81,11 @@ const mockExams = [
     questions: 35,
     difficulty: "Advanced",
     category: "Computer Science",
+    status: "Available",
+    passRate: 55,
+    recentAttempts: 72,
+    popularity: 82,
+    isEnrolled: false,
   },
   {
     id: 4,
@@ -42,6 +96,11 @@ const mockExams = [
     questions: 25,
     difficulty: "Beginner",
     category: "Programming",
+    status: "Available",
+    passRate: 82,
+    recentAttempts: 184,
+    popularity: 97,
+    isEnrolled: false,
   },
   {
     id: 5,
@@ -52,6 +111,11 @@ const mockExams = [
     questions: 30,
     difficulty: "Intermediate",
     category: "Database",
+    status: "Available",
+    passRate: 68,
+    recentAttempts: 79,
+    popularity: 75,
+    isEnrolled: false,
   },
   {
     id: 6,
@@ -62,24 +126,98 @@ const mockExams = [
     questions: 30,
     difficulty: "Advanced",
     category: "Computer Science",
+    status: "Available",
+    passRate: 45,
+    recentAttempts: 67,
+    popularity: 80,
+    isEnrolled: false,
   },
 ];
+
+const DifficultyBadge = ({ difficulty }) => {
+  const styles = {
+    Beginner: "bg-green-100 text-green-800 hover:bg-green-200",
+    Intermediate: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
+    Advanced: "bg-red-100 text-red-800 hover:bg-red-200",
+  };
+
+  return (
+    <Badge
+      variant="outline"
+      className={styles[difficulty] || "bg-gray-100 text-gray-800"}
+    >
+      {difficulty}
+    </Badge>
+  );
+};
+
+const ExamSkeleton = () => (
+  <Card className="h-full">
+    <CardHeader>
+      <div className="flex justify-between items-start">
+        <div>
+          <Skeleton className="h-6 w-48 mb-2" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <Skeleton className="h-6 w-20" />
+      </div>
+    </CardHeader>
+    <CardContent>
+      <Skeleton className="h-16 w-full mb-4" />
+      <div className="space-y-2">
+        <div className="flex justify-between">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <div className="flex justify-between">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+      </div>
+    </CardContent>
+    <CardFooter>
+      <Skeleton className="h-10 w-full" />
+    </CardFooter>
+  </Card>
+);
+
+const EmptyState = ({ message, buttonText, onClick }) => (
+  <div className="text-center py-16 px-4">
+    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-50 text-primary-600 mb-4">
+      <BookOpen className="h-8 w-8" />
+    </div>
+    <h3 className="text-lg font-medium text-gray-900 mb-1">{message}</h3>
+    <p className="text-gray-500 mb-4 max-w-md mx-auto">
+      Try adjusting your filters or search terms to find what you're looking
+      for.
+    </p>
+    {buttonText && (
+      <Button variant="default" size="default" onClick={onClick}>
+        {buttonText}
+      </Button>
+    )}
+  </div>
+);
 
 const AllExams = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("");
+  const [sortBy, setSortBy] = useState("popularity");
+  const [isLoading, setIsLoading] = useState(false);
+  const [exams, setExams] = useState(mockExams);
+  const [enrollmentSuccess, setEnrollmentSuccess] = useState(null);
+  const { state } = useAuth();
+  const user = state?.user || { role: "user" };
 
   // Extract unique categories and difficulties for filters
-  const categories = Array.from(
-    new Set(mockExams.map((exam) => exam.category))
-  );
+  const categories = Array.from(new Set(exams.map((exam) => exam.category)));
   const difficulties = Array.from(
-    new Set(mockExams.map((exam) => exam.difficulty))
+    new Set(exams.map((exam) => exam.difficulty))
   );
 
   // Filter exams based on search and filter criteria
-  const filteredExams = mockExams.filter((exam) => {
+  const filteredExams = exams.filter((exam) => {
     const matchesSearch =
       exam.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       exam.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -91,211 +229,449 @@ const AllExams = () => {
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
 
+  // Sort exams
+  const sortedExams = [...filteredExams].sort((a, b) => {
+    if (sortBy === "title") return a.title.localeCompare(b.title);
+    if (sortBy === "difficulty") {
+      const order = { Beginner: 1, Intermediate: 2, Advanced: 3 };
+      return order[a.difficulty] - order[b.difficulty];
+    }
+    if (sortBy === "duration") return a.duration - b.duration;
+    if (sortBy === "questions") return a.questions - b.questions;
+    if (sortBy === "passRate") return b.passRate - a.passRate;
+    if (sortBy === "popularity") return b.popularity - a.popularity;
+    return 0;
+  });
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setFilterCategory("");
+    setFilterDifficulty("");
+  };
+
+  const refreshExams = () => {
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  const handleEnrollment = (examId) => {
+    // Update the enrollment status in our local state
+    const updatedExams = exams.map((exam) => {
+      if (exam.id === examId) {
+        return { ...exam, isEnrolled: !exam.isEnrolled };
+      }
+      return exam;
+    });
+
+    setExams(updatedExams);
+
+    // Get the exam details
+    const exam = exams.find((e) => e.id === examId);
+    const isEnrollingNow = !exam.isEnrolled;
+
+    // Show success message
+    setEnrollmentSuccess({
+      message: isEnrollingNow
+        ? `Successfully enrolled in "${exam.title}". Access it from your dashboard to start.`
+        : `Unenrolled from "${exam.title}".`,
+      type: isEnrollingNow ? "success" : "info",
+      redirectTo: isEnrollingNow ? `/${user.role}/dashboard` : null,
+    });
+
+    // Clear success message after 5 seconds
+    setTimeout(() => {
+      setEnrollmentSuccess(null);
+    }, 5000);
+  };
+
+  const goToDashboard = () => {
+    window.location.href = `/${user.role}/dashboard`;
+  };
+
+  const isAuthenticated = true; // Mock authentication status - replace with real auth check
+
   return (
-    <div>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Header section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Available Exams</h1>
+          <p className="text-muted-foreground mt-1">
+            Browse and enroll in exams to test your skills
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshExams}
+            disabled={isLoading}
+            className="mr-2"
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-1.5 ${isLoading ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
+
+          <Button variant="default" size="sm" onClick={goToDashboard}>
+            <ExternalLink className="h-4 w-4 mr-1" />
+            My Dashboard
+          </Button>
+        </div>
+      </div>
+
+      {/* Success/error message */}
+      {enrollmentSuccess && (
+        <Alert
+          className={`mb-6 ${
+            enrollmentSuccess.type === "success"
+              ? "bg-green-50 text-green-800 border-green-200"
+              : enrollmentSuccess.type === "error"
+              ? "bg-red-50 text-red-800 border-red-200"
+              : "bg-blue-50 text-blue-800 border-blue-200"
+          }`}
+        >
+          <AlertDescription className="flex justify-between items-center">
+            <span>{enrollmentSuccess.message}</span>
+            {enrollmentSuccess.redirectTo && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.location.href = enrollmentSuccess.redirectTo;
+                }}
+                className={`ml-2 ${
+                  enrollmentSuccess.type === "success"
+                    ? "border-green-200 bg-green-100"
+                    : enrollmentSuccess.type === "error"
+                    ? "border-red-200 bg-red-100"
+                    : "border-blue-200 bg-blue-100"
+                }`}
+              >
+                Go to Dashboard <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Onboarding message */}
+      {isAuthenticated && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 pt-0.5">
+              <BookOpen className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-800">
+                How to take exams
+              </h3>
+              <div className="mt-1 text-sm text-blue-700">
+                <p>1. Browse and enroll in exams below</p>
+                <p>
+                  2. Access your enrolled exams from{" "}
+                  <a href="/dashboard" className="underline font-medium">
+                    your dashboard
+                  </a>
+                </p>
+                <p>3. Start the exam when you're ready from your dashboard</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search and Filter Section */}
-      <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
-        <div className="flex flex-col md:flex-row md:items-end gap-4">
-          <div className="flex-1">
-            <label
-              htmlFor="search"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Search Exams
-            </label>
-            <input
-              type="text"
-              id="search"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Search by title or description"
+      <div className="bg-card rounded-lg border shadow-sm p-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search exams..."
+              className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          <div className="w-full md:w-48">
-            <label
-              htmlFor="category"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Category
-            </label>
-            <select
-              id="category"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:space-y-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="default"
+                  className="w-full sm:w-auto"
+                >
+                  <Tag className="h-4 w-4 mr-2" />
+                  {filterCategory || "Category"}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuItem
+                  onClick={() => setFilterCategory("")}
+                  inset={false}
+                >
+                  All Categories
+                </DropdownMenuItem>
+                <Separator className="my-1" />
+                {categories.map((category) => (
+                  <DropdownMenuItem
+                    key={category}
+                    onClick={() => setFilterCategory(category)}
+                    className={filterCategory === category ? "bg-accent" : ""}
+                    inset={false}
+                  >
+                    {category}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <div className="w-full md:w-48">
-            <label
-              htmlFor="difficulty"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Difficulty
-            </label>
-            <select
-              id="difficulty"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-              value={filterDifficulty}
-              onChange={(e) => setFilterDifficulty(e.target.value)}
-            >
-              <option value="">All Levels</option>
-              {difficulties.map((difficulty) => (
-                <option key={difficulty} value={difficulty}>
-                  {difficulty}
-                </option>
-              ))}
-            </select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="default"
+                  className="w-full sm:w-auto"
+                >
+                  <BarChart className="h-4 w-4 mr-2" />
+                  {filterDifficulty || "Difficulty"}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuItem
+                  onClick={() => setFilterDifficulty("")}
+                  inset={false}
+                >
+                  All Levels
+                </DropdownMenuItem>
+                <Separator className="my-1" />
+                {difficulties.map((difficulty) => (
+                  <DropdownMenuItem
+                    key={difficulty}
+                    onClick={() => setFilterDifficulty(difficulty)}
+                    className={
+                      filterDifficulty === difficulty ? "bg-accent" : ""
+                    }
+                    inset={false}
+                  >
+                    {difficulty}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="default"
+                  className="w-full sm:w-auto"
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  Sort By
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuItem
+                  onClick={() => setSortBy("popularity")}
+                  className={sortBy === "popularity" ? "bg-accent" : ""}
+                  inset={false}
+                >
+                  Popularity
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("title")}
+                  className={sortBy === "title" ? "bg-accent" : ""}
+                  inset={false}
+                >
+                  Title (A-Z)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("difficulty")}
+                  className={sortBy === "difficulty" ? "bg-accent" : ""}
+                  inset={false}
+                >
+                  Difficulty (Easy to Hard)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("duration")}
+                  className={sortBy === "duration" ? "bg-accent" : ""}
+                  inset={false}
+                >
+                  Duration (Shortest First)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("passRate")}
+                  className={sortBy === "passRate" ? "bg-accent" : ""}
+                  inset={false}
+                >
+                  Pass Rate (Highest First)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
+
+        {(searchTerm || filterCategory || filterDifficulty) && (
+          <div className="flex items-center justify-between mt-4 pt-3 border-t">
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredExams.length} of {exams.length} exams
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-primary"
+              onClick={resetFilters}
+            >
+              Clear Filters
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Exams Grid */}
-      {filteredExams.length > 0 ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredExams.map((exam) => (
-            <div
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <ExamSkeleton key={i} />
+          ))}
+        </div>
+      ) : filteredExams.length === 0 ? (
+        <EmptyState
+          message="No exams found"
+          buttonText="Clear filters"
+          onClick={resetFilters}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {sortedExams.map((exam) => (
+            <Card
               key={exam.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+              className={`flex flex-col h-full hover:shadow-md transition-shadow duration-200 ${
+                exam.isEnrolled ? "border-primary border-2" : ""
+              }`}
             >
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-xl font-semibold text-gray-800">
-                    {exam.title}
-                  </h3>
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      exam.difficulty === "Beginner"
-                        ? "bg-green-100 text-green-800"
-                        : exam.difficulty === "Intermediate"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {exam.difficulty}
-                  </span>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-xl line-clamp-1">
+                      {exam.title}
+                    </CardTitle>
+                    <CardDescription className="line-clamp-1 mt-1">
+                      {exam.category}
+                    </CardDescription>
+                  </div>
+                  <DifficultyBadge difficulty={exam.difficulty} />
                 </div>
+              </CardHeader>
 
-                <p className="text-gray-600 mb-4 line-clamp-2">
+              <CardContent className="flex-1">
+                <p className="text-muted-foreground mb-4 line-clamp-3 text-sm">
                   {exam.description}
                 </p>
 
-                <div className="flex text-sm text-gray-500 mb-4">
-                  <div className="flex items-center mr-4">
-                    <svg
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-                      <title>Duration</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    {exam.duration} mins
+                <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{exam.duration} minutes</span>
                   </div>
-                  <div className="flex items-center">
-                    <svg
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-                      <title>Questions</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    {exam.questions} questions
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    <span>{exam.questions} questions</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">{exam.category}</span>
-                  <Link
-                    to={`/exams/${exam.id}`}
-                    className="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors"
-                  >
-                    Start Exam
-                    <svg
-                      className="ml-1 -mr-1 h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
+                <div className="mt-4 pt-3 border-t">
+                  <div className="flex items-center justify-between mb-1.5 text-xs">
+                    <span className="text-muted-foreground">Pass Rate</span>
+                    <span
+                      className={
+                        exam.passRate > 70
+                          ? "text-green-600"
+                          : exam.passRate > 50
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }
                     >
-                      <title>Arrow Right</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </Link>
+                      {exam.passRate}%
+                    </span>
+                  </div>
+                  <Progress value={exam.passRate} className="h-1.5" />
+
+                  <div className="mt-3 text-xs text-muted-foreground">
+                    <span className="font-medium">{exam.recentAttempts}</span>{" "}
+                    recent attempts
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+
+              <CardFooter className="pt-2">
+                {!isAuthenticated ? (
+                  <Button
+                    variant="default"
+                    size="default"
+                    className="w-full"
+                    onClick={() => (window.location.href = "/login")}
+                  >
+                    Sign in to Enroll
+                  </Button>
+                ) : exam.isEnrolled ? (
+                  <div className="flex flex-col w-full space-y-2">
+                    <Button
+                      variant="outline"
+                      size="default"
+                      onClick={() => handleEnrollment(exam.id)}
+                      className="w-full"
+                    >
+                      <BookmarkCheck className="mr-1 h-4 w-4 text-green-600" />
+                      Enrolled
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="default"
+                      onClick={goToDashboard}
+                      className="w-full"
+                    >
+                      Open in Dashboard <ArrowRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="default"
+                    size="default"
+                    onClick={() => handleEnrollment(exam.id)}
+                    className="w-full"
+                  >
+                    <Bookmark className="mr-1 h-4 w-4" />
+                    Enroll in Exam
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
           ))}
         </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <title>No Results</title>
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h3 className="mt-4 text-lg font-medium text-gray-900">
-            No exams found
-          </h3>
-          <p className="mt-2 text-gray-500">
-            We couldn't find any exams matching your search criteria.
+      )}
+
+      {/* Link to dashboard reminder */}
+      {filteredExams.some((exam) => exam.isEnrolled) && (
+        <div className="mt-8 text-center">
+          <p className="text-muted-foreground mb-3">
+            Start your enrolled exams from your dashboard
           </p>
-          <div className="mt-6">
-            <button
-              type="button"
-              onClick={() => {
-                setSearchTerm("");
-                setFilterCategory("");
-                setFilterDifficulty("");
-              }}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none"
-            >
-              Clear filters
-            </button>
-          </div>
+          <Button variant="outline" size="default" onClick={goToDashboard}>
+            Go to My Dashboard
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
       )}
     </div>

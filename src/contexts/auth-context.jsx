@@ -112,11 +112,11 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     dispatch({ type: "SET_LOADING", payload: true });
     try {
-      // Test users for development (mock authentication)
-      // For simplicity, we'll always enable test users
-      const isDevelopment = true; // Set to true to enable test accounts
+      // For development testing - you can use test accounts
+      // Set to false to always use the real API
+      const useTestAccounts = true;
 
-      if (isDevelopment) {
+      if (useTestAccounts) {
         const testUsers = {
           "user@test.com": {
             password: "password123",
@@ -173,17 +173,12 @@ export function AuthProvider({ children }) {
             isAdmin: testUser.user.role === "admin",
           };
         }
-
-        // If no match in test users, return error
-        dispatch({
-          type: "LOGIN_FAILURE",
-          payload: "Invalid credentials",
-        });
-        return { success: false, error: "Invalid credentials" };
       }
 
-      // Real auth service for production
+      // Always call the real auth service
+      console.log("Calling authService.login with:", { email, password });
       const result = await authService.login({ email, password });
+      console.log("Auth service result:", result);
 
       if (result.success) {
         localStorage.setItem("token", result.data.token);
@@ -207,6 +202,8 @@ export function AuthProvider({ children }) {
       });
       return { success: false, error: result.error };
     } catch (error) {
+      console.error("Login error:", error);
+
       // Check if this is a CORS or network error
       if (error.isCorsError) {
         // Dispatch CORS error event
@@ -297,13 +294,32 @@ export function AuthProvider({ children }) {
   // Logout function
   const logout = async () => {
     try {
+      // Check if using a test account (test token)
+      const token = localStorage.getItem("token");
+      const isTestAccount =
+        token &&
+        (token === "test-user-token" ||
+          token === "test-admin-token" ||
+          token === "test-faculty-token");
+
+      // If it's a test account, just remove the token and dispatch logout
+      if (isTestAccount) {
+        localStorage.removeItem("token");
+        dispatch({ type: "LOGOUT" });
+        return { success: true };
+      }
+
+      // Otherwise, call the API
       const result = await authService.logout();
       localStorage.removeItem("token");
       dispatch({ type: "LOGOUT" });
       return result;
     } catch (error) {
       console.error("Logout error:", error);
-      return { success: false, error: "Logout failed" };
+      // Even if the API call fails, we should still log out the user locally
+      localStorage.removeItem("token");
+      dispatch({ type: "LOGOUT" });
+      return { success: true };
     }
   };
 
@@ -360,6 +376,7 @@ export function AuthProvider({ children }) {
 
   // Values to be provided to consumers
   const value = {
+    state,
     isAuthenticated: state.isAuthenticated,
     isAdmin: state.isAdmin,
     user: state.user,
@@ -383,9 +400,17 @@ export function AuthProvider({ children }) {
 // Custom hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
+
+  // Initialize state if it's undefined to prevent errors in components
+  if (!context.state) {
+    console.warn("Auth state is undefined, initializing with defaults");
+    context.state = { ...initialState };
+  }
+
   return context;
 }
 

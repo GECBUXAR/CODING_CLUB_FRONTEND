@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNotification } from "@/contexts/notification-context";
-import { createExam, updateExam } from "@/lib/api";
+import { createExam, updateExam } from "../../lib/api";
 
 export function ExamForm({ isOpen, onClose, exam, refreshExams }) {
   const { showNotification } = useNotification();
