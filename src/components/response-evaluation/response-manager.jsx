@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { useExamContext } from "@/contexts/exam-context";
 import {

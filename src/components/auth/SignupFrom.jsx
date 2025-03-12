@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -318,37 +316,22 @@ export default function SignupPage() {
                           <SelectValue placeholder="Select your branch" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60" position="popper">
-                          <SelectItem
-                            className="cursor-pointer"
-                            value="Computer Science"
-                          >
+                          <SelectItem className="cursor-pointer" value="CSE">
                             Computer Science
                           </SelectItem>
-                          <SelectItem
-                            className="cursor-pointer"
-                            value="Information Technology"
-                          >
+                          <SelectItem className="cursor-pointer" value="IT">
                             Information Technology
                           </SelectItem>
-                          <SelectItem
-                            className="cursor-pointer"
-                            value="Electronics"
-                          >
+                          <SelectItem className="cursor-pointer" value="ECE">
                             Electronics
                           </SelectItem>
-                          <SelectItem
-                            className="cursor-pointer"
-                            value="Electrical"
-                          >
+                          <SelectItem className="cursor-pointer" value="EE">
                             Electrical
                           </SelectItem>
-                          <SelectItem
-                            className="cursor-pointer"
-                            value="Mechanical"
-                          >
+                          <SelectItem className="cursor-pointer" value="ME">
                             Mechanical
                           </SelectItem>
-                          <SelectItem className="cursor-pointer" value="Civil">
+                          <SelectItem className="cursor-pointer" value="CE">
                             Civil
                           </SelectItem>
                         </SelectContent>

@@ -35,8 +35,8 @@ const Navbar = () => {
   // Admin specific links
   const adminLinks = [
     {
-      id: "/admin",
-      label: "Admin Dashboard",
+      id: "/admin/dashboard",
+      label: "Dashboard",
       icon: <LayoutDashboard className="w-4 h-4" />,
       auth: true,
     },
@@ -215,10 +215,10 @@ const Navbar = () => {
                   </Link>
                   {isAdmin ? (
                     <Link
-                      to="/admin"
+                      to="/admin/dashboard"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
-                      Admin Dashboard
+                      Dashboard
                     </Link>
                   ) : (
                     <Link

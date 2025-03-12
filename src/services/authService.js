@@ -73,10 +73,25 @@ export const register = async (userData) => {
 // Logout user
 export const logout = async () => {
   try {
-    await apiClient.post("/users/logout");
+    // Add a timeout to the logout request
+    await apiClient.post("/users/logout", {}, { timeout: 5000 });
     return { success: true };
   } catch (error) {
     console.error("Logout error in authService:", error);
+
+    // If it's a network error or timeout, still consider logout successful
+    // This ensures users can log out even if the server is unreachable
+    if (
+      error.message?.includes("Network Error") ||
+      error.message?.includes("timeout") ||
+      !error.response
+    ) {
+      console.log(
+        "Network error during logout, but proceeding with client-side logout"
+      );
+      return { success: true };
+    }
+
     return {
       success: false,
       error: error.response?.data?.message || error.message || "Logout failed",

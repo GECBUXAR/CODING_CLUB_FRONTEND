@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { useExamIntegrity } from "./exam-integrity-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
