@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -24,9 +22,11 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function SignupPage() {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [formStep, setFormStep] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
@@ -137,11 +137,48 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      navigate("/login?registered=true");
+      const userData = {
+        fullName: formData.name,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        registrationNumber: formData.regNo,
+        branch: formData.branch,
+        semester: Number.parseInt(formData.semester, 10),
+        phoneNumber: formData.mobile,
+        role: "user",
+        agreeToTerms: formData.agreeTerms,
+      };
+
+      console.log("Submitting registration data:", userData);
+      const result = await register(userData);
+
+      if (result.success) {
+        navigate("/login", {
+          state: { message: "Registration successful! Please log in." },
+        });
+      } else {
+        throw new Error(result.error || "Registration failed");
+      }
     } catch (error) {
-      setFormError("Registration failed. Please try again.");
-    } finally {
+      console.error("Registration error:", error);
+      if (error?.message?.includes("timeout")) {
+        setFormError(
+          "Connection to server timed out. Please check your internet connection and try again."
+        );
+      } else if (error?.message?.includes("fill in all required fields")) {
+        setFormError(
+          "Server validation error: Please make sure all required fields are filled correctly."
+        );
+      } else if (error?.message?.includes("already exists")) {
+        setFormError(
+          "A user with this email address already exists. Please use a different email or try logging in."
+        );
+      } else {
+        setFormError(
+          error?.message || "Registration failed. Please try again."
+        );
+      }
       setIsLoading(false);
     }
   };
@@ -190,10 +227,10 @@ export default function SignupPage() {
             <h1 className="text-2xl font-bold text-blue-600">Join Us Today</h1>
           </div>
 
-          <Card>
-            <CardHeader>
+          <Card className="w-full">
+            <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">Create Your Account</CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm text-muted-foreground">
                 Fill in your details to join the coding club
               </CardDescription>
 
@@ -220,7 +257,7 @@ export default function SignupPage() {
               </div>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="space-y-4">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {formError && (
                   <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
@@ -232,7 +269,9 @@ export default function SignupPage() {
                 {formStep === 0 && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="name" className="text-sm font-medium">
+                        Full Name
+                      </Label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -247,7 +286,9 @@ export default function SignupPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="regNo">Registration Number</Label>
+                      <Label htmlFor="regNo" className="text-sm font-medium">
+                        Registration Number
+                      </Label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -262,7 +303,9 @@ export default function SignupPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="branch">Branch</Label>
+                      <Label htmlFor="branch" className="text-sm font-medium">
+                        Branch
+                      </Label>
                       <Select
                         value={formData.branch}
                         onValueChange={(value) =>
@@ -272,25 +315,33 @@ export default function SignupPage() {
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select your branch" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Computer Science">
+                        <SelectContent className="max-h-60" position="popper">
+                          <SelectItem className="cursor-pointer" value="CSE">
                             Computer Science
                           </SelectItem>
-                          <SelectItem value="Information Technology">
+                          <SelectItem className="cursor-pointer" value="IT">
                             Information Technology
                           </SelectItem>
-                          <SelectItem value="Electronics">
+                          <SelectItem className="cursor-pointer" value="ECE">
                             Electronics
                           </SelectItem>
-                          <SelectItem value="Electrical">Electrical</SelectItem>
-                          <SelectItem value="Mechanical">Mechanical</SelectItem>
-                          <SelectItem value="Civil">Civil</SelectItem>
+                          <SelectItem className="cursor-pointer" value="EE">
+                            Electrical
+                          </SelectItem>
+                          <SelectItem className="cursor-pointer" value="ME">
+                            Mechanical
+                          </SelectItem>
+                          <SelectItem className="cursor-pointer" value="CE">
+                            Civil
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="semester">Semester</Label>
+                      <Label htmlFor="semester" className="text-sm font-medium">
+                        Semester
+                      </Label>
                       <Select
                         value={formData.semester}
                         onValueChange={(value) =>
@@ -300,15 +351,31 @@ export default function SignupPage() {
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select your semester" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">Semester 1</SelectItem>
-                          <SelectItem value="2">Semester 2</SelectItem>
-                          <SelectItem value="3">Semester 3</SelectItem>
-                          <SelectItem value="4">Semester 4</SelectItem>
-                          <SelectItem value="5">Semester 5</SelectItem>
-                          <SelectItem value="6">Semester 6</SelectItem>
-                          <SelectItem value="7">Semester 7</SelectItem>
-                          <SelectItem value="8">Semester 8</SelectItem>
+                        <SelectContent className="max-h-60" position="popper">
+                          <SelectItem className="cursor-pointer" value="1">
+                            Semester 1
+                          </SelectItem>
+                          <SelectItem className="cursor-pointer" value="2">
+                            Semester 2
+                          </SelectItem>
+                          <SelectItem className="cursor-pointer" value="3">
+                            Semester 3
+                          </SelectItem>
+                          <SelectItem className="cursor-pointer" value="4">
+                            Semester 4
+                          </SelectItem>
+                          <SelectItem className="cursor-pointer" value="5">
+                            Semester 5
+                          </SelectItem>
+                          <SelectItem className="cursor-pointer" value="6">
+                            Semester 6
+                          </SelectItem>
+                          <SelectItem className="cursor-pointer" value="7">
+                            Semester 7
+                          </SelectItem>
+                          <SelectItem className="cursor-pointer" value="8">
+                            Semester 8
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -319,7 +386,9 @@ export default function SignupPage() {
                 {formStep === 1 && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email" className="text-sm font-medium">
+                        Email Address
+                      </Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -335,7 +404,9 @@ export default function SignupPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="mobile">Mobile Number</Label>
+                      <Label htmlFor="mobile" className="text-sm font-medium">
+                        Mobile Number
+                      </Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -356,7 +427,9 @@ export default function SignupPage() {
                 {formStep === 2 && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="password">Create Password</Label>
+                      <Label htmlFor="password" className="text-sm font-medium">
+                        Create Password
+                      </Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -387,18 +460,15 @@ export default function SignupPage() {
                       <div className="mt-2">
                         <Progress
                           value={passwordStrength}
-                          className="h-2"
-                          indicatorClassName={
-                            passwordStrength <= 25
-                              ? "bg-destructive"
-                              : passwordStrength <= 50
-                              ? "bg-amber-500"
-                              : passwordStrength <= 75
-                              ? "bg-blue-500"
-                              : "bg-green-500"
-                          }
+                          className={`h-2 ${
+                            passwordStrength < 50
+                              ? "text-red-500"
+                              : passwordStrength < 80
+                              ? "text-yellow-500"
+                              : "text-green-500"
+                          }`}
                         />
-                        <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                        <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                           <span>Weak</span>
                           <span>Strong</span>
                         </div>
@@ -406,7 +476,12 @@ export default function SignupPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm Password</Label>
+                      <Label
+                        htmlFor="confirmPassword"
+                        className="text-sm font-medium"
+                      >
+                        Confirm Password
+                      </Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -441,8 +516,12 @@ export default function SignupPage() {
                         id="agreeTerms"
                         checked={formData.agreeTerms}
                         onCheckedChange={(checked) =>
-                          setFormData({ ...formData, agreeTerms: checked })
+                          setFormData({
+                            ...formData,
+                            agreeTerms: checked === true,
+                          })
                         }
+                        className="mt-1"
                       />
                       <Label
                         htmlFor="agreeTerms"
@@ -450,14 +529,14 @@ export default function SignupPage() {
                       >
                         I agree to the{" "}
                         <Link
-                          href="/terms"
+                          to="/terms"
                           className="text-blue-600 hover:underline"
                         >
                           Terms & Conditions
                         </Link>{" "}
                         and{" "}
                         <Link
-                          href="/privacy"
+                          to="/privacy"
                           className="text-blue-600 hover:underline"
                         >
                           Privacy Policy
@@ -473,6 +552,8 @@ export default function SignupPage() {
                     <Button
                       type="button"
                       variant="outline"
+                      size="default"
+                      className="mr-2"
                       onClick={() => setFormStep(formStep - 1)}
                     >
                       Back
@@ -481,6 +562,8 @@ export default function SignupPage() {
 
                   <Button
                     type="submit"
+                    variant="default"
+                    size="default"
                     className={formStep < 2 ? "ml-auto" : "w-full"}
                     disabled={isLoading}
                   >

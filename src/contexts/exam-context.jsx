@@ -1,5 +1,3 @@
-"use client";
-
 import { createContext, useContext, useReducer } from "react";
 
 // Define constants for our question types

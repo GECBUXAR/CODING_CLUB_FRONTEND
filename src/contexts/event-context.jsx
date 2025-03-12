@@ -1,5 +1,3 @@
-"use client";
-
 import {
   createContext,
   useContext,
@@ -7,7 +5,7 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import axiosInstance from "@/lib/axios";
+import apiClient from "../services/api";
 import { useAuth } from "./auth-context";
 
 const EventContext = createContext({
@@ -31,7 +29,7 @@ export const EventProvider = ({ children }) => {
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get("/events");
+      const response = await apiClient.get("/events");
       setEvents(response.data);
     } catch (error) {
       console.error("Failed to fetch events:", error);
@@ -45,7 +43,7 @@ export const EventProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const response = await axiosInstance.get("/events/user");
+      const response = await apiClient.get("/events/user");
       setUserEvents(response.data);
     } catch (error) {
       console.error("Failed to fetch user events:", error);
@@ -57,7 +55,7 @@ export const EventProvider = ({ children }) => {
   const enrollInEvent = async (eventId) => {
     try {
       setLoading(true);
-      await axiosInstance.post(`/events/${eventId}/enroll`);
+      await apiClient.post(`/events/${eventId}/enroll`);
 
       setEvents((prev) =>
         prev.map((event) =>
@@ -77,7 +75,7 @@ export const EventProvider = ({ children }) => {
   const unenrollFromEvent = async (eventId) => {
     try {
       setLoading(true);
-      await axiosInstance.post(`/events/${eventId}/unenroll`);
+      await apiClient.post(`/events/${eventId}/unenroll`);
 
       setEvents((prev) =>
         prev.map((event) =>
@@ -96,7 +94,7 @@ export const EventProvider = ({ children }) => {
 
   const getEventById = async (eventId) => {
     try {
-      const response = await axiosInstance.get(`/events/${eventId}`);
+      const response = await apiClient.get(`/events/${eventId}`);
       return response.data;
     } catch (error) {
       console.error(`Failed to get event ${eventId}:`, error);
@@ -110,7 +108,7 @@ export const EventProvider = ({ children }) => {
       if (query) params.append("q", query);
       if (category) params.append("category", category);
 
-      const response = await axiosInstance.get(
+      const response = await apiClient.get(
         `/events/search?${params.toString()}`
       );
       return response.data;

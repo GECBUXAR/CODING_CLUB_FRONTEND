@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { useResponseEvaluation } from "@/contexts/response-evaluation-context";
 import ResponseQuestionEvaluator from "./response-question-evaluator";

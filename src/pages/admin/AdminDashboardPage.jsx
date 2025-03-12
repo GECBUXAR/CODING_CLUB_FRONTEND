@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/admin/dashboard-layout";
 import DashboardOverview from "@/components/admin/dashboard-overview";
