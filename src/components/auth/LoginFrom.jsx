@@ -240,13 +240,13 @@ export default function LoginForm() {
               </div>
               <div className="text-center text-sm">
                 <span className="text-muted-foreground">
-                  Get an admin account?{" "}
+                  Create an admin account?{" "}
                 </span>
                 <Link
                   to="/admin-signup"
                   className="font-medium text-blue-600 hover:underline"
                 >
-                  Sign up
+                  Click here
                 </Link>
               </div>
             </CardFooter>
