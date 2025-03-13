@@ -118,6 +118,8 @@ const AllEventsPage = () => {
   const { isAuthenticated, user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedSkillLevel, setSelectedSkillLevel] = useState("All");
+  const [selectedDate, setSelectedDate] = useState("All");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [enrollmentSuccess, setEnrollmentSuccess] = useState(null);
 
@@ -127,17 +129,56 @@ const AllEventsPage = () => {
     ...Array.from(new Set(events.map((event) => event.category))),
   ];
 
-  // Filter events based on search and category
-  const filteredEvents = events.filter((event) => {
-    const matchesSearch =
-      event.eventName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.description?.toLowerCase().includes(searchTerm.toLowerCase());
+  // Filter events based on all filters and search query
+  const filteredEvents = Array.isArray(events)
+    ? events.filter((event) => {
+        // Apply category filter if selected
+        if (selectedCategory && event.category !== selectedCategory) {
+          return false;
+        }
 
-    const matchesCategory =
-      selectedCategory === "All" || event.category === selectedCategory;
+        // Apply skill level filter if selected
+        if (selectedSkillLevel && event.skillLevel !== selectedSkillLevel) {
+          return false;
+        }
 
-    return matchesSearch && matchesCategory;
-  });
+        // Apply date filter if selected
+        if (selectedDate) {
+          const eventDate = new Date(event.date);
+          const today = new Date();
+          const tomorrow = new Date(today);
+          tomorrow.setDate(today.getDate() + 1);
+          const nextWeek = new Date(today);
+          nextWeek.setDate(today.getDate() + 7);
+          const nextMonth = new Date(today);
+          nextMonth.setMonth(today.getMonth() + 1);
+
+          if (
+            (selectedDate === "today" && !isSameDay(eventDate, today)) ||
+            (selectedDate === "tomorrow" && !isSameDay(eventDate, tomorrow)) ||
+            (selectedDate === "this-week" &&
+              !(eventDate >= today && eventDate <= nextWeek)) ||
+            (selectedDate === "this-month" &&
+              !(eventDate >= today && eventDate <= nextMonth))
+          ) {
+            return false;
+          }
+        }
+
+        // Apply search query filter
+        if (searchTerm) {
+          return (
+            event.eventName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.description
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            event.category.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+
+        return true;
+      })
+    : [];
 
   const handleEnrollment = async (eventId, isEnrolled) => {
     try {

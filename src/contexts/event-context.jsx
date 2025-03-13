@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import apiClient from "../services/api";
 import { useAuth } from "./auth-context";
@@ -25,6 +26,7 @@ export const EventProvider = ({ children }) => {
   const [events, setEvents] = useState([]);
   const [userEvents, setUserEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const initialFetchDone = useRef(false);
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -43,7 +45,7 @@ export const EventProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const response = await apiClient.get("/events/user");
+      const response = await apiClient.get("/events/user-events");
       setUserEvents(response.data);
     } catch (error) {
       console.error("Failed to fetch user events:", error);
@@ -119,9 +121,13 @@ export const EventProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchEvents();
-    if (isAuthenticated) {
-      fetchUserEvents();
+    // Only fetch on initial mount, not on every rerender
+    if (!initialFetchDone.current) {
+      initialFetchDone.current = true;
+      fetchEvents();
+      if (isAuthenticated) {
+        fetchUserEvents();
+      }
     }
   }, [isAuthenticated, fetchEvents, fetchUserEvents]);
 

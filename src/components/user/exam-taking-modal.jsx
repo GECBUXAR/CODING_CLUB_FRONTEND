@@ -52,6 +52,9 @@ export function ExamTakingModal({ isOpen, onClose, onSubmit, exam }) {
           onClose();
         }
       }}
+      onIntegrityViolation={(data) => console.log("Integrity violation:", data)}
+      examId={exam?.id || "unknown-exam"}
+      allowAccessibilityExceptions={false}
     >
       <ExamTakingContent
         isOpen={isOpen}
@@ -73,12 +76,11 @@ function ExamTakingContent({ isOpen, onClose, onSubmit, exam }) {
 
   // Get exam integrity features
   const {
-    activateIntegrityMode,
+    startIntegrityMode,
     deactivateIntegrityMode,
     isIntegrityModeActive,
     focusViolations,
     fullscreenViolations,
-    requestFullscreenMode,
     examContainerRef,
     isFullscreen,
   } = useExamIntegrity();
@@ -176,8 +178,13 @@ function ExamTakingContent({ isOpen, onClose, onSubmit, exam }) {
 
   // Handle starting the exam - this should be called directly from user interaction
   const handleStartExam = () => {
-    activateIntegrityMode();
-    requestFullscreenMode(); // This is now called directly from a user event
+    startIntegrityMode();
+    // Call the fullscreen request directly from the user event
+    if (examContainerRef.current) {
+      examContainerRef.current.requestFullscreen().catch((err) => {
+        console.error("Failed to enter fullscreen:", err);
+      });
+    }
     setExamStarted(true);
   };
 
@@ -232,7 +239,11 @@ function ExamTakingContent({ isOpen, onClose, onSubmit, exam }) {
 
   const handleEnterFullscreen = () => {
     // This function is called directly from a user action (button click)
-    requestFullscreenMode();
+    if (examContainerRef.current) {
+      examContainerRef.current.requestFullscreen().catch((err) => {
+        console.error("Failed to enter fullscreen:", err);
+      });
+    }
   };
 
   if (!exam || !isOpen) return null;
@@ -291,6 +302,7 @@ function ExamTakingContent({ isOpen, onClose, onSubmit, exam }) {
           className="max-w-4xl max-h-[90vh] overflow-y-auto"
           ref={examContainerRef}
           onInteractOutside={(e) => e.preventDefault()}
+          aria-describedby="exam-content-description"
         >
           <DialogHeader className="space-y-2">
             <div className="flex justify-between items-center">
@@ -299,31 +311,30 @@ function ExamTakingContent({ isOpen, onClose, onSubmit, exam }) {
                 {isIntegrityModeActive && (
                   <Badge
                     variant="outline"
-                    className="ml-2 bg-green-50 text-green-700 border-green-200"
+                    className="ml-2 text-xs bg-green-50 text-green-700"
                   >
-                    <Shield className="h-3 w-3 mr-1" /> Proctored
+                    Secure Mode
                   </Badge>
                 )}
               </DialogTitle>
-              <div className="flex items-center gap-2">
-                <div className="text-orange-600 font-medium flex items-center">
-                  <Clock className="mr-2 h-4 w-4" />
-                  {formatTime(timeRemaining)}
-                </div>
+              <div className="flex items-center space-x-2">
                 {!isFullscreen && (
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-8 text-xs"
+                    size="icon"
                     onClick={handleEnterFullscreen}
+                    className="h-8 w-8"
                   >
-                    <Fullscreen className="h-3 w-3 mr-1" /> Enter Fullscreen
+                    <Fullscreen className="h-4 w-4" />
                   </Button>
                 )}
               </div>
             </div>
-            <div className="text-sm text-muted-foreground mt-1">
-              {exam?.description || "Please answer all questions carefully."}
+            <DialogDescription
+              id="exam-content-description"
+              className="text-sm text-muted-foreground"
+            >
+              {exam?.description || "Complete all questions before submitting."}
               {(focusViolations > 0 || fullscreenViolations > 0) && (
                 <div className="mt-2 text-amber-600 text-sm flex items-center">
                   <AlertTriangle className="h-4 w-4 mr-1" />
@@ -331,8 +342,16 @@ function ExamTakingContent({ isOpen, onClose, onSubmit, exam }) {
                   {focusViolations + fullscreenViolations}
                 </div>
               )}
-            </div>
+            </DialogDescription>
           </DialogHeader>
+
+          {/* Time display - restore the timer */}
+          <div className="flex justify-end mb-4">
+            <div className="text-orange-600 font-medium flex items-center">
+              <Clock className="mr-2 h-4 w-4" />
+              {formatTime(timeRemaining)}
+            </div>
+          </div>
 
           {/* Progress bar */}
           <Progress

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { useEvents } from "@/contexts/event-context";
@@ -31,12 +31,18 @@ const HomePage = () => {
   const { exams = [] } = useExamContext() || { exams: [] };
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const dataFetchedRef = useRef(false);
 
   useEffect(() => {
+    // Prevent repeated data fetching on re-renders
+    if (dataFetchedRef.current) return;
+
     const loadData = async () => {
       setLoading(true);
       try {
         await fetchEvents();
+        // Mark data as fetched
+        dataFetchedRef.current = true;
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -79,16 +85,16 @@ const HomePage = () => {
   };
 
   // Filter events and exams based on search query
-  const filteredEvents =
-    events &&
-    events.filter(
-      (event) =>
-        event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.shortDescription
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        event.category?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  const filteredEvents = Array.isArray(events)
+    ? events.filter(
+        (event) =>
+          event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          event.shortDescription
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          event.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
 
   const filteredExams =
     exams &&
