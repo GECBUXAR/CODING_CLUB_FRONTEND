@@ -22,6 +22,7 @@ export default defineConfig({
         target: backendUrl,
         changeOrigin: true,
         secure: false,
+        withCredentials: true, // Enable sending cookies with requests
         rewrite: (path) => path,
         configure: (proxy, _) => {
           proxy.on("error", (err, _req, _res) => {
@@ -43,6 +44,7 @@ export default defineConfig({
         target: backendUrl,
         changeOrigin: true,
         secure: false,
+        withCredentials: true, // Enable sending cookies with requests
       },
     },
     cors: true, // Enable CORS for development server
