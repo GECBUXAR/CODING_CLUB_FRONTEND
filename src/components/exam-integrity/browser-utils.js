@@ -329,3 +329,163 @@ export function createHeartbeatChecker(callback, interval = 15000) {
 
   return { start, stop };
 }
+
+/**
+ * Utility functions for detecting advanced techniques that might compromise exam integrity
+ */
+
+/**
+ * Detect if screen sharing is active
+ * Uses the Screen Capture API to detect if the screen is being shared
+ * @returns {Promise<boolean>}
+ */
+export async function detectScreenSharing() {
+  try {
+    // Check if the Screen Capture API is available
+    if (typeof navigator.mediaDevices?.getDisplayMedia === "undefined") {
+      return false;
+    }
+
+    // Use the Screen Detector API if available
+    if (typeof navigator.mediaDevices?.getDisplayMedia === "function") {
+      // Modern approach using mediaDevices
+      const mediaDevices = navigator.mediaDevices;
+
+      if (typeof mediaDevices.getDisplayMedia === "function") {
+        // Try to detect active screen captures - throws error if not sharing
+        const streams = await mediaDevices.getDisplayMedia({
+          video: true,
+          preferCurrentTab: false,
+        });
+        if (streams) {
+          // Clean up the test stream
+          streams.getTracks().forEach((track) => track.stop());
+          // If we got here, screen sharing might be active
+          return false; // We return false because this check is not reliable for detecting others' recording
+        }
+      }
+    }
+
+    return false;
+  } catch (error) {
+    // Error accessing screen sharing API
+    return false;
+  }
+}
+
+/**
+ * Detect if DevTools are open
+ * @returns {boolean}
+ */
+export function detectDevTools() {
+  // Size-based detection
+  const widthThreshold = window.outerWidth - window.innerWidth > 160;
+  const heightThreshold = window.outerHeight - window.innerHeight > 160;
+
+  // Check if devtools is likely open based on window dimensions
+  const sizeBasedDetection = widthThreshold || heightThreshold;
+
+  // Timing-based detection (slower console methods when devtools is open)
+  const timeStart = performance.now();
+  console.debug("DevTools Detection"); // This operation is slower with devtools open
+  const timeEnd = performance.now();
+  const timingBasedDetection = timeEnd - timeStart > 10; // More than 10ms suggests devtools
+
+  return sizeBasedDetection || timingBasedDetection;
+}
+
+/**
+ * Detect signs of virtualization or emulation
+ * Note: This is not 100% reliable but can detect some VMs
+ * @returns {object} Details about detected virtualization
+ */
+export function detectVirtualization() {
+  const indicators = {
+    hasVmHardware: false,
+    hasEmulatedGPU: false,
+    hasLowCpuCores: false,
+    hasUnusualUserAgent: false,
+  };
+
+  // Check hardware concurrency (VMs often have few cores)
+  if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 2) {
+    indicators.hasLowCpuCores = true;
+  }
+
+  // Check for emulated GPU renderer
+  if (typeof WebGLRenderingContext !== "undefined") {
+    try {
+      const canvas = document.createElement("canvas");
+      const gl =
+        canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      if (gl) {
+        // Try to get renderer info, first with standard approach
+        let renderer = "";
+        try {
+          renderer = gl.getParameter(gl.RENDERER).toLowerCase();
+        } catch (e) {
+          // Fall back to debug extension if needed
+          try {
+            const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+            if (debugInfo) {
+              renderer = gl
+                .getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+                .toLowerCase();
+            }
+          } catch (e2) {
+            // Unable to get renderer info
+            console.log("Unable to retrieve WebGL renderer information");
+          }
+        }
+
+        // Check for common VM GPU names
+        if (
+          renderer &&
+          (renderer.includes("virtualbox") ||
+            renderer.includes("vmware") ||
+            renderer.includes("llvmpipe") ||
+            renderer.includes("swiftshader") ||
+            renderer.includes("virgl"))
+        ) {
+          indicators.hasEmulatedGPU = true;
+        }
+      }
+    } catch (e) {
+      // WebGL not available or error accessing
+    }
+  }
+
+  // Check user agent for VM indicators (less reliable)
+  const userAgent = navigator.userAgent.toLowerCase();
+  if (userAgent.includes("virtualbox") || userAgent.includes("vmware")) {
+    indicators.hasUnusualUserAgent = true;
+  }
+
+  return {
+    indicators,
+    hasVirtualizationIndicators: Object.values(indicators).some(Boolean),
+  };
+}
+
+/**
+ * Sets up basic monitoring for the exam integrity system
+ * This consolidates various monitoring functions
+ */
+export function setupMonitoring() {
+  console.log("Setting up basic integrity monitoring");
+
+  // Listen for visibility changes
+  if (isPageVisibilitySupported()) {
+    const visibilityEvent = getVisibilityChangeEvent();
+    document.addEventListener(visibilityEvent, () => {
+      const isVisible = isPageVisible();
+      if (!isVisible) {
+        console.log("Document visibility changed to hidden");
+        // Can dispatch event or call callback here
+      }
+    });
+  }
+
+  // Set up any other basic monitoring as needed
+  detectDevTools();
+}

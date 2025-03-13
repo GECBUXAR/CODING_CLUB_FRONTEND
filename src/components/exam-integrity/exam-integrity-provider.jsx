@@ -8,6 +8,7 @@ import {
 } from "react";
 import { FullscreenWarningModal } from "./fullscreen-warning-modal";
 import { FocusWarningModal } from "./focus-warning-modal";
+import { PrivacyNoticeModal } from "./privacy-notice-modal";
 import {
   requestFullscreen,
   getFullscreenElement,
@@ -20,6 +21,9 @@ import {
   isPageVisibilitySupported,
   getVisibilityChangeEvent,
   createHeartbeatChecker,
+  detectDevTools,
+  detectVirtualization,
+  detectScreenSharing,
 } from "./browser-utils";
 
 // Import isFullscreenSupported and isPageVisible as named functions to avoid linter errors
@@ -37,7 +41,13 @@ export function useExamIntegrity() {
   return context;
 }
 
-export function ExamIntegrityProvider({ children, onForceSubmit }) {
+export function ExamIntegrityProvider({
+  children,
+  onForceSubmit,
+  onIntegrityViolation,
+  examId,
+  allowAccessibilityExceptions = false,
+}) {
   // State for tracking integrity violations
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPageVisible, setIsPageVisible] = useState(true);
@@ -50,6 +60,18 @@ export function ExamIntegrityProvider({ children, onForceSubmit }) {
   const [showFocusWarning, setShowFocusWarning] = useState(false);
   const [remainingGraceTime, setRemainingGraceTime] = useState(null);
 
+  // New state for privacy and advanced detection
+  const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
+  const [advancedViolations, setAdvancedViolations] = useState(0);
+  const [detectedVirtualization, setDetectedVirtualization] = useState(false);
+  const [detectedDevTools, setDetectedDevTools] = useState(false);
+  const [detectedScreenSharing, setDetectedScreenSharing] = useState(false);
+  const [networkStatus, setNetworkStatus] = useState("online");
+  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
+
+  // New state for accessibility accommodations
+  const [accessibilityMode, setAccessibilityMode] = useState(false);
+
   // Refs for cleanup functions and DOM elements
   const fullscreenCleanupRef = useRef(null);
   const focusMonitorCleanupRef = useRef(null);
@@ -61,6 +83,11 @@ export function ExamIntegrityProvider({ children, onForceSubmit }) {
 
   // Heartbeat checker for continuous monitoring
   const heartbeatRef = useRef(null);
+
+  // New refs
+  const serverSyncRef = useRef(null);
+  const networkMonitorRef = useRef(null);
+  const lastServerSync = useRef(Date.now());
 
   // Memoized functions to avoid dependency issues in useEffect
   const checkFullscreenSupport = useCallback(() => {
@@ -272,32 +299,41 @@ export function ExamIntegrityProvider({ children, onForceSubmit }) {
   const activateIntegrityMode = useCallback(() => {
     if (isIntegrityModeActive) return;
 
+    // Check if user has accessibility requirements
+    if (allowAccessibilityExceptions) {
+      setAccessibilityMode(true);
+    }
+
+    // Only enforce fullscreen if not in accessibility mode
+    if (!accessibilityMode) {
+      const isSupported = checkFullscreenSupport();
+      setFullscreenSupported(isSupported);
+
+      if (isSupported) {
+        requestFullscreen(document.documentElement).catch(() => {
+          setShowFullscreenWarning(true);
+          return;
+        });
+      } else {
+        setShowFullscreenWarning(true);
+        return;
+      }
+    }
+
+    // Server timestamp sync
+    syncWithServer();
+
+    // Start monitoring network
+    startNetworkMonitoring();
+
+    // Start advanced detection
+    startAdvancedDetection();
+
+    // Initialize monitoring
+    setupMonitoring();
+
     setIsIntegrityModeActive(true);
-    setFocusViolations(0);
-    setFullscreenViolations(0);
-
-    // We don't automatically request fullscreen here anymore
-    // Instead, we'll show the fullscreen warning which has a button to trigger it
-    if (checkFullscreenSupport()) {
-      setShowFullscreenWarning(true);
-    } else {
-      setShowFullscreenWarning(true);
-    }
-
-    // Set up preventions
-    fullscreenCleanupRef.current = preventFullscreenExit(true);
-    focusMonitorCleanupRef.current = monitorWindowFocus(
-      () => setIsWindowFocused(false),
-      () => setIsWindowFocused(true)
-    );
-    contextMenuCleanupRef.current = disableContextMenu(true);
-    shortcutsCleanupRef.current = blockNavigationShortcuts(true);
-
-    // Start heartbeat
-    if (heartbeatRef.current) {
-      heartbeatRef.current.start();
-    }
-  }, [isIntegrityModeActive, checkFullscreenSupport]);
+  }, [isIntegrityModeActive, accessibilityMode]);
 
   // Explicitly request fullscreen - this should be called from a direct user action
   const requestFullscreenMode = useCallback(() => {
@@ -397,36 +433,255 @@ export function ExamIntegrityProvider({ children, onForceSubmit }) {
     }
   }, [isIntegrityModeActive, checkFullscreenSupport]);
 
+  // New function to start integrity mode with privacy notice first
+  const startIntegrityMode = useCallback(() => {
+    // Show privacy notice before activating integrity mode
+    setShowPrivacyNotice(true);
+  }, []);
+
+  // Accept privacy notice and start real integrity checks
+  const acceptPrivacyNotice = useCallback(() => {
+    setPrivacyAcknowledged(true);
+    setShowPrivacyNotice(false);
+
+    // Start actual integrity mode
+    activateIntegrityMode();
+  }, []);
+
+  // Decline privacy notice
+  const declinePrivacyNotice = useCallback(() => {
+    setShowPrivacyNotice(false);
+    // User declined, so don't start integrity mode
+    // You might want to redirect them away from the exam
+  }, []);
+
+  // Function to sync with server (timestamp verification)
+  const syncWithServer = useCallback(() => {
+    // Record last sync time
+    lastServerSync.current = Date.now();
+
+    // Report to server that integrity monitoring started
+    if (typeof onIntegrityViolation === "function") {
+      onIntegrityViolation({
+        type: "monitoring_started",
+        examId,
+        clientTime: Date.now(),
+        integrityData: {
+          fullscreenSupported,
+          accessibilityMode,
+          userAgent: navigator.userAgent,
+        },
+      });
+    }
+
+    // Set up regular server syncing
+    if (serverSyncRef.current) {
+      clearInterval(serverSyncRef.current);
+    }
+
+    serverSyncRef.current = setInterval(() => {
+      lastServerSync.current = Date.now();
+
+      // Send heartbeat to server with current integrity state
+      if (typeof onIntegrityViolation === "function") {
+        onIntegrityViolation({
+          type: "heartbeat",
+          examId,
+          clientTime: Date.now(),
+          integrityData: {
+            focusViolations,
+            fullscreenViolations,
+            advancedViolations,
+            detectedVirtualization,
+            detectedDevTools,
+            detectedScreenSharing,
+            networkStatus,
+          },
+        });
+      }
+    }, 30000); // Every 30 seconds
+  }, [examId, focusViolations, fullscreenViolations, advancedViolations]);
+
+  // Monitor network connectivity
+  const startNetworkMonitoring = useCallback(() => {
+    const handleOnline = () => {
+      setNetworkStatus("online");
+
+      // Sync with server when connection returns
+      syncWithServer();
+    };
+
+    const handleOffline = () => {
+      setNetworkStatus("offline");
+
+      // Let server know about disconnection when we reconnect
+      if (typeof onIntegrityViolation === "function") {
+        // Store the event to send when back online
+        window.localStorage.setItem(
+          "integrity_offline_event",
+          JSON.stringify({
+            type: "network_disconnection",
+            examId,
+            clientTime: Date.now(),
+          })
+        );
+      }
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    // Check for stored offline events to send
+    if (navigator.onLine) {
+      const storedEvent = window.localStorage.getItem(
+        "integrity_offline_event"
+      );
+      if (storedEvent && typeof onIntegrityViolation === "function") {
+        try {
+          const eventData = JSON.parse(storedEvent);
+          onIntegrityViolation({
+            ...eventData,
+            reconnectedAt: Date.now(),
+          });
+          window.localStorage.removeItem("integrity_offline_event");
+        } catch (e) {
+          console.error("Error processing stored offline event", e);
+        }
+      }
+    }
+
+    networkMonitorRef.current = () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [examId]);
+
+  // Start advanced detection mechanisms
+  const startAdvancedDetection = useCallback(() => {
+    let advancedDetectionInterval;
+
+    const checkAdvancedViolations = async () => {
+      // Check for virtual machines
+      const virtualization = detectVirtualization();
+      if (virtualization.hasVirtualizationIndicators) {
+        setDetectedVirtualization(true);
+        handleAdvancedViolation("virtualization", virtualization.indicators);
+      }
+
+      // Check for developer tools
+      const devToolsOpen = detectDevTools();
+      if (devToolsOpen) {
+        setDetectedDevTools(true);
+        handleAdvancedViolation("devtools");
+      }
+
+      // Check for screen sharing
+      const isScreenSharing = await detectScreenSharing();
+      if (isScreenSharing) {
+        setDetectedScreenSharing(true);
+        handleAdvancedViolation("screensharing");
+      }
+    };
+
+    // Initial check
+    checkAdvancedViolations();
+
+    // Set up interval for continued checking
+    advancedDetectionInterval = setInterval(checkAdvancedViolations, 60000); // Every minute
+
+    return () => {
+      clearInterval(advancedDetectionInterval);
+    };
+  }, []);
+
+  // Handle advanced integrity violations
+  const handleAdvancedViolation = useCallback(
+    (violationType, details = {}) => {
+      setAdvancedViolations((prev) => prev + 1);
+
+      // Report to server
+      if (typeof onIntegrityViolation === "function") {
+        onIntegrityViolation({
+          type: "advanced_violation",
+          violationType,
+          examId,
+          clientTime: Date.now(),
+          details,
+        });
+      }
+    },
+    [examId]
+  );
+
+  // Cleanup on unmount - add new refs to cleanup
+  useEffect(() => {
+    return () => {
+      if (serverSyncRef.current) {
+        clearInterval(serverSyncRef.current);
+        serverSyncRef.current = null;
+      }
+
+      if (networkMonitorRef.current) {
+        networkMonitorRef.current();
+        networkMonitorRef.current = null;
+      }
+
+      // ... existing cleanup ...
+    };
+  }, []);
+
+  // Value to be provided by the context
+  const value = {
+    // Existing state and functions
+    isIntegrityModeActive,
+    isFullscreen,
+    isPageVisible,
+    isWindowFocused,
+    focusViolations,
+    fullscreenViolations,
+    isFullscreenSupported: fullscreenSupported,
+    enterFullscreen: activateIntegrityMode, // Old function name for compatibility
+    exitIntegrityMode: deactivateIntegrityMode,
+
+    // New state and functions
+    advancedViolations,
+    detectedVirtualization,
+    detectedDevTools,
+    detectedScreenSharing,
+    networkStatus,
+    accessibilityMode,
+    startIntegrityMode, // New public function
+    setAccessibilityMode,
+  };
+
   return (
-    <ExamIntegrityContext.Provider
-      value={{
-        isIntegrityModeActive,
-        isFullscreen,
-        isPageVisible,
-        isWindowFocused,
-        focusViolations,
-        fullscreenViolations,
-        activateIntegrityMode,
-        deactivateIntegrityMode,
-        requestFullscreenMode,
-        examContainerRef,
-        isFullscreenSupported: checkFullscreenSupport(),
-      }}
-    >
+    <ExamIntegrityContext.Provider value={value}>
+      {showFullscreenWarning && (
+        <FullscreenWarningModal
+          isOpen={showFullscreenWarning}
+          onClose={() => setShowFullscreenWarning(false)}
+          isSupported={fullscreenSupported}
+          onRetry={activateIntegrityMode}
+        />
+      )}
+      {showFocusWarning && (
+        <FocusWarningModal
+          isOpen={showFocusWarning}
+          remainingTime={remainingGraceTime}
+          onReturn={handleReturnToExam}
+        />
+      )}
+
+      {showPrivacyNotice && (
+        <PrivacyNoticeModal
+          isOpen={showPrivacyNotice}
+          onAccept={acceptPrivacyNotice}
+          onDecline={declinePrivacyNotice}
+          accessibilityEnabled={allowAccessibilityExceptions}
+        />
+      )}
+
       {children}
-
-      <FullscreenWarningModal
-        isOpen={showFullscreenWarning}
-        onClose={() => setShowFullscreenWarning(false)}
-        isSupported={checkFullscreenSupport()}
-        onRetry={handleRetryFullscreen}
-      />
-
-      <FocusWarningModal
-        isOpen={showFocusWarning}
-        remainingTime={remainingGraceTime}
-        onReturn={handleReturnToExam}
-      />
     </ExamIntegrityContext.Provider>
   );
 }
