@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { UserDashboardLayout } from "@/components/user/dashboard-layout";
-import { ExamSection } from "@/components/user/exam-section";
+// import { ExamSection } from "@/components/user/exam-section";
 import { UserExamPanel } from "@/components/user/user-exam-panel";
 import { EventSection } from "@/components/user/event-section";
 import { useAuth } from "@/contexts/auth-context";

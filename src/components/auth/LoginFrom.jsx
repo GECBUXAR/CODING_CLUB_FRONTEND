@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/auth-context";
+import { toast } from "@/hooks/use-toast";
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -27,30 +28,45 @@ export default function LoginForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setFormError(null);
 
-    // Form validation
+    // Validate form inputs
     if (!email || !password) {
-      setFormError("Please fill in all fields");
+      setFormError("Please enter both email and password.");
+      setIsLoading(false);
       return;
     }
 
-    setFormError("");
-    setIsLoading(true);
-
     try {
-      // Use the auth context login function
       const result = await login(email, password);
 
       if (result.success) {
-        // If remember me is checked, store the email
+        // Store email in localStorage if remember me is checked
         if (rememberMe) {
           localStorage.setItem("rememberedEmail", email);
         } else {
           localStorage.removeItem("rememberedEmail");
         }
 
-        // Redirect to home page after successful login
-        navigate("/home");
+        // Show role-specific success message
+        if (result.isAdmin) {
+          toast({
+            title: "Admin Login Successful",
+            description: "Welcome to the admin dashboard",
+            variant: "success",
+          });
+          // Redirect admin to admin dashboard
+          navigate("/admin/dashboard");
+        } else {
+          toast({
+            title: "Login Successful",
+            description: "Welcome back to Coding Club",
+            variant: "success",
+          });
+          // Redirect regular user to the user dashboard
+          navigate("/user/dashboard");
+        }
       } else {
         setFormError(result.error || "Login failed. Please try again.");
       }
@@ -222,10 +238,16 @@ export default function LoginForm() {
                   Sign up
                 </Link>
               </div>
-              <div className="text-center text-xs text-muted-foreground">
-                <p>Test accounts:</p>
-                <p>User: user@test.com / password123</p>
-                <p>Admin: admin@test.com / admin123</p>
+              <div className="text-center text-sm">
+                <span className="text-muted-foreground">
+                  Get an admin account?{" "}
+                </span>
+                <Link
+                  to="/admin-signup"
+                  className="font-medium text-blue-600 hover:underline"
+                >
+                  Sign up
+                </Link>
               </div>
             </CardFooter>
           </Card>
