@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { RequireAuth } from "./contexts/auth-context";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { RedirectIfAuthenticated } from "./routes/RedirectIfAuthenticated";
 
 // Public Pages
 import LandingPage from "./pages/common/LandingPage";
@@ -29,23 +30,43 @@ import { AdminExamPanel } from "./pages/admin/AdminExamPanel";
 import NotFoundPage from "./pages/errors/NotFoundPage";
 import CorsWarning from "./components/common/cors-warning";
 
-// Protected Route Components
+// User Route - allows both regular users and admins
 const UserRoute = ({ children }) => {
-  return <RequireAuth allowedRoles={["user", "admin"]}>{children}</RequireAuth>;
+  return <ProtectedRoute requiredRole={null}>{children}</ProtectedRoute>;
 };
 
+// Admin Route - only allows admins
 const AdminRoute = ({ children }) => {
-  return <RequireAuth allowedRoles={["admin"]}>{children}</RequireAuth>;
+  return <ProtectedRoute requiredRole="admin">{children}</ProtectedRoute>;
+};
+
+// User-only Route - only allows regular users, not admins
+const UserOnlyRoute = ({ children }) => {
+  return <ProtectedRoute requiredRole="user">{children}</ProtectedRoute>;
 };
 
 const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<LandingPage />} />
+      <Route
+        path="/"
+        element={
+          <RedirectIfAuthenticated>
+            <LandingPage />
+          </RedirectIfAuthenticated>
+        }
+      />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />
-      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/login"
+        element={
+          <RedirectIfAuthenticated>
+            <LoginPage />
+          </RedirectIfAuthenticated>
+        }
+      />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/admin-signup" element={<AdminSignupPage />} />
       <Route
@@ -57,7 +78,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* User Routes */}
+      {/* User Routes - accessible by both regular users and admins */}
       <Route
         path="/profile"
         element={
@@ -86,7 +107,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Admin Routes */}
+      {/* Admin Routes - only accessible by admins */}
       <Route
         path="/admin/dashboard"
         element={

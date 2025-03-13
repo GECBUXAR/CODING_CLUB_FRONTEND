@@ -240,7 +240,7 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Testimonials Section - New section */}
+      {/* Facultys Section - New section */}
       <div className="bg-gray-50 py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">

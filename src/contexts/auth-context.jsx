@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import * as authService from "../services/authService";
+import apiClient from "../services/api";
 
 // Create auth context with null as default value
 const AuthContext = createContext(null);
@@ -16,7 +17,6 @@ const initialState = {
   isAuthenticated: false,
   isAdmin: false,
   user: null,
-  token: localStorage.getItem("token") || null,
   error: null,
   loading: false,
 };
@@ -30,7 +30,6 @@ function authReducer(state, action) {
         isAuthenticated: true,
         isAdmin: action.payload.isAdmin,
         user: action.payload.user,
-        token: action.payload.token,
         error: null,
         loading: false,
       };
@@ -40,7 +39,6 @@ function authReducer(state, action) {
         isAuthenticated: false,
         isAdmin: false,
         user: null,
-        token: null,
         error: action.payload,
         loading: false,
       };
@@ -50,7 +48,6 @@ function authReducer(state, action) {
         isAuthenticated: false,
         isAdmin: false,
         user: null,
-        token: null,
         error: null,
         loading: false,
       };
@@ -79,26 +76,165 @@ export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const navigate = useNavigate();
+
+  // Listen for auth errors from API client
+  useEffect(() => {
+    const handleAuthError = (event) => {
+      console.log("Auth error event received", event.detail);
+      // Only redirect if we think we're authenticated but get a 401/403
+      if (state.isAuthenticated) {
+        dispatch({ type: "LOGOUT" });
+        navigate("/login", {
+          state: {
+            from: window.location.pathname,
+            message: "Your session has expired. Please log in again.",
+          },
+        });
+      }
+    };
+
+    window.addEventListener("auth-error", handleAuthError);
+    return () => {
+      window.removeEventListener("auth-error", handleAuthError);
+    };
+  }, [navigate, state.isAuthenticated]);
+
+  // Function to check authentication status explicitly
+  const refreshAuth = async () => {
+    // Prevent excessive calls to refreshAuth
+    const now = Date.now();
+    const lastRefreshTime = window.sessionStorage.getItem("lastAuthRefresh");
+    const refreshInterval = 5000; // 5 seconds minimum between refreshes
+
+    if (
+      lastRefreshTime &&
+      now - Number.parseInt(lastRefreshTime, 10) < refreshInterval
+    ) {
+      console.log("Skipping auth refresh - too recent");
+      return state.isAuthenticated; // Return current authentication state
+    }
+
+    window.sessionStorage.setItem("lastAuthRefresh", now.toString());
+    setCheckingAuth(true);
+
+    try {
+      console.log("Explicitly refreshing authentication status...");
+
+      // Try to get the user profile first
+      let result = await authService.getCurrentUser();
+
+      // If the user profile fails, try admin profile
+      if (!result.success) {
+        try {
+          // If user profile didn't work, try the admin profile endpoint
+          const adminResult = await apiClient.get("/admin/profile");
+          if (adminResult.data && adminResult.data.status === "success") {
+            result = {
+              success: true,
+              data: adminResult.data.data,
+            };
+            // Ensure admin role is set
+            if (result.data && !result.data.role) {
+              result.data.role = "admin";
+            }
+          }
+        } catch (adminError) {
+          console.error("Admin profile check failed:", adminError);
+        }
+      }
+
+      if (result.success && result.data) {
+        console.log("Refresh confirmed user is authenticated:", result.data);
+
+        // Determine if user is admin based on role property
+        const isAdmin = result.data.role === "admin";
+
+        dispatch({
+          type: "LOGIN_SUCCESS",
+          payload: {
+            user: result.data,
+            isAdmin,
+          },
+        });
+        return true;
+      }
+
+      console.log("Refresh found no active session");
+      dispatch({ type: "LOGOUT" });
+      return false;
+    } catch (error) {
+      console.error("Error refreshing authentication:", error);
+      dispatch({ type: "LOGOUT" });
+      return false;
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
 
   // Check if user is already logged in on initial load
   useEffect(() => {
+    // Use a ref to prevent multiple auth checks
+    const hasAttemptedInitialAuth = sessionStorage.getItem(
+      "hasAttemptedInitialAuth"
+    );
+
     const checkAuth = async () => {
+      if (hasAttemptedInitialAuth) {
+        console.log("Skipping initial auth check - already attempted");
+        setCheckingAuth(false);
+        setInitialized(true);
+        return;
+      }
+
       try {
-        if (state.token) {
-          const result = await authService.getCurrentUser();
-          if (result.success) {
-            dispatch({
-              type: "LOGIN_SUCCESS",
-              payload: {
-                user: result.data,
-                token: state.token,
-                isAdmin: result.data.role === "admin",
-              },
-            });
+        sessionStorage.setItem("hasAttemptedInitialAuth", "true");
+        setCheckingAuth(true);
+        console.log("Checking authentication status...");
+
+        // Try to get the user profile first
+        let result = await authService.getCurrentUser();
+
+        // If the user profile fails, try admin profile
+        if (!result.success) {
+          try {
+            // If user profile didn't work, try the admin profile endpoint
+            const adminResult = await apiClient.get("/admin/profile");
+            if (adminResult.data && adminResult.data.status === "success") {
+              result = {
+                success: true,
+                data: adminResult.data.data,
+              };
+              // Ensure admin role is set
+              if (result.data && !result.data.role) {
+                result.data.role = "admin";
+              }
+            }
+          } catch (adminError) {
+            console.error("Admin profile check failed:", adminError);
           }
         }
+
+        if (result.success && result.data) {
+          console.log("User is authenticated:", result.data);
+
+          // Determine if user is admin based on role property
+          const isAdmin = result.data.role === "admin";
+
+          dispatch({
+            type: "LOGIN_SUCCESS",
+            payload: {
+              user: result.data,
+              isAdmin,
+            },
+          });
+        } else {
+          console.log("No active session found");
+          dispatch({ type: "LOGOUT" });
+        }
       } catch (error) {
-        console.log("No active session found", error);
+        console.error("Error checking authentication:", error);
+        dispatch({ type: "LOGOUT" });
       } finally {
         setCheckingAuth(false);
         setInitialized(true);
@@ -106,93 +242,27 @@ export function AuthProvider({ children }) {
     };
 
     checkAuth();
-  }, [state.token]);
+  }, []);
 
   // Login function
   const login = async (email, password) => {
     dispatch({ type: "SET_LOADING", payload: true });
     try {
-      // For development testing - you can use test accounts
-      // Set to false to always use the real API
-      const useTestAccounts = true;
-
-      if (useTestAccounts) {
-        const testUsers = {
-          "user@test.com": {
-            password: "password123",
-            user: {
-              id: "1",
-              name: "Test User",
-              email: "user@test.com",
-              role: "user",
-              createdAt: new Date().toISOString(),
-            },
-            token: "test-user-token",
-          },
-          "admin@test.com": {
-            password: "admin123",
-            user: {
-              id: "2",
-              name: "Test Admin",
-              email: "admin@test.com",
-              role: "admin",
-              createdAt: new Date().toISOString(),
-            },
-            token: "test-admin-token",
-          },
-          "faculty@test.com": {
-            password: "faculty123",
-            user: {
-              id: "3",
-              name: "Test Faculty",
-              email: "faculty@test.com",
-              role: "faculty",
-              createdAt: new Date().toISOString(),
-            },
-            token: "test-faculty-token",
-          },
-        };
-
-        // Check if the user exists and password matches
-        const testUser = testUsers[email];
-        if (testUser && testUser.password === password) {
-          const token = testUser.token;
-          localStorage.setItem("token", token);
-
-          dispatch({
-            type: "LOGIN_SUCCESS",
-            payload: {
-              user: testUser.user,
-              token: token,
-              isAdmin: testUser.user.role === "admin",
-            },
-          });
-
-          return {
-            success: true,
-            isAdmin: testUser.user.role === "admin",
-          };
-        }
-      }
-
-      // Always call the real auth service
       console.log("Calling authService.login with:", { email, password });
       const result = await authService.login({ email, password });
       console.log("Auth service result:", result);
 
       if (result.success) {
-        localStorage.setItem("token", result.data.token);
         dispatch({
           type: "LOGIN_SUCCESS",
           payload: {
-            user: result.data.data.user,
-            token: result.data.token,
-            isAdmin: result.data.data.user.role === "admin",
+            user: result.data.user,
+            isAdmin: result.data.user.role === "admin",
           },
         });
         return {
           success: true,
-          isAdmin: result.data.data.user.role === "admin",
+          isAdmin: result.data.user.role === "admin",
         };
       }
 
@@ -232,12 +302,10 @@ export function AuthProvider({ children }) {
       });
 
       if (result.success) {
-        localStorage.setItem("token", result.data.token);
         dispatch({
           type: "LOGIN_SUCCESS",
           payload: {
-            user: result.data.data.user,
-            token: result.data.token,
+            user: result.data.user,
             isAdmin: true,
           },
         });
@@ -255,6 +323,8 @@ export function AuthProvider({ children }) {
         payload: error.message || "Admin login failed",
       });
       return { success: false, error: error.message || "Admin login failed" };
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
     }
   };
 
@@ -265,12 +335,10 @@ export function AuthProvider({ children }) {
       const result = await authService.register(userData);
 
       if (result.success) {
-        localStorage.setItem("token", result.data.token);
         dispatch({
           type: "LOGIN_SUCCESS",
           payload: {
-            user: result.data.data.user,
-            token: result.data.token,
+            user: result.data.user,
             isAdmin: false,
           },
         });
@@ -288,36 +356,20 @@ export function AuthProvider({ children }) {
         payload: error.message || "Registration failed",
       });
       return { success: false, error: error.message || "Registration failed" };
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
     }
   };
 
   // Logout function
   const logout = async () => {
     try {
-      // Check if using a test account (test token)
-      const token = localStorage.getItem("token");
-      const isTestAccount =
-        token &&
-        (token === "test-user-token" ||
-          token === "test-admin-token" ||
-          token === "test-faculty-token");
-
-      // If it's a test account, just remove the token and dispatch logout
-      if (isTestAccount) {
-        localStorage.removeItem("token");
-        dispatch({ type: "LOGOUT" });
-        return { success: true };
-      }
-
-      // Otherwise, call the API
       const result = await authService.logout();
-      localStorage.removeItem("token");
       dispatch({ type: "LOGOUT" });
       return result;
     } catch (error) {
       console.error("Logout error:", error);
       // Even if the API call fails, we should still log out the user locally
-      localStorage.removeItem("token");
       dispatch({ type: "LOGOUT" });
       return { success: true };
     }
@@ -353,7 +405,6 @@ export function AuthProvider({ children }) {
       const result = await authService.changePassword(passwordData);
 
       if (result.success) {
-        // In a real token-based system, you'd update the token here
         return { success: true };
       }
 
@@ -380,7 +431,6 @@ export function AuthProvider({ children }) {
     isAuthenticated: state.isAuthenticated,
     isAdmin: state.isAdmin,
     user: state.user,
-    token: state.token,
     error: state.error,
     loading: state.loading,
     login,
@@ -392,6 +442,7 @@ export function AuthProvider({ children }) {
     clearError,
     checkingAuth,
     initialized,
+    refreshAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -446,12 +497,6 @@ export function RequireAuth({ children, allowedRoles = ["user", "admin"] }) {
   }
 
   if (!isAuthenticated) {
-    return null;
-  }
-
-  // Check if user has the required role
-  const userRole = isAdmin ? "admin" : "user";
-  if (!allowedRoles.includes(userRole)) {
     return null;
   }
 
