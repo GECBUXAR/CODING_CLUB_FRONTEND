@@ -63,8 +63,12 @@ export const adminLogin = async (credentials) => {
 export const register = async (userData) => {
   console.log("authService.register called with:", userData);
   try {
+    // Determine if this is an admin registration
+    const isAdminRegistration = userData.role === "admin" && userData.secretKey;
+    const endpoint = isAdminRegistration ? "/admin/signup" : "/users/signup";
+
     // Set a shorter timeout for this specific request
-    const response = await apiClient.post("/users/signup", userData, {
+    const response = await apiClient.post(endpoint, userData, {
       timeout: 8000, // 8 seconds timeout for registration
     });
     console.log("Register response:", response.data);
