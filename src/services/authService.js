@@ -1,17 +1,44 @@
 import apiClient from "./api";
 
+// Check if email belongs to an admin user
+export const checkIfAdmin = async (email) => {
+  try {
+    const response = await apiClient.get(
+      `/admin/check-by-email?email=${encodeURIComponent(email)}`
+    );
+    return response.data?.isAdmin || false;
+  } catch (error) {
+    console.error("Error checking if user is admin:", error);
+    return false;
+  }
+};
+
 // User login
 export const login = async (credentials) => {
   console.log("authService.login called with:", credentials);
   try {
+    // First check if this email belongs to an admin
+    const isAdmin = await checkIfAdmin(credentials.email);
+
+    // If it's an admin login, use the adminLogin function
+    if (isAdmin) {
+      // Add the secretKey to credentials for admin login
+      const adminCredentials = {
+        ...credentials,
+        secretKey: import.meta.env.VITE_ADMIN_SECRET_KEY || "admin-secret-key",
+      };
+      return await adminLogin(adminCredentials);
+    }
+
+    // Regular user login
     const response = await apiClient.post("/users/login", credentials);
     console.log("Login response:", response.data);
 
     const userData = response.data.user || response.data.data?.user;
 
     // Ensure the role information is consistent
-    if (userData && !userData.role) {
-      userData.role = "user"; // Default role
+    if (userData) {
+      userData.role = userData.role || "user";
     }
 
     return {
@@ -96,10 +123,25 @@ export const register = async (userData) => {
   }
 };
 
-// User logout
+// User logout - works for both regular users and admins
 export const logout = async () => {
   try {
-    const response = await apiClient.post("/users/logout");
+    // Check if the current user is an admin by trying to access the admin profile
+    let isAdmin = false;
+    try {
+      const adminCheck = await apiClient.get("/admin/profile");
+      isAdmin =
+        adminCheck.data &&
+        (adminCheck.data.status === "success" || adminCheck.data.success);
+    } catch (adminError) {
+      // Not an admin, continue with regular user logout
+      console.log("Not logged in as admin, using regular logout", adminError);
+    }
+
+    // Use the appropriate endpoint based on user type
+    const endpoint = isAdmin ? "/admin/logout" : "/users/logout";
+    const response = await apiClient.post(endpoint);
+
     return {
       success: true,
       data: response.data,
@@ -113,35 +155,75 @@ export const logout = async () => {
   }
 };
 
-// Get current user profile
+// Get current user profile - works for both regular users and admins
 export const getCurrentUser = async () => {
   try {
     console.log("Fetching current user profile");
-    const response = await apiClient.get("/users/profile");
-    console.log("Current user response:", response.data);
 
-    // Check for data in the response using both formats
-    // 1. Check for the new format: { statusCode, data, message, success }
-    if (response.data.success && response.data.data) {
-      return {
-        success: true,
-        data: response.data.data,
-      };
+    // First try the regular user profile endpoint
+    try {
+      const response = await apiClient.get("/users/profile");
+      console.log("Current user response:", response.data);
+
+      // Check for data in the response using both formats
+      // 1. Check for the new format: { statusCode, data, message, success }
+      if (response.data.success && response.data.data) {
+        // Ensure role is set to user if not specified
+        const userData = response.data.data;
+        if (userData && !userData.role) {
+          userData.role = "user";
+        }
+        return {
+          success: true,
+          data: userData,
+        };
+      }
+
+      // 2. Check for the old format: { status: "success", data }
+      if (
+        response.data.status === "success" &&
+        (response.data.data || response.data.user)
+      ) {
+        const userData = response.data.data || response.data.user;
+        // Ensure role is set to user if not specified
+        if (userData && !userData.role) {
+          userData.role = "user";
+        }
+        return {
+          success: true,
+          data: userData,
+        };
+      }
+    } catch (userError) {
+      // If user profile fails, try admin profile
+      console.log("User profile check failed, trying admin profile", userError);
     }
 
-    // 2. Check for the old format: { status: "success", data }
-    if (
-      response.data.status === "success" &&
-      (response.data.data || response.data.user)
-    ) {
-      return {
-        success: true,
-        data: response.data.data || response.data.user,
-      };
+    // If we get here, try the admin profile endpoint
+    try {
+      const adminResponse = await apiClient.get("/admin/profile");
+      console.log("Admin profile response:", adminResponse.data);
+
+      if (
+        adminResponse.data &&
+        (adminResponse.data.status === "success" || adminResponse.data.success)
+      ) {
+        const adminData = adminResponse.data.data || adminResponse.data;
+        // Ensure admin role is set
+        if (adminData && !adminData.role) {
+          adminData.role = "admin";
+        }
+        return {
+          success: true,
+          data: adminData,
+        };
+      }
+    } catch (adminError) {
+      console.error("Admin profile check failed:", adminError);
     }
 
-    // If we don't have user data despite a successful response
-    console.warn("No user data found in successful response");
+    // If we get here, neither user nor admin profile worked
+    console.warn("No user data found in any response");
     return {
       success: false,
       error: "No user data found in response",
