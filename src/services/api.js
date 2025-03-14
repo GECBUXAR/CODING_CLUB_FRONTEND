@@ -17,6 +17,7 @@ const apiCallTracker = {
   // Minimum time between calls to the same endpoint (in ms)
   throttleTime: {
     "/users/profile": 5000, // 5 seconds for profile endpoints
+    "/admin/profile": 5000, // 5 seconds for admin profile endpoints
     "/events": 5000, // 5 seconds for events endpoints
     "/events/user-events": 5000, // 5 seconds for user events endpoints
     default: 0, // No throttling for other endpoints
@@ -44,6 +45,7 @@ const apiCallTracker = {
   normalizeEndpoint(endpoint) {
     // Special cases
     if (endpoint.startsWith("/users/profile")) return "/users/profile";
+    if (endpoint.startsWith("/admin/profile")) return "/admin/profile";
     if (endpoint.startsWith("/events/user-events"))
       return "/events/user-events";
     if (endpoint === "/events") return "/events";
