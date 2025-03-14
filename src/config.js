@@ -33,6 +33,7 @@ export const AUTH_CONFIG = {
     ADMIN_SIGNUP: "/admin/signup",
     LOGOUT: "/users/logout",
     PROFILE: "/users/profile",
+    ADMIN_PROFILE: "/admin/profile",
   },
 };
 
