@@ -153,7 +153,7 @@ const AdminSignupPage = () => {
       <div className="hidden w-1/2 bg-purple-600/10 p-10 lg:flex flex-col justify-center">
         <div className="mx-auto max-w-md">
           <img
-            src="/CodingClubLogoSmall.png"
+            src="/image/CodingClubLogoSmall.png"
             alt="Logo"
             className="w-32 mb-8"
           />
@@ -181,7 +181,7 @@ const AdminSignupPage = () => {
           {/* Mobile Logo (visible only on mobile) */}
           <div className="flex flex-col items-center mb-8 lg:hidden">
             <img
-              src="/CodingClubLogoSmall.png"
+              src="/image/CodingClubLogoSmall.png"
               alt="Logo"
               className="w-24 mb-4"
             />

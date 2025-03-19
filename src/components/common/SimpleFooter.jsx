@@ -9,7 +9,7 @@ const SimpleFooter = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
           <div className="mb-2 md:mb-0">
-            © {currentYear} Coding Club. All rights reserved.
+            © {currentYear} Code Crusaders. All rights reserved.
           </div>
           <div className="flex space-x-6">
             <Link to="/terms" className="hover:text-blue-600 transition-colors">

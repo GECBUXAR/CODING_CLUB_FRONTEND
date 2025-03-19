@@ -121,12 +121,12 @@ const Navbar = () => {
         {/* Logo */}
         <Link to="/" className="flex-shrink-0" aria-label="Go to homepage">
           <span className="text-xl font-bold text-blue-600 flex items-center">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center mr-2 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white">
-              <img src="/CodingClubLogoSmall.png" alt="" className="size-8" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center mr-2 bg-gradient-to-tr  text-white">
+              <img src="/image/CodingClubLogoSmall.png" alt="" className="size-8" />
             </div>
             <span className="hidden xs:block">
               <img
-                src="/CodingClubLogo.png"
+                src="/image/CodingClubLogo.png"
                 alt="Coding Club"
                 className="w-36"
               />
