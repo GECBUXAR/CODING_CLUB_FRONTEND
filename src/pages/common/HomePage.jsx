@@ -131,7 +131,7 @@ const HomePage = () => {
         <div className="container mx-auto px-4 py-8 flex-grow">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
-              Welcome to Coding Club
+              Welcome to Code Crusaders
             </h1>
             <div className="w-16 h-1 bg-blue-600 mx-auto mb-10 rounded-full"></div>
 
@@ -158,7 +158,7 @@ const HomePage = () => {
           {/* Hero Section */}
           <div className="text-center mb-10">
             <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 tracking-tight">
-              Welcome to <span className="text-blue-600">Coding Club</span>
+              Welcome to <span className="text-blue-600">Code Crusaders</span>
             </h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Explore upcoming events and available exams. Enroll in courses and

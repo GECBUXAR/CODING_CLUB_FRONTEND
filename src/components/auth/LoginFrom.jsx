@@ -94,9 +94,9 @@ export default function LoginForm() {
         <div className="mx-auto max-w-md">
           <div className="mb-8 flex items-center gap-2 font-semibold">
             <code className="flex h-10 w-10 items-center justify-center rounded-lg border bg-muted">
-              CC
+              <img src="/image/CodingClubLogoSmall.png" alt="logo" />
             </code>
-            <span className="text-xl">Coding Club</span>
+            <span className="text-xl">Code Crusaders</span>
           </div>
 
           <h1 className="mb-2 text-4xl font-bold text-blue-600">
@@ -123,9 +123,9 @@ export default function LoginForm() {
           <div className="mb-8 flex flex-col items-center lg:hidden">
             <div className="mb-4 flex items-center gap-2 font-semibold">
               <code className="flex h-10 w-10 items-center justify-center rounded-lg border bg-muted">
-                CC
+                <img src="/image/CodingClubLogoSmall.png" alt="" />
               </code>
-              <span className="text-xl">Coding Club</span>
+              <span className="text-xl">Code Crusaders</span>
             </div>
             <h1 className="text-2xl font-bold text-blue-600">Welcome Back</h1>
           </div>

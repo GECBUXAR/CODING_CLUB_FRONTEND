@@ -81,10 +81,10 @@ const ModernFooter = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-10">
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="h-8 w-8 rounded-md bg-blue-600 flex items-center justify-center text-white font-bold">
-                CC
+              <div className="h-8 w-8 rounded-md  flex items-center justify-center text-white font-bold">
+              <img src="/image/CodingClubLogoSmall.png" alt="logo" />
               </div>
-              <span className="text-xl font-semibold">Coding Club</span>
+              <span className="text-xl font-semibold">Code Crusaders</span>
             </div>
             <p className="text-gray-600 max-w-md mb-6">
               Join our community of developers to learn, build, and grow
@@ -160,7 +160,7 @@ const ModernFooter = () => {
         {/* Bottom copyright and links */}
         <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
           <div className="mb-4 md:mb-0">
-            © {currentYear} Coding Club. All rights reserved.
+            © {currentYear} Code Crusaders. All rights reserved.
           </div>
           <div className="flex flex-wrap justify-center space-x-4">
             <Link to="/terms" className="hover:text-blue-600 transition-colors">
