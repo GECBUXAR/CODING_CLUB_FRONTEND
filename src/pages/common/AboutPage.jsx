@@ -104,7 +104,7 @@ const AboutPage = () => {
           {/* Hero Section */}
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              About <span className="text-blue-600">Coding Club</span>
+              About <span className="text-blue-600">Code Crusaders</span>
             </h1>
             <div className="w-16 h-1 bg-blue-600 mx-auto mb-6 rounded-full" />
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -120,14 +120,14 @@ const AboutPage = () => {
               Our Mission
             </h2>
             <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-              The Coding Club is dedicated to fostering a collaborative
+              The Code Crusaders is dedicated to fostering a collaborative
               environment where students can develop their programming skills,
               share knowledge, and prepare for successful careers in technology.
               We believe in learning by doing, peer-to-peer education, and the
               power of community.
             </p>
             <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-              Founded in 2020, our club has grown to over 500 active members
+              Founded in 2024, our club has grown to over 200 active members
               from various disciplines, united by their interest in coding and
               technology. We organize workshops, hackathons, coding
               competitions, and industry talks to provide diverse learning

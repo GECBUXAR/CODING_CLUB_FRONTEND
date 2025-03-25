@@ -53,7 +53,7 @@ export default function LoginForm() {
         if (result.isAdmin) {
           toast({
             title: "Admin Login Successful",
-            description: "Welcome to the admin dashboard",
+            description: "to the admin dashboard",
             variant: "success",
           });
           // Redirect admin to admin dashboard
@@ -61,7 +61,7 @@ export default function LoginForm() {
         } else {
           toast({
             title: "Login Successful",
-            description: "Welcome back to Coding Club",
+            description: "Welcome back to Code Crusaders",
             variant: "success",
           });
           // Redirect regular user to the user dashboard
