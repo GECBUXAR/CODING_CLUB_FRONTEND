@@ -78,7 +78,7 @@ const LandingPage = () => {
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
               Welcome to{" "}
               <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                Coding Club
+                Code Crusaders
               </span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-blue-100/90 max-w-2xl mx-auto">

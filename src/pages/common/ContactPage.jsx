@@ -70,8 +70,8 @@ const ContactPage = () => {
     {
       icon: <Mail className="h-6 w-6 text-blue-600" />,
       title: "Email",
-      details: "info@codingclub.org",
-      action: "mailto:info@codingclub.org",
+      details: "codecrusaders@gmail.com",
+      action: "mailto:codecrusaders@gmail.com",
     },
     {
       icon: <Phone className="h-6 w-6 text-blue-600" />,
@@ -82,12 +82,12 @@ const ContactPage = () => {
     {
       icon: <MapPin className="h-6 w-6 text-blue-600" />,
       title: "Address",
-      details: "123 Campus Drive, Tech Building, Room 302",
-      action: "https://maps.google.com/?q=123+Campus+Drive",
+      details: "GEC BUXAR  Academic Building , Room 110 ",
+      action: "https://maps.app.goo.gl/c8vsi6Xkh68hBsaz7",
     },
     {
       icon: <Clock className="h-6 w-6 text-blue-600" />,
-      title: "Office Hours",
+      title: "Active Hours",
       details: "Monday-Friday: 10am - 6pm",
       action: null,
     },
