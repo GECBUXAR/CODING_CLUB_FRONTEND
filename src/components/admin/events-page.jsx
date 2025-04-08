@@ -8,15 +8,11 @@ import {
   Plus,
   Trash,
   Upload,
+  Search,
+  Filter,
+  RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -24,20 +20,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { EventModal } from "@/components/admin/event-modal";
 import { UploadResultsModal } from "@/components/admin/upload-results-modal";
 import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
 import { toast } from "react-hot-toast";
 import apiClient from "@/services/api";
-import { Skeleton } from "@/components/ui/skeleton";
+
+// Import our new reusable components
+import { PageHeader } from "@/components/admin/page-header";
+import { FilterBar } from "@/components/admin/filter-bar";
+import { DataTable } from "@/components/admin/data-table";
+import { EmptyState } from "@/components/admin/empty-state";
 
 export function EventsPage() {
   const [events, setEvents] = useState([]);
@@ -46,6 +39,9 @@ export function EventsPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("date-desc");
 
   // Fetch events from API
   useEffect(() => {
@@ -138,6 +134,43 @@ export function EventsPage() {
     }
   };
 
+  // Filter and sort events based on search query, status filter, and sort order
+  const filteredEvents = events
+    .filter((event) => {
+      // Apply search filter
+      const matchesSearch =
+        event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Apply status filter
+      const matchesStatus =
+        statusFilter === "all" || event.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      // Apply sorting
+      switch (sortOrder) {
+        case "date-asc":
+          return new Date(a.date) - new Date(b.date);
+        case "date-desc":
+          return new Date(b.date) - new Date(a.date);
+        case "name-asc":
+          return a.title.localeCompare(b.title);
+        case "name-desc":
+          return b.title.localeCompare(a.title);
+        default:
+          return new Date(b.date) - new Date(a.date);
+      }
+    });
+
+  // Reset all filters
+  const resetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setSortOrder("date-desc");
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case "upcoming":
@@ -176,145 +209,167 @@ export function EventsPage() {
     }
   };
 
+  // Define table columns
+  const columns = [
+    {
+      header: "Event Name",
+      accessorKey: "title",
+      cell: (event) => <span className="font-medium">{event.title}</span>,
+    },
+    {
+      header: "Date & Time",
+      accessorKey: "date",
+      cell: (event) => (
+        <div className="flex flex-col">
+          <div className="flex items-center text-sm">
+            <Calendar className="mr-1 h-3 w-3" />
+            {new Date(event.date).toLocaleDateString()}
+          </div>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Clock className="mr-1 h-3 w-3" />
+            {event.time}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: "Type",
+      accessorKey: "category",
+      cell: (event) => (
+        <Badge variant="outline" className="capitalize">
+          {event.category || event.type || "Event"}
+        </Badge>
+      ),
+    },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: (event) => getStatusBadge(event.status),
+    },
+    {
+      header: "Actions",
+      cell: (event) => (
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Actions</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[160px]">
+              <DropdownMenuItem
+                onClick={() => handleEditEvent(event)}
+                className="cursor-pointer flex items-center text-sm"
+                inset
+              >
+                <Edit className="mr-2 h-4 w-4" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDeleteEvent(event)}
+                className="cursor-pointer flex items-center text-sm text-red-600"
+                inset
+              >
+                <Trash className="mr-2 h-4 w-4" /> Delete
+              </DropdownMenuItem>
+              {event.status === "completed" && (
+                <DropdownMenuItem
+                  onClick={() => handleUploadResults(event)}
+                  className="cursor-pointer flex items-center text-sm"
+                  inset
+                >
+                  <Upload className="mr-2 h-4 w-4" /> Upload Results
+                </DropdownMenuItem>
+              )}
+              {event.status === "completed" && (
+                <DropdownMenuItem
+                  onClick={() => handlePublishResults(event)}
+                  className="cursor-pointer flex items-center text-sm"
+                  inset
+                >
+                  <Check className="mr-2 h-4 w-4" /> Publish Results
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+      className: "text-right",
+    },
+  ];
+
+  // Define filter options
+  const filterOptions = [
+    {
+      value: statusFilter,
+      onChange: setStatusFilter,
+      placeholder: "Filter by status",
+      options: [
+        { value: "all", label: "All Statuses" },
+        { value: "upcoming", label: "Upcoming" },
+        { value: "completed", label: "Completed" },
+        { value: "cancelled", label: "Cancelled" },
+      ],
+    },
+    {
+      value: sortOrder,
+      onChange: setSortOrder,
+      placeholder: "Sort by",
+      options: [
+        { value: "date-desc", label: "Newest First" },
+        { value: "date-asc", label: "Oldest First" },
+        { value: "name-asc", label: "Name (A-Z)" },
+        { value: "name-desc", label: "Name (Z-A)" },
+      ],
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Events</h2>
-        <div className="flex gap-2">
-          <Button
-            onClick={handleAddEvent}
-            className="bg-primary text-white hover:bg-primary/90"
-            variant="default"
-            size="default"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add Event
-          </Button>
-        </div>
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title="Event Management"
+        description="Create and manage events for your coding club members"
+        actions={[
+          {
+            label: "Add Event",
+            icon: <Plus className="h-4 w-4 mr-2" />,
+            onClick: handleAddEvent,
+            variant: "default",
+          },
+        ]}
+      />
 
-      <Card className="border rounded-lg shadow-sm">
-        <CardHeader className="border-b p-4">
-          <CardTitle className="text-xl">All Events</CardTitle>
-          <CardDescription className="text-sm text-gray-500">
-            Manage all coding club events
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-4">
-          {loading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center space-x-4">
-                  <Skeleton className="h-12 w-[250px]" />
-                  <Skeleton className="h-12 w-[150px]" />
-                  <Skeleton className="h-12 w-[100px]" />
-                  <Skeleton className="h-12 w-[100px]" />
-                  <Skeleton className="h-12 w-[100px] ml-auto" />
-                </div>
-              ))}
-            </div>
-          ) : events.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">
-                No events found. Create your first event!
-              </p>
-            </div>
-          ) : (
-            <Table className="w-full">
-              <TableHeader className="bg-gray-50">
-                <TableRow className="hover:bg-gray-50">
-                  <TableHead className="py-3 font-medium">Event Name</TableHead>
-                  <TableHead className="py-3 font-medium">
-                    Date & Time
-                  </TableHead>
-                  <TableHead className="py-3 font-medium">Type</TableHead>
-                  <TableHead className="py-3 font-medium">Status</TableHead>
-                  <TableHead className="text-right py-3 font-medium">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="bg-white">
-                {events.map((event) => (
-                  <TableRow
-                    key={event._id}
-                    className="border-t hover:bg-gray-50"
-                  >
-                    <TableCell className="font-medium">{event.title}</TableCell>
-                    <TableCell className="py-3">
-                      <div className="flex flex-col">
-                        <div className="flex items-center text-sm">
-                          <Calendar className="mr-1 h-3 w-3" />
-                          {new Date(event.date).toLocaleDateString()}
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Clock className="mr-1 h-3 w-3" />
-                          {event.time}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <Badge variant="outline" className="capitalize">
-                        {event.category || event.type || "Event"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="py-3">
-                      {getStatusBadge(event.status)}
-                    </TableCell>
-                    <TableCell className="text-right py-3">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 p-0"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[160px]">
-                          <DropdownMenuItem
-                            onClick={() => handleEditEvent(event)}
-                            className="cursor-pointer flex items-center text-sm"
-                            inset
-                          >
-                            <Edit className="mr-2 h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteEvent(event)}
-                            className="cursor-pointer flex items-center text-sm text-red-600"
-                            inset
-                          >
-                            <Trash className="mr-2 h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                          {event.status === "completed" && (
-                            <DropdownMenuItem
-                              onClick={() => handleUploadResults(event)}
-                              className="cursor-pointer flex items-center text-sm"
-                              inset
-                            >
-                              <Upload className="mr-2 h-4 w-4" /> Upload Results
-                            </DropdownMenuItem>
-                          )}
-                          {event.status === "completed" && (
-                            <DropdownMenuItem
-                              onClick={() => handlePublishResults(event)}
-                              className="cursor-pointer flex items-center text-sm"
-                              inset
-                            >
-                              <Check className="mr-2 h-4 w-4" /> Publish Results
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* Filter Bar */}
+      <FilterBar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        filters={filterOptions}
+        onResetFilters={resetFilters}
+      />
+
+      {/* Events Table */}
+      <DataTable
+        columns={columns}
+        data={filteredEvents}
+        loading={loading}
+        emptyState={{
+          icon: <Calendar className="h-8 w-8 text-slate-400" />,
+          title: "No events found",
+          description:
+            events.length === 0
+              ? "Create your first event to get started"
+              : "No events match your current filters. Try adjusting your search or filter criteria.",
+          action:
+            events.length === 0
+              ? {
+                  label: "Add Event",
+                  icon: <Plus className="mr-2 h-4 w-4" />,
+                  onClick: handleAddEvent,
+                }
+              : null,
+        }}
+      />
 
       <EventModal
         isOpen={isEventModalOpen}
