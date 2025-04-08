@@ -126,66 +126,59 @@ const AllEventsPage = () => {
   // Get unique categories
   const categories = [
     "All",
-    ...Array.from(
-      new Set(
-        Array.isArray(events)
-          ? events.map((event) => event.category)
-          : events?.data
-          ? events.data.map((event) => event.category)
-          : []
-      )
-    ),
+    ...Array.from(new Set(events.map((event) => event.category))),
   ];
 
-  // Get the events array from either the old or new API response format
-  const eventsArray = Array.isArray(events) ? events : events?.data || [];
-
   // Filter events based on all filters and search query
-  const filteredEvents = eventsArray.filter((event) => {
-    // Apply category filter if selected
-    if (selectedCategory && event.category !== selectedCategory) {
-      return false;
-    }
+  const filteredEvents = Array.isArray(events)
+    ? events.filter((event) => {
+        // Apply category filter if selected
+        if (selectedCategory && event.category !== selectedCategory) {
+          return false;
+        }
 
-    // Apply skill level filter if selected
-    if (selectedSkillLevel && event.skillLevel !== selectedSkillLevel) {
-      return false;
-    }
+        // Apply skill level filter if selected
+        if (selectedSkillLevel && event.skillLevel !== selectedSkillLevel) {
+          return false;
+        }
 
-    // Apply date filter if selected
-    if (selectedDate) {
-      const eventDate = new Date(event.date);
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-      const nextWeek = new Date(today);
-      nextWeek.setDate(today.getDate() + 7);
-      const nextMonth = new Date(today);
-      nextMonth.setMonth(today.getMonth() + 1);
+        // Apply date filter if selected
+        if (selectedDate) {
+          const eventDate = new Date(event.date);
+          const today = new Date();
+          const tomorrow = new Date(today);
+          tomorrow.setDate(today.getDate() + 1);
+          const nextWeek = new Date(today);
+          nextWeek.setDate(today.getDate() + 7);
+          const nextMonth = new Date(today);
+          nextMonth.setMonth(today.getMonth() + 1);
 
-      if (
-        (selectedDate === "today" && !isSameDay(eventDate, today)) ||
-        (selectedDate === "tomorrow" && !isSameDay(eventDate, tomorrow)) ||
-        (selectedDate === "this-week" &&
-          !(eventDate >= today && eventDate <= nextWeek)) ||
-        (selectedDate === "this-month" &&
-          !(eventDate >= today && eventDate <= nextMonth))
-      ) {
-        return false;
-      }
-    }
+          if (
+            (selectedDate === "today" && !isSameDay(eventDate, today)) ||
+            (selectedDate === "tomorrow" && !isSameDay(eventDate, tomorrow)) ||
+            (selectedDate === "this-week" &&
+              !(eventDate >= today && eventDate <= nextWeek)) ||
+            (selectedDate === "this-month" &&
+              !(eventDate >= today && eventDate <= nextMonth))
+          ) {
+            return false;
+          }
+        }
 
-    // Apply search query filter
-    if (searchTerm) {
-      return (
-        event.eventName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.category.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+        // Apply search query filter
+        if (searchTerm) {
+          return (
+            event.eventName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.description
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            event.category.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
 
-    return true;
-  });
+        return true;
+      })
+    : [];
 
   const handleEnrollment = async (eventId, isEnrolled) => {
     try {
