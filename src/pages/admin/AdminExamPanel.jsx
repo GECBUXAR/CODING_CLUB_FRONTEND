@@ -62,7 +62,7 @@ import { ExamSettingsModal } from "@/components/admin/exam-settings-modal";
 import { ExamResponsesPanel } from "@/components/admin/exam-responses-panel";
 import { ExamProvider, useExamContext } from "@/contexts/exam-context";
 import { useNotification } from "@/contexts/notification-context";
-import { getExams, deleteExam } from "../../lib/api";
+import { getExams, deleteExam, createExam, updateExam } from "../../lib/api";
 import {
   Select,
   SelectContent,
@@ -259,19 +259,20 @@ function AdminExamPanelContent() {
     if (!currentExam) return;
 
     try {
+      // Delete the exam via API
       const response = await deleteExam(currentExam.id);
 
       if (response.success) {
+        // Update the local state
         dispatch({
           type: "DELETE_EXAM",
           payload: currentExam.id,
         });
 
-        // Check if showNotification is a function before calling it
+        // Show success notification
         if (typeof showNotification === "function") {
           showNotification("Exam deleted successfully", "success");
         } else {
-          // Fallback notification method - just console log for now
           console.log("Success: Exam deleted successfully");
         }
       } else {
@@ -280,25 +281,11 @@ function AdminExamPanelContent() {
     } catch (error) {
       console.error("Error deleting exam:", error);
 
-      // Safely handle notification
+      // Show error notification
       if (typeof showNotification === "function") {
         showNotification(`Error: ${error.message}`, "error");
       } else {
-        // Fallback alert in development
         console.error(`Failed to delete exam: ${error.message}`);
-
-        // If in development, we know it's likely a timeout - give more helpful message
-        if (error.message.includes("timed out")) {
-          alert(
-            "Development mode: Exam deleted from local state (API timeout expected)"
-          );
-
-          // Still update the local state in development mode
-          dispatch({
-            type: "DELETE_EXAM",
-            payload: currentExam.id,
-          });
-        }
       }
     } finally {
       setIsDeleteModalOpen(false);
@@ -630,39 +617,78 @@ function AdminExamPanelContent() {
       <ExamFormModal
         isOpen={isExamModalOpen}
         onClose={() => setIsExamModalOpen(false)}
-        onSave={(examData) => {
-          if (currentExam) {
-            // Update existing exam
-            dispatch({
-              type: "UPDATE_EXAM",
-              payload: {
-                id: currentExam.id,
-                ...examData,
+        onSave={async (examData) => {
+          try {
+            // Format the data for the API
+            const formattedData = {
+              title: examData.title,
+              description: examData.description,
+              date: new Date(examData.date).toISOString(),
+              timeLimit: examData.timeLimit,
+              status: examData.status,
+              isExam: true, // Mark this as an exam
+              category: "exam", // Set category to exam
+              examDetails: {
+                passingScore: examData.passingScore,
+                randomizeQuestions: examData.randomizeQuestions,
+                showResultsImmediately: examData.showResultsImmediately,
+                allowedAttempts: examData.allowedAttempts,
+                examType: examData.examType,
+                instructions: examData.instructions,
+                duration: examData.timeLimit, // Set duration from timeLimit
               },
-            });
-            if (typeof showNotification === "function") {
-              showNotification("Exam updated successfully", "success");
-            }
-          } else {
-            // Create new exam
-            const newExam = {
-              id: Date.now().toString(),
-              ...examData,
-              status: "draft",
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              questionCount: 0,
-              responseCount: 0,
             };
-            dispatch({
-              type: "ADD_EXAM",
-              payload: newExam,
-            });
+
+            if (currentExam) {
+              // Update existing exam
+              const response = await updateExam(currentExam.id, formattedData);
+
+              if (response.success) {
+                dispatch({
+                  type: "UPDATE_EXAM",
+                  payload: {
+                    id: currentExam.id,
+                    ...examData,
+                    updatedAt: new Date().toISOString(),
+                  },
+                });
+                if (typeof showNotification === "function") {
+                  showNotification("Exam updated successfully", "success");
+                }
+              } else {
+                throw new Error(response.error || "Failed to update exam");
+              }
+            } else {
+              // Create new exam
+              const response = await createExam(formattedData);
+
+              if (response.success) {
+                const newExam = {
+                  id: response.data._id || Date.now().toString(),
+                  ...examData,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  questionCount: 0,
+                  responseCount: 0,
+                };
+                dispatch({
+                  type: "ADD_EXAM",
+                  payload: newExam,
+                });
+                if (typeof showNotification === "function") {
+                  showNotification("Exam created successfully", "success");
+                }
+              } else {
+                throw new Error(response.error || "Failed to create exam");
+              }
+            }
+            setIsExamModalOpen(false);
+          } catch (error) {
+            console.error("Error saving exam:", error);
             if (typeof showNotification === "function") {
-              showNotification("Exam created successfully", "success");
+              showNotification(`Error: ${error.message}`, "error");
             }
           }
-          setIsExamModalOpen(false);
         }}
         exam={currentExam}
       />
