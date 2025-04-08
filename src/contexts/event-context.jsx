@@ -32,15 +32,7 @@ export const EventProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await apiClient.get("/events");
-
-      // Handle both old and new API response formats
-      if (response.data.data) {
-        // New format with pagination
-        setEvents(response.data);
-      } else {
-        // Old format (direct array)
-        setEvents(response.data);
-      }
+      setEvents(response.data);
     } catch (error) {
       console.error("Failed to fetch events:", error);
     } finally {
