@@ -107,29 +107,45 @@ export function EventsPage() {
 
   const handleSaveEvent = async (eventData) => {
     try {
+      // Format the date properly for the API
+      const formattedData = {
+        ...eventData,
+        // Convert date string to ISO format
+        date: eventData.date
+          ? new Date(eventData.date).toISOString()
+          : undefined,
+      };
+
       if (currentEvent) {
         // Update existing event
         const response = await apiClient.put(
           `/events/${currentEvent._id}`,
-          eventData
+          formattedData
         );
+
+        // Update the events list with the updated event
+        const updatedEvent = response.data.data;
         setEvents(
           events.map((event) =>
-            event._id === currentEvent._id ? response.data.data : event
+            event._id === currentEvent._id ? updatedEvent : event
           )
         );
         toast.success("Event updated successfully");
       } else {
         // Create new event
-        const response = await apiClient.post("/events", eventData);
-        setEvents([...events, response.data.data]);
+        const response = await apiClient.post("/events", formattedData);
+        const newEvent = response.data.data;
+
+        // Add the new event to the events list
+        setEvents(Array.isArray(events) ? [...events, newEvent] : [newEvent]);
         toast.success("Event created successfully");
       }
       setIsEventModalOpen(false);
     } catch (err) {
-      toast.error(
-        currentEvent ? "Failed to update event" : "Failed to create event"
-      );
+      const errorMessage =
+        err.response?.data?.message ||
+        (currentEvent ? "Failed to update event" : "Failed to create event");
+      toast.error(errorMessage);
       console.error("Event save error:", err);
     }
   };
@@ -152,15 +168,15 @@ export function EventsPage() {
       // Apply sorting
       switch (sortOrder) {
         case "date-asc":
-          return new Date(a.date) - new Date(b.date);
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
         case "date-desc":
-          return new Date(b.date) - new Date(a.date);
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
         case "name-asc":
           return a.title.localeCompare(b.title);
         case "name-desc":
           return b.title.localeCompare(a.title);
         default:
-          return new Date(b.date) - new Date(a.date);
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
     });
 

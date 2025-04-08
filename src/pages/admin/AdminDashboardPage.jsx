@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/auth-context";
  * Admin Dashboard Page - Main container for all admin pages
  * Handles navigation between different admin sections and authentication
  */
+
 export default function AdminDashboardPage() {
   const [currentPage, setCurrentPage] = useState("dashboard");
   const { state: authState } = useAuth();
