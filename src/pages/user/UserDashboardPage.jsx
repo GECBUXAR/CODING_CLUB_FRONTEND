@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { UserDashboardLayout } from "@/components/user/dashboard-layout";
-// import { ExamSection } from "@/components/user/exam-section";
 import { UserExamPanel } from "@/components/user/user-exam-panel";
 import { EventSection } from "@/components/user/event-section";
 import { useAuth } from "@/contexts/auth-context";
+import { eventService, examService } from "@/services";
 import {
   Card,
   CardContent,
@@ -14,12 +14,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import {
   BookOpenIcon,
   GraduationCapIcon,
   CalendarIcon,
   TrophyIcon,
   ArrowRightIcon,
+  AlertCircleIcon,
 } from "lucide-react";
 
 // Dashboard overview component
@@ -29,6 +32,156 @@ const DashboardOverview = ({ setCurrentPage }) => {
     name: "User",
     email: "user@example.com",
   };
+
+  const [stats, setStats] = useState({
+    activeExams: 0,
+    upcomingEvents: 0,
+    resources: 0,
+    achievements: 0,
+  });
+
+  const [recentExams, setRecentExams] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Fetch user's exams
+        const examsResponse = await examService.getUserExams();
+
+        // Fetch user's events
+        const eventsResponse = await eventService.getUserEvents();
+
+        if (examsResponse.success && eventsResponse.success) {
+          // Set stats
+          setStats({
+            activeExams: examsResponse.data.length || 0,
+            upcomingEvents:
+              eventsResponse.data.filter(
+                (e) => new Date(e.date) > new Date() && !e.isExam
+              ).length || 0,
+            resources: 0, // No API for resources yet
+            achievements: 0, // No API for achievements yet
+          });
+
+          // Set recent exams (up to 2)
+          setRecentExams(examsResponse.data.slice(0, 2));
+        } else {
+          setError("Failed to fetch dashboard data");
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError("An error occurred while fetching your dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString();
+    } catch (error) {
+      return "";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {/* Welcome Card Skeleton */}
+        <Card className="bg-gradient-to-r from-blue-500 to-indigo-600">
+          <CardHeader>
+            <Skeleton className="h-8 w-64 bg-white/20" />
+            <Skeleton className="h-4 w-48 mt-2 bg-white/20" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-32 bg-white/20" />
+          </CardContent>
+        </Card>
+
+        {/* Stats Overview Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="h-6 w-6" />
+                </div>
+              </CardContent>
+              <CardFooter className="p-2">
+                <Skeleton className="h-8 w-full" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+
+        {/* Recent Exams Skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-64 mt-1" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              {[1, 2].map((i) => (
+                <Card key={i} className="border shadow-sm">
+                  <CardHeader className="pb-2">
+                    <Skeleton className="h-6 w-40" />
+                  </CardHeader>
+                  <CardContent className="pb-2">
+                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="h-2 w-full rounded-full" />
+                  </CardContent>
+                  <CardFooter>
+                    <Skeleton className="h-8 w-full" />
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="text-red-800 flex items-center">
+              <AlertCircleIcon className="h-5 w-5 mr-2" />
+              Error Loading Dashboard
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-700">{error}</p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -60,7 +213,7 @@ const DashboardOverview = ({ setCurrentPage }) => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">{stats.activeExams}</div>
               <GraduationCapIcon className="h-6 w-6 text-primary/80" />
             </div>
           </CardContent>
@@ -81,7 +234,7 @@ const DashboardOverview = ({ setCurrentPage }) => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">2</div>
+              <div className="text-2xl font-bold">{stats.upcomingEvents}</div>
               <CalendarIcon className="h-6 w-6 text-primary/80" />
             </div>
           </CardContent>
@@ -102,7 +255,7 @@ const DashboardOverview = ({ setCurrentPage }) => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">42</div>
+              <div className="text-2xl font-bold">{stats.resources}</div>
               <BookOpenIcon className="h-6 w-6 text-primary/80" />
             </div>
           </CardContent>
@@ -123,7 +276,7 @@ const DashboardOverview = ({ setCurrentPage }) => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">7</div>
+              <div className="text-2xl font-bold">{stats.achievements}</div>
               <TrophyIcon className="h-6 w-6 text-primary/80" />
             </div>
           </CardContent>
@@ -144,49 +297,53 @@ const DashboardOverview = ({ setCurrentPage }) => {
           <CardDescription>Continue where you left off</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="border shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">
-                  JavaScript Fundamentals
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <div className="text-sm text-muted-foreground">
-                  Progress: 60%
-                </div>
-                <div className="mt-2 h-2 w-full rounded-full bg-muted">
-                  <div className="h-full w-[60%] rounded-full bg-primary" />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button size="sm" className="w-full">
-                  Continue
-                </Button>
-              </CardFooter>
-            </Card>
-
-            <Card className="border shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">
-                  React Advanced Concepts
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <div className="text-sm text-muted-foreground">
-                  Not started yet
-                </div>
-                <div className="mt-2 h-2 w-full rounded-full bg-muted">
-                  <div className="h-full w-0 rounded-full bg-primary" />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button size="sm" className="w-full">
-                  Start Exam
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
+          {recentExams.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {recentExams.map((exam) => (
+                <Card key={exam._id} className="border shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">{exam.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-2">
+                    <div className="text-sm text-muted-foreground">
+                      {exam.status === "completed"
+                        ? `Completed on ${formatDate(exam.completedAt)}`
+                        : "Not started yet"}
+                    </div>
+                    <div className="mt-2 h-2 w-full rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{
+                          width: exam.status === "completed" ? "100%" : "0%",
+                        }}
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setCurrentPage("exams")}
+                    >
+                      {exam.status === "completed"
+                        ? "View Results"
+                        : "Start Exam"}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">
+                You haven't enrolled in any exams yet
+              </p>
+              <Button variant="default" onClick={() => setCurrentPage("exams")}>
+                Browse Available Exams
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
