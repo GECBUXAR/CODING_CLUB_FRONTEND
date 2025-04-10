@@ -75,6 +75,12 @@ apiClient.interceptors.request.use(
       }
     }
 
+    // Get auth token from localStorage
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+
     // Skip throttling for non-GET requests
     if (config.method?.toLowerCase() !== "get") {
       config.withCredentials = true;
@@ -133,6 +139,20 @@ apiClient.interceptors.response.use(
       originalError: error,
     };
 
+    // Log detailed error information in development
+    if (import.meta.env.DEV) {
+      console.error("API Error Details:");
+      console.error("Status:", error.response?.status);
+      console.error("Message:", error.response?.data?.message);
+      console.error("Data:", error.response?.data);
+      console.error("Config:", {
+        url: error.config?.url,
+        method: error.config?.method,
+        headers: error.config?.headers,
+        data: error.config?.data,
+      });
+    }
+
     // Log CORS errors for debugging
     if (
       error.message?.includes("Network Error") ||
@@ -147,11 +167,19 @@ apiClient.interceptors.response.use(
     // Handle 401 unauthorized errors (token expired or invalid)
     if (error.response?.status === 401 || error.response?.status === 403) {
       console.warn("Authentication error:", error.response?.status);
+
+      // Clear the token if it's invalid
+      if (localStorage.getItem("accessToken")) {
+        console.warn("Clearing invalid access token");
+        localStorage.removeItem("accessToken");
+      }
+
       // Dispatch an auth error event that can be used to redirect to login
       window.dispatchEvent(
         new CustomEvent("auth-error", {
           detail: {
             status: error.response?.status,
+            message: error.response?.data?.message || "Authentication required",
           },
         })
       );

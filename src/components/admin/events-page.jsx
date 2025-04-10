@@ -24,9 +24,9 @@ import { EventModal } from "@/components/admin/event-modal";
 import { UploadResultsModal } from "@/components/admin/upload-results-modal";
 import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
 import { toast } from "react-hot-toast";
-import apiClient from "@/services/api";
+import eventService from "@/services/eventService";
 
-// Import our new reusable components
+// Import our reusable components
 import { PageHeader } from "@/components/admin/page-header";
 import { FilterBar } from "@/components/admin/filter-bar";
 import { DataTable } from "@/components/admin/data-table";
@@ -48,11 +48,20 @@ export function EventsPage() {
     const fetchEvents = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get("/events");
-        setEvents(response.data.data || []);
+        // Use our new eventService
+        const response = await eventService.getAllEvents({
+          // Add any filters you want here
+          isExam: false, // Only get regular events, not exams
+        });
+
+        if (response.success) {
+          setEvents(response.data || []);
+        } else {
+          throw new Error(response.error || "Failed to fetch events");
+        }
       } catch (error) {
         console.error("Failed to fetch events:", error);
-        toast.error("Failed to load events");
+        toast.error(error.message || "Failed to load events");
       } finally {
         setLoading(false);
       }
@@ -78,18 +87,24 @@ export function EventsPage() {
 
   const handleDelete = async () => {
     try {
-      await apiClient.delete(`/events/${currentEvent._id}`);
-      setIsDeleteDialogOpen(false);
-      toast.success("Event deleted successfully");
+      // Use our new eventService
+      const response = await eventService.deleteEvent(currentEvent._id);
 
-      // Update the events list
-      setEvents(
-        Array.isArray(events)
-          ? events.filter((event) => event._id !== currentEvent._id)
-          : []
-      );
+      if (response.success) {
+        setIsDeleteDialogOpen(false);
+        toast.success(response.message || "Event deleted successfully");
+
+        // Update the events list
+        setEvents(
+          Array.isArray(events)
+            ? events.filter((event) => event._id !== currentEvent._id)
+            : []
+        );
+      } else {
+        throw new Error(response.error || "Failed to delete event");
+      }
     } catch (err) {
-      toast.error("Failed to delete event");
+      toast.error(err.message || "Failed to delete event");
       console.error("Error deleting event:", err);
     }
   };
@@ -107,45 +122,64 @@ export function EventsPage() {
 
   const handleSaveEvent = async (eventData) => {
     try {
-      // Format the date properly for the API
-      const formattedData = {
-        ...eventData,
-        // Convert date string to ISO format
-        date: eventData.date
-          ? new Date(eventData.date).toISOString()
-          : undefined,
-      };
+      let response;
 
       if (currentEvent) {
-        // Update existing event
-        const response = await apiClient.put(
-          `/events/${currentEvent._id}`,
-          formattedData
-        );
+        // Update existing event using our new eventService
+        response = await eventService.updateEvent(currentEvent._id, eventData);
 
-        // Update the events list with the updated event
-        const updatedEvent = response.data.data;
-        setEvents(
-          events.map((event) =>
-            event._id === currentEvent._id ? updatedEvent : event
-          )
-        );
-        toast.success("Event updated successfully");
+        if (response.success) {
+          // Update the events list with the updated event
+          const updatedEvent = response.data;
+          setEvents(
+            events.map((event) =>
+              event._id === currentEvent._id ? updatedEvent : event
+            )
+          );
+          toast.success("Event updated successfully");
+          setIsEventModalOpen(false);
+        } else {
+          // Handle specific error cases
+          if (response.statusCode === 401) {
+            toast.error(
+              "You need to be logged in to update events. Please log in again."
+            );
+          } else {
+            toast.error(response.error || "Failed to update event");
+          }
+          console.error("Update event error:", response);
+        }
       } else {
-        // Create new event
-        const response = await apiClient.post("/events", formattedData);
-        const newEvent = response.data.data;
+        // Create new event using our new eventService
+        response = await eventService.createEvent(eventData);
 
-        // Add the new event to the events list
-        setEvents(Array.isArray(events) ? [...events, newEvent] : [newEvent]);
-        toast.success("Event created successfully");
+        if (response.success) {
+          const newEvent = response.data;
+          // Add the new event to the events list
+          setEvents(Array.isArray(events) ? [...events, newEvent] : [newEvent]);
+          toast.success("Event created successfully");
+          setIsEventModalOpen(false);
+        } else {
+          // Handle specific error cases
+          if (response.statusCode === 401) {
+            toast.error(
+              "You need to be logged in to create events. Please log in again."
+            );
+          } else if (response.networkError) {
+            toast.error(
+              "Network error. Please check your connection and try again."
+            );
+          } else {
+            toast.error(response.error || "Failed to create event");
+          }
+          console.error("Create event error:", response);
+        }
       }
-      setIsEventModalOpen(false);
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        (currentEvent ? "Failed to update event" : "Failed to create event");
-      toast.error(errorMessage);
+      toast.error(
+        err.message ||
+          (currentEvent ? "Failed to update event" : "Failed to create event")
+      );
       console.error("Event save error:", err);
     }
   };

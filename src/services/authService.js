@@ -35,6 +35,14 @@ export const login = async (credentials) => {
     console.log("Login response:", response.data);
 
     const userData = response.data.user || response.data.data?.user;
+    const accessToken =
+      response.data.accessToken || response.data.data?.accessToken;
+
+    // Store the token in localStorage
+    if (accessToken) {
+      localStorage.setItem("accessToken", accessToken);
+      console.log("Access token stored in localStorage");
+    }
 
     // Ensure the role information is consistent
     if (userData) {
@@ -45,6 +53,7 @@ export const login = async (credentials) => {
       success: true,
       data: {
         user: userData,
+        accessToken,
       },
     };
   } catch (error) {
@@ -64,6 +73,14 @@ export const adminLogin = async (credentials) => {
     console.log("Admin login response:", response.data);
 
     const userData = response.data.user || response.data.data?.user;
+    const accessToken =
+      response.data.accessToken || response.data.data?.accessToken;
+
+    // Store the token in localStorage
+    if (accessToken) {
+      localStorage.setItem("accessToken", accessToken);
+      console.log("Admin access token stored in localStorage");
+    }
 
     // Ensure the user has admin role
     if (userData && (!userData.role || userData.role !== "admin")) {
@@ -74,6 +91,7 @@ export const adminLogin = async (credentials) => {
       success: true,
       data: {
         user: userData,
+        accessToken,
       },
     };
   } catch (error) {
@@ -141,6 +159,10 @@ export const logout = async () => {
     // Use the appropriate endpoint based on user type
     const endpoint = isAdmin ? "/admin/logout" : "/users/logout";
     const response = await apiClient.post(endpoint);
+
+    // Clear the token from localStorage
+    localStorage.removeItem("accessToken");
+    console.log("Access token removed from localStorage");
 
     return {
       success: true,
