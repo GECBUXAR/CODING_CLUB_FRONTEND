@@ -18,18 +18,23 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api": {
+      "/api/v1": {
         target: backendUrl,
         changeOrigin: true,
         secure: false,
         withCredentials: true, // Enable sending cookies with requests
-        rewrite: (path) => path,
         configure: (proxy, _) => {
           proxy.on("error", (err, _req, _res) => {
             console.log("proxy error", err);
           });
           proxy.on("proxyReq", (proxyReq, req, _) => {
             console.log("Sending Request to the Target:", req.method, req.url);
+
+            // Copy the authorization header from the client request to the proxy request
+            const authHeader = req.headers["authorization"];
+            if (authHeader) {
+              proxyReq.setHeader("Authorization", authHeader);
+            }
           });
           proxy.on("proxyRes", (proxyRes, req, _) => {
             console.log(

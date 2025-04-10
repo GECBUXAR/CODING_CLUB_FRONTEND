@@ -49,12 +49,15 @@ export function DashboardLayout({ children, currentPage, setCurrentPage }) {
     email: "admin@codingclub.com",
   };
 
-  useEffect(() => {
-    // If not authenticated after state is loaded, redirect to login
-    if (state && !state.isAuthenticated) {
-      navigate("/login");
-    }
-  }, [state, navigate]);
+  // Track active status for each nav item
+  const isActive = (id) => {
+    if (currentPage === id) return true;
+    // Special case for nested pages
+    if (id === "events" && currentPage?.startsWith("event-")) return true;
+    if (id === "admin-exams" && currentPage?.startsWith("exam-")) return true;
+    if (id === "faculty" && currentPage?.startsWith("faculty-")) return true;
+    return false;
+  };
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -114,17 +117,17 @@ export function DashboardLayout({ children, currentPage, setCurrentPage }) {
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
-                    isActive={currentPage === item.id}
+                    isActive={isActive(item.id)}
                     onClick={() => setCurrentPage(item.id)}
                     className={`${
-                      currentPage === item.id
+                      isActive(item.id)
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:bg-primary/5"
                     } transition-colors`}
                   >
                     <item.icon
                       className={`h-5 w-5 ${
-                        currentPage === item.id
+                        isActive(item.id)
                           ? "text-primary"
                           : "text-muted-foreground"
                       }`}
@@ -194,14 +197,15 @@ export function DashboardLayout({ children, currentPage, setCurrentPage }) {
           <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6 shadow-sm">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="flex flex-1 items-center justify-between">
-              <h1 className="text-xl font-semibold capitalize">
-                {currentPage === "dashboard"
-                  ? "Dashboard"
-                  : currentPage === "admin-exams"
-                  ? "Exam Management"
-                  : currentPage === "events"
-                  ? "Event Management"
-                  : currentPage}
+              <h1 className="text-xl font-semibold">
+                {currentPage === "dashboard" && "Dashboard"}
+                {currentPage === "admin-exams" && "Exam Management"}
+                {currentPage === "events" && "Event Management"}
+                {currentPage === "faculty" && "Faculty Management"}
+                {currentPage === "settings" && "Settings"}
+                {currentPage?.startsWith("event-") && "Event Details"}
+                {currentPage?.startsWith("exam-") && "Exam Details"}
+                {currentPage?.startsWith("faculty-") && "Faculty Details"}
               </h1>
               <div className="flex items-center gap-4">
                 <div className="hidden md:flex relative">

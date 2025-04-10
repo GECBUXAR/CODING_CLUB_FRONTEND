@@ -1,131 +1,178 @@
 import apiClient from "./api";
 
-// Get all exams
-export const getAllExams = async () => {
-  try {
-    const response = await apiClient.get("/events");
-    return {
-      success: true,
-      data: response.data.data || [],
-    };
-  } catch (error) {
-    console.error("Error fetching exams:", error);
-    return {
-      success: false,
-      error: error.response?.data?.message || "Failed to fetch exams",
-    };
-  }
+/**
+ * Exam Service - Handles all exam-related API calls
+ */
+const examService = {
+  /**
+   * Get all exams with optional filtering
+   * @param {Object} params - Query parameters for filtering
+   * @returns {Promise} - API response
+   */
+  getAllExams: async (params = {}) => {
+    try {
+      const response = await apiClient.get("/exams", { params });
+      return {
+        success: true,
+        data: response.data.data || [],
+        pagination: {
+          total: response.data.total,
+          currentPage: response.data.currentPage,
+          totalPages: response.data.totalPages,
+        },
+      };
+    } catch (error) {
+      console.error("Error fetching exams:", error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch exams",
+      };
+    }
+  },
+
+  /**
+   * Get exam by ID
+   * @param {string} id - Exam ID
+   * @returns {Promise} - API response
+   */
+  getExamById: async (id) => {
+    try {
+      const response = await apiClient.get(`/exams/${id}`);
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error(`Error fetching exam ${id}:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch exam details",
+      };
+    }
+  },
+
+  /**
+   * Get exam questions
+   * @param {string} id - Exam ID
+   * @returns {Promise} - API response
+   */
+  getExamQuestions: async (id) => {
+    try {
+      const response = await apiClient.get(`/exams/${id}/questions`);
+      return {
+        success: true,
+        data: response.data.data,
+        count: response.data.count,
+      };
+    } catch (error) {
+      console.error(`Error fetching exam questions for ${id}:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch exam questions",
+      };
+    }
+  },
+
+  /**
+   * Register for an exam
+   * @param {string} id - Exam ID
+   * @returns {Promise} - API response
+   */
+  registerForExam: async (id) => {
+    try {
+      const response = await apiClient.post(`/exams/${id}/register`);
+      return {
+        success: true,
+        message:
+          response.data.message || "Successfully registered for the exam",
+      };
+    } catch (error) {
+      console.error(`Error registering for exam ${id}:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to register for exam",
+      };
+    }
+  },
+
+  /**
+   * Get user's exam results
+   * @param {string} id - Exam ID
+   * @returns {Promise} - API response
+   */
+  getExamResults: async (id) => {
+    try {
+      const response = await apiClient.get(`/exams/${id}/results`);
+      return {
+        success: true,
+        data: response.data.data,
+        count: response.data.count,
+      };
+    } catch (error) {
+      console.error(`Error fetching exam results for ${id}:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch exam results",
+      };
+    }
+  },
+
+  /**
+   * Submit exam answers
+   * @param {string} id - Exam ID
+   * @param {Array} answers - Array of answer objects
+   * @returns {Promise} - API response
+   */
+  submitExamAnswers: async (id, answers) => {
+    try {
+      const response = await apiClient.post(`/exams/${id}/submit`, { answers });
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message || "Exam submitted successfully",
+      };
+    } catch (error) {
+      console.error(`Error submitting exam answers for ${id}:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to submit exam answers",
+      };
+    }
+  },
+
+  /**
+   * Get user's enrolled exams
+   * @returns {Promise} - API response
+   */
+  getUserExams: async () => {
+    try {
+      // Use the events endpoint to get all user events
+      const response = await apiClient.get("/events/user-events");
+
+      if (response.data && response.data.data) {
+        // Filter the events to only include exams (isExam: true)
+        const userExams = response.data.data.filter(
+          (event) => event.isExam === true
+        );
+
+        return {
+          success: true,
+          data: userExams || [],
+        };
+      }
+
+      return {
+        success: true,
+        data: [],
+      };
+    } catch (error) {
+      console.error("Error fetching user exams:", error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch your exams",
+      };
+    }
+  },
 };
 
-// Get exam by ID
-export const getExamById = async (examId) => {
-  try {
-    const response = await apiClient.get(`/events/${examId}`);
-    return {
-      success: true,
-      data: response.data.data,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || "Failed to fetch exam details",
-    };
-  }
-};
-
-// Create a new exam (admin only)
-export const createExam = async (examData) => {
-  try {
-    const response = await apiClient.post("/events", examData);
-    return {
-      success: true,
-      data: response.data.data,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || "Failed to create exam",
-    };
-  }
-};
-
-// Update an exam (admin only)
-export const updateExam = async (examId, examData) => {
-  try {
-    const response = await apiClient.put(`/events/${examId}`, examData);
-    return {
-      success: true,
-      data: response.data.data,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || "Failed to update exam",
-    };
-  }
-};
-
-// Delete an exam (admin only)
-export const deleteExam = async (examId) => {
-  try {
-    await apiClient.delete(`/events/${examId}`);
-    return {
-      success: true,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || "Failed to delete exam",
-    };
-  }
-};
-
-// Get user's exams
-export const getUserExams = async () => {
-  try {
-    const response = await apiClient.get("/events/user-events");
-    return {
-      success: true,
-      data: response.data.data || [],
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || "Failed to fetch your exams",
-    };
-  }
-};
-
-// Submit exam answers
-export const submitExamAnswers = async (examId, answers) => {
-  try {
-    const response = await apiClient.post(`/events/${examId}/submit`, {
-      answers,
-    });
-    return {
-      success: true,
-      data: response.data.data,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || "Failed to submit exam answers",
-    };
-  }
-};
-
-// Get exam results
-export const getExamResults = async (examId) => {
-  try {
-    const response = await apiClient.get(`/results/by-event/${examId}`);
-    return {
-      success: true,
-      data: response.data.data,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || "Failed to fetch exam results",
-    };
-  }
-};
+export default examService;

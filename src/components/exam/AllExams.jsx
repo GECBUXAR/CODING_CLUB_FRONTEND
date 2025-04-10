@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Clock,
@@ -16,6 +16,7 @@ import {
   BookmarkCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { examService } from "@/services/index.js";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -40,99 +41,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// Mock data for exams
-const mockExams = [
-  {
-    id: 1,
-    title: "JavaScript Fundamentals",
-    description:
-      "Test your knowledge of JavaScript basics including variables, functions, and objects.",
-    duration: 60,
-    questions: 25,
-    difficulty: "Beginner",
-    category: "Web Development",
-    status: "Available",
-    passRate: 78,
-    recentAttempts: 125,
-    popularity: 95,
-    isEnrolled: false,
-  },
-  {
-    id: 2,
-    title: "React Framework",
-    description:
-      "Evaluate your understanding of React components, hooks, and state management.",
-    duration: 90,
-    questions: 30,
-    difficulty: "Intermediate",
-    category: "Web Development",
-    status: "Available",
-    passRate: 65,
-    recentAttempts: 93,
-    popularity: 88,
-    isEnrolled: false,
-  },
-  {
-    id: 3,
-    title: "Data Structures",
-    description:
-      "Challenge yourself with questions on arrays, linked lists, trees, and graphs.",
-    duration: 120,
-    questions: 35,
-    difficulty: "Advanced",
-    category: "Computer Science",
-    status: "Available",
-    passRate: 55,
-    recentAttempts: 72,
-    popularity: 82,
-    isEnrolled: false,
-  },
-  {
-    id: 4,
-    title: "Python Basics",
-    description:
-      "Test your Python skills covering syntax, data types, and common libraries.",
-    duration: 60,
-    questions: 25,
-    difficulty: "Beginner",
-    category: "Programming",
-    status: "Available",
-    passRate: 82,
-    recentAttempts: 184,
-    popularity: 97,
-    isEnrolled: false,
-  },
-  {
-    id: 5,
-    title: "Database Fundamentals",
-    description:
-      "Evaluate your knowledge of SQL, database design, and normalization.",
-    duration: 75,
-    questions: 30,
-    difficulty: "Intermediate",
-    category: "Database",
-    status: "Available",
-    passRate: 68,
-    recentAttempts: 79,
-    popularity: 75,
-    isEnrolled: false,
-  },
-  {
-    id: 6,
-    title: "Algorithms and Complexity",
-    description:
-      "Test your understanding of algorithm design, complexity analysis, and optimization techniques.",
-    duration: 120,
-    questions: 30,
-    difficulty: "Advanced",
-    category: "Computer Science",
-    status: "Available",
-    passRate: 45,
-    recentAttempts: 67,
-    popularity: 80,
-    isEnrolled: false,
-  },
-];
+// No longer using mock data - using real data from API
 
 const DifficultyBadge = ({ difficulty }) => {
   const styles = {
@@ -153,7 +62,7 @@ const DifficultyBadge = ({ difficulty }) => {
 
 const ExamSkeleton = () => (
   <Card className="h-full">
-    <CardHeader>
+    <CardHeader className="space-y-2">
       <div className="flex justify-between items-start">
         <div>
           <Skeleton className="h-6 w-48 mb-2" />
@@ -162,7 +71,7 @@ const ExamSkeleton = () => (
         <Skeleton className="h-6 w-20" />
       </div>
     </CardHeader>
-    <CardContent>
+    <CardContent className="space-y-4">
       <Skeleton className="h-16 w-full mb-4" />
       <div className="space-y-2">
         <div className="flex justify-between">
@@ -175,7 +84,7 @@ const ExamSkeleton = () => (
         </div>
       </div>
     </CardContent>
-    <CardFooter>
+    <CardFooter className="pt-2">
       <Skeleton className="h-10 w-full" />
     </CardFooter>
   </Card>
@@ -192,7 +101,12 @@ const EmptyState = ({ message, buttonText, onClick }) => (
       for.
     </p>
     {buttonText && (
-      <Button variant="default" size="default" onClick={onClick}>
+      <Button
+        variant="default"
+        size="default"
+        className="mt-2"
+        onClick={onClick}
+      >
         {buttonText}
       </Button>
     )}
@@ -204,11 +118,33 @@ const AllExams = () => {
   const [filterCategory, setFilterCategory] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("");
   const [sortBy, setSortBy] = useState("popularity");
-  const [isLoading, setIsLoading] = useState(false);
-  const [exams, setExams] = useState(mockExams);
+  const [isLoading, setIsLoading] = useState(true);
+  const [exams, setExams] = useState([]);
   const [enrollmentSuccess, setEnrollmentSuccess] = useState(null);
   const { state } = useAuth();
   const user = state?.user || { role: "user" };
+  const isAuthenticated = state?.isAuthenticated || false;
+
+  // Fetch exams from API
+  useEffect(() => {
+    fetchExams();
+  }, []);
+
+  const fetchExams = async () => {
+    setIsLoading(true);
+    try {
+      const response = await examService.getAllExams();
+      if (response.success) {
+        setExams(response.data);
+      } else {
+        console.error("Failed to fetch exams:", response.error);
+      }
+    } catch (error) {
+      console.error("Error fetching exams:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Extract unique categories and difficulties for filters
   const categories = Array.from(new Set(exams.map((exam) => exam.category)));
@@ -219,8 +155,8 @@ const AllExams = () => {
   // Filter exams based on search and filter criteria
   const filteredExams = exams.filter((exam) => {
     const matchesSearch =
-      exam.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      exam.description.toLowerCase().includes(searchTerm.toLowerCase());
+      exam.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      exam.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
       filterCategory === "" || exam.category === filterCategory;
     const matchesDifficulty =
@@ -231,15 +167,17 @@ const AllExams = () => {
 
   // Sort exams
   const sortedExams = [...filteredExams].sort((a, b) => {
-    if (sortBy === "title") return a.title.localeCompare(b.title);
+    if (sortBy === "title") return a.title?.localeCompare(b.title) || 0;
     if (sortBy === "difficulty") {
       const order = { Beginner: 1, Intermediate: 2, Advanced: 3 };
-      return order[a.difficulty] - order[b.difficulty];
+      return (order[a.difficulty] || 0) - (order[b.difficulty] || 0);
     }
-    if (sortBy === "duration") return a.duration - b.duration;
-    if (sortBy === "questions") return a.questions - b.questions;
-    if (sortBy === "passRate") return b.passRate - a.passRate;
-    if (sortBy === "popularity") return b.popularity - a.popularity;
+    if (sortBy === "duration") return (a.duration || 0) - (b.duration || 0);
+    if (sortBy === "questions")
+      return (a.questions?.length || 0) - (b.questions?.length || 0);
+    if (sortBy === "passRate") return (b.passRate || 0) - (a.passRate || 0);
+    if (sortBy === "popularity")
+      return (b.popularity || 0) - (a.popularity || 0);
     return 0;
   });
 
@@ -249,49 +187,74 @@ const AllExams = () => {
     setFilterDifficulty("");
   };
 
-  const refreshExams = () => {
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+  const refreshExams = async () => {
+    await fetchExams();
   };
 
-  const handleEnrollment = (examId) => {
-    // Update the enrollment status in our local state
-    const updatedExams = exams.map((exam) => {
-      if (exam.id === examId) {
-        return { ...exam, isEnrolled: !exam.isEnrolled };
+  const handleEnrollment = async (examId) => {
+    if (!isAuthenticated) {
+      window.location.href = "/login";
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Get the exam details
+      const exam = exams.find((e) => e._id === examId);
+      const isEnrolled = exam?.isEnrolled;
+
+      // Call the API to register or unregister
+      let response;
+      if (isEnrolled) {
+        // This would be implemented if there was an unregister endpoint
+        console.log("Unregister functionality not implemented in the backend");
+        // For now, we'll just update the UI
+      } else {
+        response = await examService.registerForExam(examId);
       }
-      return exam;
-    });
 
-    setExams(updatedExams);
+      if (response?.success || !isEnrolled) {
+        // Update the enrollment status in our local state
+        const updatedExams = exams.map((exam) => {
+          if (exam._id === examId) {
+            return { ...exam, isEnrolled: !isEnrolled };
+          }
+          return exam;
+        });
 
-    // Get the exam details
-    const exam = exams.find((e) => e.id === examId);
-    const isEnrollingNow = !exam.isEnrolled;
+        setExams(updatedExams);
 
-    // Show success message
-    setEnrollmentSuccess({
-      message: isEnrollingNow
-        ? `Successfully enrolled in "${exam.title}". Access it from your dashboard to start.`
-        : `Unenrolled from "${exam.title}".`,
-      type: isEnrollingNow ? "success" : "info",
-      redirectTo: isEnrollingNow ? `/${user.role}/dashboard` : null,
-    });
+        // Show success message
+        setEnrollmentSuccess({
+          message: !isEnrolled
+            ? `Successfully enrolled in "${exam.title}". Access it from your dashboard to start.`
+            : `Unenrolled from "${exam.title}".`,
+          type: !isEnrolled ? "success" : "info",
+          redirectTo: !isEnrolled ? `/${user.role}/dashboard` : null,
+        });
 
-    // Clear success message after 5 seconds
-    setTimeout(() => {
-      setEnrollmentSuccess(null);
-    }, 5000);
+        // Clear success message after 5 seconds
+        setTimeout(() => {
+          setEnrollmentSuccess(null);
+        }, 5000);
+      } else {
+        throw new Error(response?.error || "Failed to update enrollment");
+      }
+    } catch (error) {
+      console.error("Enrollment action failed:", error);
+      setEnrollmentSuccess({
+        message:
+          error.message || "Failed to update enrollment. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const goToDashboard = () => {
     window.location.href = `/${user.role}/dashboard`;
   };
-
-  const isAuthenticated = true; // Mock authentication status - replace with real auth check
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -318,7 +281,12 @@ const AllExams = () => {
             Refresh
           </Button>
 
-          <Button variant="default" size="sm" onClick={goToDashboard}>
+          <Button
+            variant="default"
+            size="sm"
+            className="ml-2"
+            onClick={goToDashboard}
+          >
             <ExternalLink className="h-4 w-4 mr-1" />
             My Dashboard
           </Button>
@@ -328,6 +296,7 @@ const AllExams = () => {
       {/* Success/error message */}
       {enrollmentSuccess && (
         <Alert
+          variant="default"
           className={`mb-6 ${
             enrollmentSuccess.type === "success"
               ? "bg-green-50 text-green-800 border-green-200"
@@ -417,6 +386,7 @@ const AllExams = () => {
                 <DropdownMenuItem
                   onClick={() => setFilterCategory("")}
                   inset={false}
+                  className="cursor-pointer"
                 >
                   All Categories
                 </DropdownMenuItem>
@@ -450,6 +420,7 @@ const AllExams = () => {
                 <DropdownMenuItem
                   onClick={() => setFilterDifficulty("")}
                   inset={false}
+                  className="cursor-pointer"
                 >
                   All Levels
                 </DropdownMenuItem>
@@ -556,12 +527,12 @@ const AllExams = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedExams.map((exam) => (
             <Card
-              key={exam.id}
+              key={exam._id}
               className={`flex flex-col h-full hover:shadow-md transition-shadow duration-200 ${
                 exam.isEnrolled ? "border-primary border-2" : ""
               }`}
             >
-              <CardHeader>
+              <CardHeader className="space-y-1">
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-xl line-clamp-1">
@@ -630,7 +601,7 @@ const AllExams = () => {
                     <Button
                       variant="outline"
                       size="default"
-                      onClick={() => handleEnrollment(exam.id)}
+                      onClick={() => handleEnrollment(exam._id)}
                       className="w-full"
                     >
                       <BookmarkCheck className="mr-1 h-4 w-4 text-green-600" />
@@ -649,7 +620,7 @@ const AllExams = () => {
                   <Button
                     variant="default"
                     size="default"
-                    onClick={() => handleEnrollment(exam.id)}
+                    onClick={() => handleEnrollment(exam._id)}
                     className="w-full"
                   >
                     <Bookmark className="mr-1 h-4 w-4" />
@@ -668,7 +639,12 @@ const AllExams = () => {
           <p className="text-muted-foreground mb-3">
             Start your enrolled exams from your dashboard
           </p>
-          <Button variant="outline" size="default" onClick={goToDashboard}>
+          <Button
+            variant="outline"
+            size="default"
+            className="mt-2"
+            onClick={goToDashboard}
+          >
             Go to My Dashboard
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
