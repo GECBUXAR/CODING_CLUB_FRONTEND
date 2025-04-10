@@ -218,96 +218,99 @@ export function EventModal({ isOpen, onClose, onSave, event }) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Event Category</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select event category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="workshop">Workshop</SelectItem>
-                      <SelectItem value="competition">Competition</SelectItem>
-                      <SelectItem value="seminar">Seminar</SelectItem>
-                      <SelectItem value="hackathon">Hackathon</SelectItem>
-                      <SelectItem value="exam">Exam</SelectItem>
-                      <SelectItem value="quiz">Quiz</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex flex-col sm:flex-row gap-2 sm:space-y-0">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Event Category</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select event category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="workshop">Workshop</SelectItem>
+                        <SelectItem value="competition">Competition</SelectItem>
+                        <SelectItem value="seminar">Seminar</SelectItem>
+                        <SelectItem value="hackathon">Hackathon</SelectItem>
+                        <SelectItem value="exam">Exam</SelectItem>
+                        <SelectItem value="quiz">Quiz</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="skillLevel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Skill Level</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select skill level" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
-                      <SelectItem value="all">All Levels</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="skillLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Skill Level</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select skill level" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="beginner">Beginner</SelectItem>
+                        <SelectItem value="intermediate">
+                          Intermediate
+                        </SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="all">All Levels</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="published">Published</SelectItem>
-                      <SelectItem value="upcoming">Upcoming</SelectItem>
-                      <SelectItem value="ongoing">Ongoing</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="published">Published</SelectItem>
+                        <SelectItem value="upcoming">Upcoming</SelectItem>
+                        <SelectItem value="ongoing">Ongoing</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            {/* <FormField
               control={form.control}
               name="capacity"
               render={({ field }) => (
@@ -323,9 +326,9 @@ export function EventModal({ isOpen, onClose, onSave, event }) {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="isRegistrationRequired"
@@ -344,9 +347,9 @@ export function EventModal({ isOpen, onClose, onSave, event }) {
                     </div>
                   </FormItem>
                 )}
-              />
+              /> */}
 
-              <FormField
+            {/* <FormField
                 control={form.control}
                 name="isFeatured"
                 render={({ field }) => (
@@ -360,14 +363,16 @@ export function EventModal({ isOpen, onClose, onSave, event }) {
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Featured Event</FormLabel>
+                      <FormLabel className="font-normal">
+                        Featured Event
+                      </FormLabel>
                     </div>
                   </FormItem>
                 )}
-              />
-            </div>
+              /> */}
+            {/* </div> */}
 
-            <FormField
+            {/* <FormField
               control={form.control}
               name="isExam"
               render={({ field }) => (
@@ -381,11 +386,14 @@ export function EventModal({ isOpen, onClose, onSave, event }) {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>This is an Exam</FormLabel>
+                    <FormLabel className="font-normal">
+                      This is an Exam
+                    </FormLabel>
                   </div>
                 </FormItem>
+                
               )}
-            />
+            /> */}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel

@@ -17,10 +17,13 @@ import AdminSignupPage from "./pages/auth/AdminSignupPage.jsx";
 // User Pages
 import ProfilePage from "./pages/user/ProfilePage";
 import ExamsPage from "./pages/user/ExamsPage";
-import EventsPage from "./pages/user/EventsPage";
 import UserDashboardPage from "./pages/user/UserDashboardPage";
 import MyExamsPage from "./pages/user/MyExamsPage.jsx";
 import ExamDetailPage from "./pages/user/ExamDetailPage";
+
+// Event Pages
+import EventsPage from "./pages/user/EventsPage";
+import EventDetailPage from "./pages/user/EventDetailPage";
 
 // Admin Pages
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
@@ -96,6 +99,7 @@ const AppRoutes = () => {
         }
       />
       <Route path="/events" element={<EventsPage />} />
+      <Route path="/events/:id" element={<EventDetailPage />} />
       <Route path="/exams" element={<ExamsPage />} />
       <Route path="/exams/:examId" element={<ExamDetailPage />} />
       <Route
