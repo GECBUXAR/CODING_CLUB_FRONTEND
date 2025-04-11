@@ -96,6 +96,49 @@ const examService = {
   },
 
   /**
+   * Get exam responses (for evaluation)
+   * @param {string} id - Exam ID
+   * @returns {Promise} - API response
+   */
+  getExamResponses: async (id) => {
+    try {
+      const response = await apiClient.get(`/exams/${id}/responses`);
+      return {
+        success: true,
+        data: response.data.data,
+        count: response.data.count,
+      };
+    } catch (error) {
+      console.error(`Error fetching exam responses for ${id}:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch exam responses",
+      };
+    }
+  },
+
+  /**
+   * Get a specific exam response by ID
+   * @param {string} responseId - Response ID
+   * @returns {Promise} - API response
+   */
+  getExamResponseById: async (responseId) => {
+    try {
+      const response = await apiClient.get(`/exams/responses/${responseId}`);
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error(`Error fetching exam response ${responseId}:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch exam response",
+      };
+    }
+  },
+
+  /**
    * Get user's exam results
    * @param {string} id - Exam ID
    * @returns {Promise} - API response
@@ -153,7 +196,7 @@ const examService = {
       // Use the events endpoint to get all user events
       const response = await apiClient.get("/events/user-events");
 
-      if (response.data && response.data.data) {
+      if (response.data?.data) {
         // Filter the events to only include exams (isExam: true)
         const userExams = response.data.data.filter(
           (event) => event.isExam === true
@@ -241,7 +284,7 @@ const examService = {
         count: response.data.count,
       };
     } catch (error) {
-      console.error(`Error fetching user exam results:`, error);
+      console.error("Error fetching user exam results:", error);
       return {
         success: false,
         error: error.message || "Failed to fetch user exam results",
@@ -264,7 +307,7 @@ const examService = {
         data: response.data.data,
       };
     } catch (error) {
-      console.error(`Error fetching exam leaderboard:`, error);
+      console.error("Error fetching exam leaderboard:", error);
       return {
         success: false,
         error: error.message || "Failed to fetch exam leaderboard",
@@ -292,7 +335,7 @@ const examService = {
         message: response.data.message || "Answer evaluated successfully",
       };
     } catch (error) {
-      console.error(`Error evaluating answer:`, error);
+      console.error("Error evaluating answer:", error);
       return {
         success: false,
         error: error.message || "Failed to evaluate answer",
@@ -317,7 +360,7 @@ const examService = {
         message: response.data.message || "Certificate generated successfully",
       };
     } catch (error) {
-      console.error(`Error generating certificate:`, error);
+      console.error("Error generating certificate:", error);
       return {
         success: false,
         error: error.message || "Failed to generate certificate",
@@ -331,13 +374,13 @@ const examService = {
    */
   getExamStatistics: async () => {
     try {
-      const response = await apiClient.get(`/results/statistics/exams`);
+      const response = await apiClient.get("/results/statistics/exams");
       return {
         success: true,
         data: response.data.data,
       };
     } catch (error) {
-      console.error(`Error fetching exam statistics:`, error);
+      console.error("Error fetching exam statistics:", error);
       return {
         success: false,
         error: error.message || "Failed to fetch exam statistics",
@@ -360,7 +403,7 @@ const examService = {
         data: response.data.data,
       };
     } catch (error) {
-      console.error(`Error fetching user performance:`, error);
+      console.error("Error fetching user performance:", error);
       return {
         success: false,
         error: error.message || "Failed to fetch user performance",
