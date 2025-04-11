@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { examService } from "@/services";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -122,25 +123,49 @@ function ExamTakingContent({ isOpen, onClose, onSubmit, exam }) {
     },
   ]);
 
-  // Initialize exam when it opens
+  // State for tracking exam start time and loading state
+  const [examStartTime, setExamStartTime] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState(null);
+
+  // Fetch exam questions when the exam is opened
   useEffect(() => {
-    if (isOpen && exam) {
-      // Set up exam questions from the exam prop
-      if (exam.questions && exam.questions.length > 0) {
-        setQuestions(exam.questions);
-      }
+    const fetchExamQuestions = async () => {
+      if (isOpen && exam) {
+        setIsLoading(true);
+        setLoadError(null);
+        try {
+          // Fetch questions from the backend
+          const response = await examService.getExamQuestions(
+            exam._id || exam.id
+          );
 
-      // Initialize answers object
-      const initialAnswers = {};
-      for (const q of questions) {
-        initialAnswers[q.id] = "";
-      }
-      setAnswers(initialAnswers);
+          if (response.success && response.data) {
+            setQuestions(response.data);
 
-      // Set up timer
-      const timeLimit = exam?.timeLimit || 60; // default to 60 minutes if not specified
-      setTimeRemaining(timeLimit * 60); // convert to seconds
-    }
+            // Initialize answers object
+            const initialAnswers = {};
+            response.data.forEach((q) => {
+              initialAnswers[q._id || q.id] = "";
+            });
+            setAnswers(initialAnswers);
+          } else {
+            setLoadError(response.error || "Failed to load exam questions");
+          }
+        } catch (error) {
+          console.error("Error fetching exam questions:", error);
+          setLoadError("An error occurred while loading the exam questions");
+        } finally {
+          setIsLoading(false);
+        }
+
+        // Set up timer
+        const timeLimit = exam?.timeLimit || 60; // default to 60 minutes if not specified
+        setTimeRemaining(timeLimit * 60); // convert to seconds
+      }
+    };
+
+    fetchExamQuestions();
 
     // Clean up when modal closes
     return () => {
@@ -149,7 +174,7 @@ function ExamTakingContent({ isOpen, onClose, onSubmit, exam }) {
       }
       setExamStarted(false);
     };
-  }, [isOpen, exam, deactivateIntegrityMode, isIntegrityModeActive, questions]);
+  }, [isOpen, exam, deactivateIntegrityMode, isIntegrityModeActive]);
 
   // Timer countdown - only start when exam is started
   useEffect(() => {
@@ -185,6 +210,9 @@ function ExamTakingContent({ isOpen, onClose, onSubmit, exam }) {
         console.error("Failed to enter fullscreen:", err);
       });
     }
+    // Record the start time
+    const startTime = new Date();
+    setExamStartTime(startTime);
     setExamStarted(true);
   };
 
@@ -192,26 +220,70 @@ function ExamTakingContent({ isOpen, onClose, onSubmit, exam }) {
   const handleSubmitExam = () => {
     setIsSubmitDialogOpen(false);
 
-    // Submit the exam with the integrity report
+    // Calculate time spent in seconds
+    let timeSpent = 0;
+    if (examStartTime) {
+      const endTime = new Date();
+      timeSpent = Math.floor((endTime - examStartTime) / 1000);
+    } else {
+      // Fallback if start time wasn't recorded
+      timeSpent = exam?.timeLimit * 60 - timeRemaining;
+    }
+
+    // Format answers for submission
+    const formattedAnswers = Object.keys(answers).map((questionId) => {
+      const question = questions.find((q) => (q._id || q.id) === questionId);
+      const answer = answers[questionId];
+
+      // Format based on question type
+      if (question?.questionType === "multiple-choice") {
+        return {
+          question: questionId,
+          chosenOption: answer,
+        };
+      } else if (question?.questionType === "true-false") {
+        return {
+          question: questionId,
+          chosenOption: answer,
+        };
+      } else if (question?.questionType === "code") {
+        return {
+          question: questionId,
+          codeAnswer: answer,
+          codeLanguage: "javascript", // Default language
+        };
+      } else {
+        // Short answer, long answer, etc.
+        return {
+          question: questionId,
+          answerText: answer,
+        };
+      }
+    });
+
+    // Submit the exam with the integrity report and time spent
     const submissionData = {
-      examId: exam?.id,
-      answers,
+      examId: exam?._id || exam?.id,
+      answers: formattedAnswers,
+      timeSpent,
       integrityReport: {
         focusViolations,
         fullscreenViolations,
-        completionTime: exam?.timeLimit * 60 - timeRemaining,
+        completionTime: timeSpent,
         submittedBy: "user",
       },
     };
 
-    onSubmit(submissionData);
+    onSubmit(exam?._id || exam?.id, formattedAnswers, timeSpent);
     deactivateIntegrityMode();
     onClose();
   };
 
   const handleAnswerChange = (value) => {
     if (currentQuestionIndex < questions.length) {
-      const questionId = questions[currentQuestionIndex].id;
+      const questionId =
+        questions[currentQuestionIndex]._id ||
+        questions[currentQuestionIndex].id;
       setAnswers((prev) => ({
         ...prev,
         [questionId]: value,
