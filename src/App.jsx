@@ -8,6 +8,7 @@ import { FacultyProvider } from "./components/faculty/FacultyContext";
 import NotificationCenter from "./components/common/notification-center";
 import CorsWarning from "./components/common/cors-warning";
 import AppRoutes from "./routes";
+import { Toaster } from "sonner";
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
               <FacultyProvider>
                 <AppRoutes />
                 <CorsWarning />
+                <Toaster position="top-right" richColors closeButton />
               </FacultyProvider>
             </EventProvider>
           </ExamProvider>
