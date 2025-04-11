@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Users, 
-  Tag, 
-  ChevronLeft, 
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Tag,
+  ChevronLeft,
   Star,
-  MessageSquare
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,14 +45,18 @@ export default function EventDetailPage() {
       setLoading(true);
       try {
         const response = await eventService.getEventById(id);
-        
-        if (response.success) {
+
+        if (response.success && response.data) {
           setEvent(response.data);
-          
+
           // Check if user is registered
-          if (authState?.isAuthenticated && response.data.participants) {
+          if (
+            authState?.isAuthenticated &&
+            response.data.participants &&
+            Array.isArray(response.data.participants)
+          ) {
             const registered = response.data.participants.some(
-              p => p.user._id === authState.user._id
+              (p) => p.user && p.user._id === authState.user._id
             );
             setIsRegistered(registered);
           }
@@ -82,11 +86,13 @@ export default function EventDetailPage() {
 
     try {
       const response = await eventService.registerForEvent(id);
-      
+
       if (response.success) {
-        toast.success(response.message || "Successfully registered for the event");
+        toast.success(
+          response.message || "Successfully registered for the event"
+        );
         setIsRegistered(true);
-        
+
         // Refresh event details to get updated participants list
         const eventResponse = await eventService.getEventById(id);
         if (eventResponse.success) {
@@ -105,11 +111,13 @@ export default function EventDetailPage() {
   const handleUnregister = async () => {
     try {
       const response = await eventService.unregisterFromEvent(id);
-      
+
       if (response.success) {
-        toast.success(response.message || "Successfully unregistered from the event");
+        toast.success(
+          response.message || "Successfully unregistered from the event"
+        );
         setIsRegistered(false);
-        
+
         // Refresh event details to get updated participants list
         const eventResponse = await eventService.getEventById(id);
         if (eventResponse.success) {
@@ -137,11 +145,11 @@ export default function EventDetailPage() {
         rating: feedbackRating,
         comment: feedbackComment,
       });
-      
+
       if (response.success) {
         toast.success(response.message || "Feedback submitted successfully");
         setIsFeedbackModalOpen(false);
-        
+
         // Refresh event details
         const eventResponse = await eventService.getEventById(id);
         if (eventResponse.success) {
@@ -162,23 +170,25 @@ export default function EventDetailPage() {
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   // Check if user can submit feedback
   const canSubmitFeedback = () => {
     if (!authState?.isAuthenticated || !event) return false;
-    
+
     // Check if user attended the event
-    const userParticipation = event.participants?.find(
-      p => p.user._id === authState.user._id
+    if (!event.participants || !Array.isArray(event.participants)) return false;
+
+    const userParticipation = event.participants.find(
+      (p) => p.user && p.user._id === authState.user._id
     );
-    
+
     return userParticipation?.attended && event.status === "completed";
   };
 
@@ -190,7 +200,7 @@ export default function EventDetailPage() {
           <Skeleton className="h-8 w-40 mb-2" />
           <Skeleton className="h-12 w-3/4 mb-6" />
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <Skeleton className="h-64 w-full mb-6" />
@@ -199,7 +209,7 @@ export default function EventDetailPage() {
             <Skeleton className="h-6 w-full mb-2" />
             <Skeleton className="h-6 w-3/4" />
           </div>
-          
+
           <div>
             <Skeleton className="h-64 w-full mb-4" />
             <Skeleton className="h-10 w-full mb-4" />
@@ -229,27 +239,30 @@ export default function EventDetailPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* Back button */}
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         onClick={() => navigate("/events")}
         className="mb-6"
       >
         <ChevronLeft className="mr-2 h-4 w-4" />
         Back to Events
       </Button>
-      
+
       {/* Event header */}
       <div className="mb-8">
         <div className="flex flex-wrap items-center gap-2 mb-2">
           <Badge variant="outline" className="capitalize">
             {event.category || "Event"}
           </Badge>
-          <Badge 
+          <Badge
             variant={
-              event.status === "upcoming" ? "secondary" : 
-              event.status === "completed" ? "success" : 
-              event.status === "cancelled" ? "destructive" : 
-              "outline"
+              event.status === "upcoming"
+                ? "secondary"
+                : event.status === "completed"
+                ? "success"
+                : event.status === "cancelled"
+                ? "destructive"
+                : "outline"
             }
           >
             {event.status}
@@ -260,33 +273,33 @@ export default function EventDetailPage() {
             </Badge>
           )}
         </div>
-        <h1 className="text-4xl font-bold tracking-tight mb-2">{event.title}</h1>
+        <h1 className="text-4xl font-bold tracking-tight mb-2">
+          {event.title}
+        </h1>
         <p className="text-muted-foreground">
           Organized by {event.organizer?.name || "Coding Club"}
         </p>
       </div>
-      
+
       {/* Main content */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Event details */}
         <div className="md:col-span-2">
           {event.image && (
             <div className="rounded-lg overflow-hidden mb-6 border">
-              <img 
-                src={event.image} 
-                alt={event.title} 
+              <img
+                src={event.image}
+                alt={event.title}
                 className="w-full h-auto object-cover"
               />
             </div>
           )}
-          
+
           <div className="prose max-w-none mb-8">
             <h2 className="text-2xl font-semibold mb-4">About This Event</h2>
-            <div className="whitespace-pre-line">
-              {event.description}
-            </div>
+            <div className="whitespace-pre-line">{event.description}</div>
           </div>
-          
+
           {event.speakers && event.speakers.length > 0 && (
             <div className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">Speakers</h2>
@@ -296,9 +309,9 @@ export default function EventDetailPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
                         {speaker.avatar ? (
-                          <img 
-                            src={speaker.avatar} 
-                            alt={speaker.name} 
+                          <img
+                            src={speaker.avatar}
+                            alt={speaker.name}
                             className="w-12 h-12 rounded-full object-cover"
                           />
                         ) : (
@@ -310,7 +323,9 @@ export default function EventDetailPage() {
                         )}
                         <div>
                           <h3 className="font-semibold">{speaker.name}</h3>
-                          <p className="text-sm text-muted-foreground">{speaker.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {speaker.title}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -319,7 +334,7 @@ export default function EventDetailPage() {
               </div>
             </div>
           )}
-          
+
           {event.tags && event.tags.length > 0 && (
             <div className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">Tags</h2>
@@ -334,7 +349,7 @@ export default function EventDetailPage() {
             </div>
           )}
         </div>
-        
+
         {/* Sidebar */}
         <div>
           <Card className="mb-6">
@@ -345,10 +360,12 @@ export default function EventDetailPage() {
                   <Calendar className="mr-3 h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="font-medium">Date</p>
-                    <p className="text-muted-foreground">{formatDate(event.date)}</p>
+                    <p className="text-muted-foreground">
+                      {formatDate(event.date)}
+                    </p>
                   </div>
                 </div>
-                
+
                 {event.time && (
                   <div className="flex items-start">
                     <Clock className="mr-3 h-5 w-5 text-muted-foreground mt-0.5" />
@@ -358,7 +375,7 @@ export default function EventDetailPage() {
                     </div>
                   </div>
                 )}
-                
+
                 {event.location && (
                   <div className="flex items-start">
                     <MapPin className="mr-3 h-5 w-5 text-muted-foreground mt-0.5" />
@@ -368,71 +385,84 @@ export default function EventDetailPage() {
                     </div>
                   </div>
                 )}
-                
+
                 {event.capacity && (
                   <div className="flex items-start">
                     <Users className="mr-3 h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <p className="font-medium">Capacity</p>
                       <p className="text-muted-foreground">
-                        {event.participants?.length || 0} / {event.capacity} participants
+                        {event.participants && Array.isArray(event.participants)
+                          ? event.participants.length
+                          : 0}{" "}
+                        / {event.capacity} participants
                       </p>
                     </div>
                   </div>
                 )}
-                
+
                 {event.skillLevel && (
                   <div className="flex items-start">
                     <Tag className="mr-3 h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <p className="font-medium">Skill Level</p>
-                      <p className="text-muted-foreground capitalize">{event.skillLevel}</p>
+                      <p className="text-muted-foreground capitalize">
+                        {event.skillLevel}
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Registration */}
           {event.isRegistrationRequired && event.status === "published" && (
             <div className="mb-6">
               {isRegistered ? (
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   className="w-full"
                   onClick={handleUnregister}
                 >
                   Cancel Registration
                 </Button>
               ) : (
-                <Button 
+                <Button
                   className="w-full"
                   onClick={handleRegister}
-                  disabled={event.capacity && event.participants?.length >= event.capacity}
+                  disabled={
+                    event.capacity &&
+                    (event.participants && Array.isArray(event.participants)
+                      ? event.participants.length >= event.capacity
+                      : false)
+                  }
                 >
                   Register for Event
                 </Button>
               )}
-              
+
               {!authState?.isAuthenticated && (
                 <p className="text-sm text-muted-foreground mt-2 text-center">
                   You need to be logged in to register
                 </p>
               )}
-              
-              {event.capacity && event.participants?.length >= event.capacity && (
-                <p className="text-sm text-muted-foreground mt-2 text-center">
-                  This event has reached its capacity
-                </p>
-              )}
+
+              {event.capacity &&
+                (event.participants && Array.isArray(event.participants)
+                  ? event.participants.length >= event.capacity
+                  : false) && (
+                  <p className="text-sm text-muted-foreground mt-2 text-center">
+                    This event has reached its capacity
+                  </p>
+                )}
             </div>
           )}
-          
+
           {/* Feedback button */}
           {canSubmitFeedback() && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full"
               onClick={() => setIsFeedbackModalOpen(true)}
             >
@@ -442,17 +472,18 @@ export default function EventDetailPage() {
           )}
         </div>
       </div>
-      
+
       {/* Feedback modal */}
       <Dialog open={isFeedbackModalOpen} onOpenChange={setIsFeedbackModalOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Submit Feedback</DialogTitle>
             <DialogDescription>
-              Share your thoughts about this event. Your feedback helps us improve future events.
+              Share your thoughts about this event. Your feedback helps us
+              improve future events.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">
@@ -468,12 +499,16 @@ export default function EventDetailPage() {
                     onClick={() => setFeedbackRating(rating)}
                     className="h-10 w-10 p-0"
                   >
-                    <Star className={`h-5 w-5 ${feedbackRating >= rating ? "fill-current" : ""}`} />
+                    <Star
+                      className={`h-5 w-5 ${
+                        feedbackRating >= rating ? "fill-current" : ""
+                      }`}
+                    />
                   </Button>
                 ))}
               </div>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">
                 Comments (optional)
@@ -486,16 +521,16 @@ export default function EventDetailPage() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setIsFeedbackModalOpen(false)}
               disabled={submittingFeedback}
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleSubmitFeedback}
               disabled={submittingFeedback}
             >
