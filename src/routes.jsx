@@ -20,6 +20,7 @@ import ExamsPage from "./pages/user/ExamsPage";
 import UserDashboardPage from "./pages/user/UserDashboardPage";
 import MyExamsPage from "./pages/user/MyExamsPage.jsx";
 import ExamDetailPage from "./pages/user/ExamDetailPage";
+import UserPerformancePage from "./pages/user/UserPerformancePage";
 
 // Exam Components
 import ExamResultsView from "./components/exams/ExamResultsView";
@@ -32,6 +33,7 @@ import EventDetailPage from "./pages/user/EventDetailPage";
 // Admin Pages
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import { AdminExamPanel } from "./pages/admin/AdminExamPanel";
+import AdminExamStatisticsPage from "./pages/admin/AdminExamStatisticsPage";
 import ExamResponseEvaluator from "./components/admin/exam-response-evaluator";
 
 // Error Pages
@@ -115,11 +117,28 @@ const AppRoutes = () => {
           </UserRoute>
         }
       />
+
       <Route
         path="/exams/:examId/leaderboard"
         element={
           <UserRoute>
             <ExamLeaderboard />
+          </UserRoute>
+        }
+      />
+      <Route
+        path="/performance"
+        element={
+          <UserRoute>
+            <UserPerformancePage />
+          </UserRoute>
+        }
+      />
+      <Route
+        path="/performance/:userId"
+        element={
+          <UserRoute>
+            <UserPerformancePage />
           </UserRoute>
         }
       />
@@ -170,6 +189,14 @@ const AppRoutes = () => {
         element={
           <AdminRoute>
             <div>Admin Reports Page - Coming Soon</div>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/exam-statistics"
+        element={
+          <AdminRoute>
+            <AdminExamStatisticsPage />
           </AdminRoute>
         }
       />
