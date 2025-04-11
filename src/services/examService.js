@@ -121,11 +121,15 @@ const examService = {
    * Submit exam answers
    * @param {string} id - Exam ID
    * @param {Array} answers - Array of answer objects
+   * @param {Number} timeSpent - Time spent in seconds
    * @returns {Promise} - API response
    */
-  submitExamAnswers: async (id, answers) => {
+  submitExamAnswers: async (id, answers, timeSpent) => {
     try {
-      const response = await apiClient.post(`/exams/${id}/submit`, { answers });
+      const response = await apiClient.post(`/enhanced-exams/${id}/submit`, {
+        answers,
+        timeSpent,
+      });
       return {
         success: true,
         data: response.data.data,
@@ -170,6 +174,196 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch your exams",
+      };
+    }
+  },
+
+  /**
+   * Get a specific exam result
+   * @param {string} examId - Exam ID
+   * @param {string} resultId - Result ID
+   * @returns {Promise} - API response
+   */
+  getExamResult: async (examId, resultId) => {
+    try {
+      const response = await apiClient.get(`/results/${resultId}`);
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error(`Error fetching exam result ${resultId}:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch exam result",
+      };
+    }
+  },
+
+  /**
+   * Get a specific exam result (admin view)
+   * @param {string} examId - Exam ID
+   * @param {string} resultId - Result ID
+   * @returns {Promise} - API response
+   */
+  getExamResultAdmin: async (examId, resultId) => {
+    try {
+      const response = await apiClient.get(
+        `/enhanced-exams/${examId}/results/${resultId}`
+      );
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error(`Error fetching exam result ${resultId}:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch exam result",
+      };
+    }
+  },
+
+  /**
+   * Get exam results for a specific user
+   * @param {string} examId - Exam ID
+   * @param {string} userId - User ID
+   * @returns {Promise} - API response
+   */
+  getUserExamResults: async (examId, userId) => {
+    try {
+      const response = await apiClient.get(
+        `/enhanced-exams/${examId}/results/user/${userId}`
+      );
+      return {
+        success: true,
+        data: response.data.data,
+        count: response.data.count,
+      };
+    } catch (error) {
+      console.error(`Error fetching user exam results:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch user exam results",
+      };
+    }
+  },
+
+  /**
+   * Get exam leaderboard
+   * @param {string} examId - Exam ID
+   * @returns {Promise} - API response
+   */
+  getExamLeaderboard: async (examId) => {
+    try {
+      const response = await apiClient.get(
+        `/results/exam/${examId}/leaderboard`
+      );
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error(`Error fetching exam leaderboard:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch exam leaderboard",
+      };
+    }
+  },
+
+  /**
+   * Evaluate an exam answer (admin only)
+   * @param {string} examId - Exam ID
+   * @param {string} resultId - Result ID
+   * @param {string} answerId - Answer ID
+   * @param {Object} evaluation - Evaluation data
+   * @returns {Promise} - API response
+   */
+  evaluateAnswer: async (examId, resultId, answerId, evaluation) => {
+    try {
+      const response = await apiClient.put(
+        `/enhanced-exams/${examId}/results/${resultId}/answers/${answerId}/evaluate`,
+        evaluation
+      );
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message || "Answer evaluated successfully",
+      };
+    } catch (error) {
+      console.error(`Error evaluating answer:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to evaluate answer",
+      };
+    }
+  },
+
+  /**
+   * Generate certificate for a passed exam
+   * @param {string} examId - Exam ID
+   * @param {string} resultId - Result ID
+   * @returns {Promise} - API response
+   */
+  generateCertificate: async (examId, resultId) => {
+    try {
+      const response = await apiClient.post(
+        `/enhanced-exams/${examId}/results/${resultId}/certificate`
+      );
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message || "Certificate generated successfully",
+      };
+    } catch (error) {
+      console.error(`Error generating certificate:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to generate certificate",
+      };
+    }
+  },
+
+  /**
+   * Get exam statistics (admin only)
+   * @returns {Promise} - API response
+   */
+  getExamStatistics: async () => {
+    try {
+      const response = await apiClient.get(`/results/statistics/exams`);
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error(`Error fetching exam statistics:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch exam statistics",
+      };
+    }
+  },
+
+  /**
+   * Get user performance across all exams
+   * @param {string} userId - User ID
+   * @returns {Promise} - API response
+   */
+  getUserPerformance: async (userId) => {
+    try {
+      const response = await apiClient.get(
+        `/results/user/${userId}/performance`
+      );
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error(`Error fetching user performance:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch user performance",
       };
     }
   },

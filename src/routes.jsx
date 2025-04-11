@@ -21,6 +21,10 @@ import UserDashboardPage from "./pages/user/UserDashboardPage";
 import MyExamsPage from "./pages/user/MyExamsPage.jsx";
 import ExamDetailPage from "./pages/user/ExamDetailPage";
 
+// Exam Components
+import ExamResultsView from "./components/exams/ExamResultsView";
+import ExamLeaderboard from "./components/exams/ExamLeaderboard";
+
 // Event Pages
 import EventsPage from "./pages/user/EventsPage";
 import EventDetailPage from "./pages/user/EventDetailPage";
@@ -28,6 +32,7 @@ import EventDetailPage from "./pages/user/EventDetailPage";
 // Admin Pages
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import { AdminExamPanel } from "./pages/admin/AdminExamPanel";
+import ExamResponseEvaluator from "./components/admin/exam-response-evaluator";
 
 // Error Pages
 import NotFoundPage from "./pages/errors/NotFoundPage";
@@ -103,6 +108,22 @@ const AppRoutes = () => {
       <Route path="/exams" element={<ExamsPage />} />
       <Route path="/exams/:examId" element={<ExamDetailPage />} />
       <Route
+        path="/exams/:examId/results/:resultId"
+        element={
+          <UserRoute>
+            <ExamResultsView />
+          </UserRoute>
+        }
+      />
+      <Route
+        path="/exams/:examId/leaderboard"
+        element={
+          <UserRoute>
+            <ExamLeaderboard />
+          </UserRoute>
+        }
+      />
+      <Route
         path="/my-exams"
         element={
           <UserRoute>
@@ -133,6 +154,14 @@ const AppRoutes = () => {
         element={
           <AdminRoute>
             <AdminExamPanel />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/exams/:examId/results/:resultId/evaluate"
+        element={
+          <AdminRoute>
+            <ExamResponseEvaluator />
           </AdminRoute>
         }
       />
