@@ -41,7 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState, useEffect } from "react";
-import { eventService, examService } from "@/services";
+import { eventService, examService, userService } from "@/services";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function DashboardOverview() {
@@ -78,32 +78,40 @@ function DashboardOverview() {
       setLoading(true);
       setError(null);
       try {
-        // Fetch upcoming events
-        const eventsResponse = await eventService.getUpcomingEvents(5);
+        // Fetch all events
+        const eventsResponse = await eventService.getAllEvents();
 
         // Fetch exams
         const examsResponse = await examService.getAllExams();
 
-        if (eventsResponse.success && examsResponse.success) {
-          // Set upcoming events
-          setUpcomingEvents(
-            eventsResponse.data.filter((event) => !event.isExam).slice(0, 3)
-          );
+        // Fetch users
+        const usersResponse = await userService.getAllUsers();
 
-          // Calculate event stats
-          const now = new Date();
-          const oneWeekFromNow = new Date();
-          oneWeekFromNow.setDate(now.getDate() + 7);
-
+        if (
+          eventsResponse.success &&
+          examsResponse.success &&
+          usersResponse.success
+        ) {
+          // Filter and sort events
           const allEvents = eventsResponse.data.filter(
             (event) => !event.isExam
           );
-          const upcomingEventsCount = allEvents.filter(
-            (event) => new Date(event.date) > now
-          ).length;
-          const thisWeekEvents = allEvents.filter((event) => {
+          const now = new Date();
+          const upcomingEvents = allEvents
+            .filter((event) => new Date(event.date) > now)
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+          // Set upcoming events
+          setUpcomingEvents(upcomingEvents.slice(0, 3));
+
+          // Calculate event stats
+          const oneWeekFromNow = new Date();
+          oneWeekFromNow.setDate(now.getDate() + 7);
+
+          const upcomingEventsCount = upcomingEvents.length;
+          const thisWeekEvents = upcomingEvents.filter((event) => {
             const eventDate = new Date(event.date);
-            return eventDate > now && eventDate <= oneWeekFromNow;
+            return eventDate <= oneWeekFromNow;
           }).length;
 
           // Calculate average participants
@@ -142,94 +150,211 @@ function DashboardOverview() {
           ).length;
           const completedExams = allExams.filter(
             (exam) => exam.status === "completed"
-          ).length;
+          );
 
-          // For now, use placeholder values for scores until we have real data
+          // Calculate average and highest scores from completed exams
+          let totalScore = 0;
+          let totalStudents = 0;
+          let highestScore = 0;
+
+          for (const exam of completedExams) {
+            if (exam.results && Array.isArray(exam.results)) {
+              for (const result of exam.results) {
+                if (result.score) {
+                  totalScore += result.score;
+                  totalStudents++;
+                  highestScore = Math.max(highestScore, result.score);
+                }
+              }
+            }
+          }
+
+          const averageScore =
+            totalStudents > 0 ? Math.round(totalScore / totalStudents) : 0;
+
           setExamStats({
             active: activeExams,
-            completed: completedExams,
-            averageScore: "78%", // Placeholder
-            highestScore: "98%", // Placeholder
+            completed: completedExams.length,
+            averageScore: `${averageScore}%`,
+            highestScore: `${highestScore}%`,
           });
 
-          // Set member stats (placeholder for now)
-          // In a real implementation, you would fetch this from a users API
+          // Calculate member stats from real data
+          const allUsers = usersResponse.data;
+          const activeUsers = allUsers.filter(
+            (user) => user.status === "active"
+          );
+
+          // Calculate new users in the last 30 days
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+          const newUsers = allUsers.filter((user) => {
+            const createdAt = new Date(user.createdAt);
+            return createdAt >= thirtyDaysAgo;
+          });
+
+          // Calculate growth percentage
+          const previousPeriodUsers = allUsers.filter((user) => {
+            const createdAt = new Date(user.createdAt);
+            const sixtyDaysAgo = new Date();
+            sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+            return createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
+          });
+
+          const growthPercentage =
+            previousPeriodUsers.length > 0
+              ? Math.round(
+                  ((newUsers.length - previousPeriodUsers.length) /
+                    previousPeriodUsers.length) *
+                    100
+                )
+              : newUsers.length > 0
+              ? 100
+              : 0;
+
           setMemberStats({
-            total: 128,
-            active: 92,
-            new: 12,
-            growth: "+10.2%",
+            total: allUsers.length,
+            active: activeUsers.length,
+            new: newUsers.length,
+            growth: `${growthPercentage >= 0 ? "+" : ""}${growthPercentage}%`,
           });
 
-          // Set top students (placeholder for now)
-          // In a real implementation, you would fetch this from an API
-          setTopStudents([
-            { id: 1, name: "Emma Wilson", score: 96, avatar: null },
-            { id: 2, name: "James Chen", score: 94, avatar: null },
-            { id: 3, name: "Olivia Scott", score: 92, avatar: null },
-            { id: 4, name: "Michael Brown", score: 90, avatar: null },
-          ]);
+          // Get top students from exam results
+          // We already have completedExams from earlier
 
-          // Set recent activities (placeholder for now)
-          // In a real implementation, you would fetch this from an activity log API
-          setRecentActivities([
-            {
-              id: 1,
-              type: "user",
-              title: "New member joined",
-              description: "John Doe joined the club",
-              time: "2 hours ago",
-              icon: User,
-              user: {
-                name: "John Doe",
-                email: "john.doe@example.com",
-                avatar: null,
-              },
-            },
-            {
-              id: 2,
+          // Create a map to track user scores
+          const userScores = new Map();
+
+          // Process each exam's results
+          for (const exam of completedExams) {
+            if (exam.results && Array.isArray(exam.results)) {
+              for (const result of exam.results) {
+                if (result.user && result.score) {
+                  const userId = result.user._id || result.userId;
+                  const userName = result.user.name || "Unknown User";
+                  const userAvatar = result.user.avatar || null;
+
+                  // Get current score or initialize
+                  const currentScore = userScores.get(userId) || {
+                    id: userId,
+                    name: userName,
+                    avatar: userAvatar,
+                    totalScore: 0,
+                    examCount: 0,
+                  };
+
+                  // Update score
+                  currentScore.totalScore += result.score;
+                  currentScore.examCount += 1;
+                  currentScore.averageScore = Math.round(
+                    currentScore.totalScore / currentScore.examCount
+                  );
+
+                  // Store updated score
+                  userScores.set(userId, currentScore);
+                }
+              }
+            }
+          }
+
+          // Convert map to array and sort by average score
+          const topStudentsArray = Array.from(userScores.values())
+            .sort((a, b) => b.averageScore - a.averageScore)
+            .slice(0, 4)
+            .map((student) => ({
+              id: student.id,
+              name: student.name,
+              score: student.averageScore,
+              avatar: student.avatar,
+            }));
+
+          // If we don't have enough students with results, add some placeholders
+          if (topStudentsArray.length < 4) {
+            const placeholders = [
+              { id: "p1", name: "Emma Wilson", score: 96, avatar: null },
+              { id: "p2", name: "James Chen", score: 94, avatar: null },
+              { id: "p3", name: "Olivia Scott", score: 92, avatar: null },
+              { id: "p4", name: "Michael Brown", score: 90, avatar: null },
+            ];
+
+            // Add placeholders until we have 4 students
+            for (let i = topStudentsArray.length; i < 4; i++) {
+              topStudentsArray.push(placeholders[i]);
+            }
+          }
+
+          setTopStudents(topStudentsArray);
+
+          // Set recent activities based on events and exams
+          const recentActivitiesData = [];
+
+          // Add recent events
+          const recentEvents = [...allEvents]
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt || b.date) -
+                new Date(a.createdAt || a.date)
+            )
+            .slice(0, 2);
+
+          for (const event of recentEvents) {
+            recentActivitiesData.push({
+              id: event._id || event.id,
               type: "event",
               title: "Event created",
-              description: "JavaScript Workshop was created",
-              time: "1 day ago",
+              description: `${event.title} was created`,
+              time: formatTimeAgo(event.createdAt || event.date),
               icon: CalendarCheck,
               user: {
-                name: "Admin User",
-                email: "admin@codingclub.com",
-                avatar: null,
+                name: event.createdBy?.name || "Admin User",
+                email: event.createdBy?.email || "admin@codingclub.com",
+                avatar: event.createdBy?.avatar || null,
               },
-            },
-            {
-              id: 3,
+            });
+          }
+
+          // Add recent exams
+          const recentExams = [...allExams]
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt || b.date) -
+                new Date(a.createdAt || a.date)
+            )
+            .slice(0, 2);
+
+          for (const exam of recentExams) {
+            recentActivitiesData.push({
+              id: exam._id || exam.id,
               type: "result",
-              title: "Results published",
-              description: "HTML Quiz results are now available",
-              time: "2 days ago",
+              title: "Exam created",
+              description: `${exam.title} was created`,
+              time: formatTimeAgo(exam.createdAt || exam.date),
               icon: GraduationCap,
               user: {
-                name: "Admin User",
-                email: "admin@codingclub.com",
-                avatar: null,
+                name: exam.createdBy?.name || "Admin User",
+                email: exam.createdBy?.email || "admin@codingclub.com",
+                avatar: exam.createdBy?.avatar || null,
               },
-            },
-            {
-              id: 4,
-              type: "system",
-              title: "Settings updated",
-              description: "Club settings were updated",
-              time: "3 days ago",
-              icon: Bell,
-              user: {
-                name: "System",
-                email: "system@codingclub.com",
-                avatar: null,
-              },
-            },
-          ]);
+            });
+          }
+
+          // Sort activities by time
+          recentActivitiesData.sort((a, b) => {
+            const dateA = new Date(a.time);
+            const dateB = new Date(b.time);
+            return (
+              Number.isNaN(dateB.getTime()) - Number.isNaN(dateA.getTime()) ||
+              dateB - dateA
+            );
+          });
+
+          setRecentActivities(recentActivitiesData);
         } else {
           throw new Error(
             eventsResponse.error ||
               examsResponse.error ||
+              usersResponse.error ||
               "Failed to fetch dashboard data"
           );
         }
@@ -626,7 +751,9 @@ function DashboardOverview() {
                 {upcomingEvents.length > 0 ? (
                   upcomingEvents.map((event) => (
                     <TableRow key={event._id || event.id}>
-                      <TableCell className="font-medium">{event.title}</TableCell>
+                      <TableCell className="font-medium">
+                        {event.title}
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
                           <span>{formatDate(event.date)}</span>
@@ -636,9 +763,9 @@ function DashboardOverview() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={statusColor(event.type || 'event')}>
-                          {(event.type || 'Event').charAt(0).toUpperCase() +
-                            (event.type || 'event').slice(1)}
+                        <Badge className={statusColor(event.type || "event")}>
+                          {(event.type || "Event").charAt(0).toUpperCase() +
+                            (event.type || "event").slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -658,6 +785,11 @@ function DashboardOverview() {
                           </span>
                         </div>
                       </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">
+                          Edit
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -666,14 +798,7 @@ function DashboardOverview() {
                       No upcoming events found
                     </TableCell>
                   </TableRow>
-                )
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        Edit
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -733,43 +858,55 @@ function DashboardOverview() {
         </CardHeader>
         <CardContent>
           <div className="space-y-5">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex gap-4">
-                <div
-                  className={`flex h-9 w-9 items-center justify-center rounded-full ${iconColor(
-                    activity.type
-                  )}`}
-                >
-                  <activity.icon className="h-5 w-5" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">{activity.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {activity.time}
+            {recentActivities.length > 0 ? (
+              recentActivities.map((activity) => (
+                <div key={activity.id || activity._id} className="flex gap-4">
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-full ${iconColor(
+                      activity.type
+                    )}`}
+                  >
+                    <activity.icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">{activity.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {activity.time}
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {activity.description}
                     </p>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {activity.description}
-                  </p>
-                  <div className="flex items-center gap-2 pt-1">
-                    <Avatar className="h-5 w-5">
-                      <AvatarImage
-                        src={activity.user.avatar}
-                        alt={activity.user.name}
-                      />
-                      <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
-                        {activity.user.name
-                          .split(" ")
-                          .map((name) => name[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <p className="text-xs font-medium">{activity.user.name}</p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage
+                          src={activity.user?.avatar}
+                          alt={activity.user?.name}
+                        />
+                        <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                          {activity.user?.name
+                            ? activity.user.name
+                                .split(" ")
+                                .map((name) => name[0])
+                                .join("")
+                            : "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="text-xs font-medium">
+                        {activity.user?.name || "Unknown"}
+                      </p>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-muted-foreground">
+                  No recent activities found
+                </p>
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
         <CardFooter className="border-t pt-4 flex justify-center">
