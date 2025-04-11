@@ -1,4 +1,5 @@
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext, useReducer, useEffect } from "react";
+import { examService } from "@/services";
 
 // Define constants for our question types
 export const QuestionTypes = {
@@ -10,69 +11,22 @@ export const QuestionTypes = {
 
 // Initial state
 const initialState = {
-  exams: [
-    {
-      id: 1,
-      title: "JavaScript Fundamentals",
-      description: "Core JavaScript concepts for beginners",
-      timeLimit: 30,
-      questionCount: 10,
-      status: "published",
-      createdAt: "2023-05-10T10:00:00Z",
-      responseCount: 8,
-      passingScore: 70,
-      settings: {
-        randomizeQuestions: true,
-        showResultsImmediately: true,
-        passingScore: 70,
-        allowRetakes: true,
-      },
-    },
-    {
-      id: 2,
-      title: "React Essentials",
-      description: "Fundamental React concepts and patterns",
-      timeLimit: 45,
-      questionCount: 15,
-      status: "draft",
-      createdAt: "2023-06-15T14:00:00Z",
-      responseCount: 0,
-      passingScore: 75,
-      settings: {
-        randomizeQuestions: true,
-        showResultsImmediately: false,
-        passingScore: 75,
-        allowRetakes: false,
-      },
-    },
-  ],
-  questions: [
-    {
-      id: 101,
-      examId: 1,
-      type: "multiple-choice",
-      question: "What will be the output of 'console.log(typeof null)'?",
-      options: ["null", "undefined", "object", "number"],
-      correctAnswer: "object",
-      points: 10,
-    },
-    {
-      id: 201,
-      examId: 2,
-      type: "multiple-choice",
-      question:
-        "Which hook would you use to perform side effects in a functional component?",
-      options: ["useState", "useEffect", "useContext", "useReducer"],
-      correctAnswer: "useEffect",
-      points: 10,
-    },
-  ],
+  exams: [],
+  questions: [],
   responses: [],
+  loading: true,
+  error: null,
 };
 
 // Create the reducer
 function examReducer(state, action) {
   switch (action.type) {
+    case "FETCH_EXAMS_START":
+      return { ...state, loading: true, error: null };
+    case "FETCH_EXAMS_SUCCESS":
+      return { ...state, exams: action.payload, loading: false, error: null };
+    case "FETCH_EXAMS_ERROR":
+      return { ...state, loading: false, error: action.payload };
     case "SET_EXAMS":
       return { ...state, exams: action.payload };
     case "ADD_EXAM":
@@ -81,13 +35,17 @@ function examReducer(state, action) {
       return {
         ...state,
         exams: state.exams.map((exam) =>
-          exam.id === action.payload.id ? action.payload : exam
+          exam._id === action.payload.id || exam.id === action.payload.id
+            ? action.payload
+            : exam
         ),
       };
     case "DELETE_EXAM":
       return {
         ...state,
-        exams: state.exams.filter((exam) => exam.id !== action.payload),
+        exams: state.exams.filter(
+          (exam) => exam._id !== action.payload && exam.id !== action.payload
+        ),
       };
     case "SET_QUESTIONS":
       return { ...state, questions: action.payload };
@@ -97,14 +55,18 @@ function examReducer(state, action) {
       return {
         ...state,
         questions: state.questions.map((question) =>
-          question.id === action.payload.id ? action.payload : question
+          question._id === action.payload.id ||
+          question.id === action.payload.id
+            ? action.payload
+            : question
         ),
       };
     case "DELETE_QUESTION":
       return {
         ...state,
         questions: state.questions.filter(
-          (question) => question.id !== action.payload
+          (question) =>
+            question._id !== action.payload && question.id !== action.payload
         ),
       };
     case "SET_SUBMISSIONS":
@@ -115,7 +77,10 @@ function examReducer(state, action) {
       return {
         ...state,
         submissions: state.submissions.map((submission) =>
-          submission.id === action.payload.id ? action.payload : submission
+          submission._id === action.payload.id ||
+          submission.id === action.payload.id
+            ? action.payload
+            : submission
         ),
       };
     case "SET_RESPONSES":
@@ -126,7 +91,10 @@ function examReducer(state, action) {
       return {
         ...state,
         responses: state.responses.map((response) =>
-          response.id === action.payload.id ? action.payload : response
+          response._id === action.payload.id ||
+          response.id === action.payload.id
+            ? action.payload
+            : response
         ),
       };
     default:
@@ -150,22 +118,53 @@ export function useExamContext() {
 export function ExamProvider({ children }) {
   const [state, dispatch] = useReducer(examReducer, initialState);
 
+  // Fetch exams from the backend when the provider mounts
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        dispatch({ type: "FETCH_EXAMS_START" });
+        const response = await examService.getAllExams();
+
+        if (response.success) {
+          dispatch({ type: "FETCH_EXAMS_SUCCESS", payload: response.data });
+        } else {
+          dispatch({
+            type: "FETCH_EXAMS_ERROR",
+            payload: response.error || "Failed to fetch exams",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching exams:", error);
+        dispatch({
+          type: "FETCH_EXAMS_ERROR",
+          payload: error.message || "An error occurred while fetching exams",
+        });
+      }
+    };
+
+    fetchExams();
+  }, []);
+
   const getExamById = (id) => {
-    return state.exams.find((exam) => exam.id === id);
+    return state.exams.find((exam) => exam._id === id || exam.id === id);
   };
 
   const getQuestionsForExam = (examId) => {
-    return state.questions.filter((question) => question.examId === examId);
+    return state.questions.filter(
+      (question) => question.examId === examId || question.exam === examId
+    );
   };
 
   const getSubmissionsForExam = (examId) => {
     return state.submissions.filter(
-      (submission) => submission.examId === examId
+      (submission) => submission.examId === examId || submission.exam === examId
     );
   };
 
   const evaluateResponse = (responseId, evaluation) => {
-    const response = state.responses.find((r) => r.id === responseId);
+    const response = state.responses.find(
+      (r) => r._id === responseId || r.id === responseId
+    );
     if (response) {
       const updatedResponse = { ...response, ...evaluation };
       if (
@@ -173,8 +172,13 @@ export function ExamProvider({ children }) {
         response.earnedPoints === undefined
       ) {
         updatedResponse.earnedPoints = evaluation.isCorrect
-          ? state.questions.find((q) => q.id === response.questionId)?.points ||
-            0
+          ? state.questions.find(
+              (q) =>
+                q._id === response.questionId ||
+                q.id === response.questionId ||
+                q._id === response.question ||
+                q.id === response.question
+            )?.points || 0
           : 0;
       }
       dispatch({ type: "UPDATE_RESPONSE", payload: updatedResponse });
@@ -301,6 +305,8 @@ export function ExamProvider({ children }) {
     evaluateResponse,
     calculateExamStatistics,
     calculateQuestionStatistics,
+    loading: state.loading,
+    error: state.error,
   };
 
   return <ExamContext.Provider value={value}>{children}</ExamContext.Provider>;

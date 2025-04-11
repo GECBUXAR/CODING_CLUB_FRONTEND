@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { examService } from "@/services";
 import {
   Plus,
   Search,
@@ -62,7 +63,7 @@ import { ExamSettingsModal } from "@/components/admin/exam-settings-modal";
 import { ExamResponsesPanel } from "@/components/admin/exam-responses-panel";
 import { ExamProvider, useExamContext } from "@/contexts/exam-context";
 import { useNotification } from "@/contexts/notification-context";
-import { getExams, deleteExam, createExam, updateExam } from "../../lib/api";
+// import { getExams, deleteExam, createExam, updateExam } from "../../lib/api";
 import {
   Select,
   SelectContent,
@@ -184,64 +185,17 @@ function AdminExamPanelContent() {
     closed: exams.filter((exam) => exam.status === "closed").length,
   };
 
-  // Fetch exams on component mount
+  // Exams are now fetched in the ExamContext provider
+  // We just need to set the loading state based on the context
   useEffect(() => {
-    const fetchExamsData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        setIsOfflineMode(false);
+    setLoading(state.loading);
+    setError(state.error);
+    setIsOfflineMode(state.error !== null);
 
-        // Try to fetch from API
-        const response = await getExams();
-
-        if (response?.success) {
-          // Use data from API
-          dispatch({
-            type: "SET_EXAMS",
-            payload: response.data || [],
-          });
-          console.log("Successfully loaded exams from API");
-        } else {
-          // Check if we're in development with fallback data
-          if (response?.usingFallbackData) {
-            console.log("Using sample data for development testing");
-          } else {
-            console.warn(
-              "Failed to fetch exams from API, using sample data",
-              response?.error || ""
-            );
-          }
-
-          // Set offline mode flag
-          setIsOfflineMode(true);
-
-          // Show offline mode notification to user
-          if (typeof showNotification === "function") {
-            showNotification(
-              "Using local sample data for testing",
-              "info",
-              3000
-            );
-          }
-        }
-      } catch (error) {
-        console.warn("Error fetching exams, using sample data:", error);
-
-        // Set offline mode flag
-        setIsOfflineMode(true);
-
-        // Show offline mode notification to user
-        if (typeof showNotification === "function") {
-          showNotification("Using local sample data for testing", "info", 3000);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchExamsData();
-  }, [dispatch, showNotification]);
+    if (state.error && typeof showNotification === "function") {
+      showNotification(state.error, "error", 3000);
+    }
+  }, [state.loading, state.error, showNotification]);
 
   // Error fallback
   if (error) {
@@ -260,13 +214,14 @@ function AdminExamPanelContent() {
 
     try {
       // Delete the exam via API
-      const response = await deleteExam(currentExam.id);
+      const examId = currentExam._id || currentExam.id;
+      const response = await examService.deleteExam(examId);
 
       if (response.success) {
         // Update the local state
         dispatch({
           type: "DELETE_EXAM",
-          payload: currentExam.id,
+          payload: examId,
         });
 
         // Show success notification
@@ -302,15 +257,15 @@ function AdminExamPanelContent() {
   const handleTestConnection = async () => {
     try {
       setIsTestingConnection(true);
-      const { checkApiConnection } = await import("@/lib/api");
-      const result = await checkApiConnection();
+      const response = await examService.getAllExams();
 
-      if (result.online) {
+      if (response.success) {
         showNotification(
-          "API connection successful! Try reloading the page.",
+          "API connection successful! Refreshing data.",
           "success"
         );
         setIsOfflineMode(false);
+        dispatch({ type: "FETCH_EXAMS_SUCCESS", payload: response.data });
       } else {
         showNotification("API still unavailable. Using sample data.", "info");
       }
@@ -641,14 +596,20 @@ function AdminExamPanelContent() {
 
             if (currentExam) {
               // Update existing exam
-              const response = await updateExam(currentExam.id, formattedData);
+              const examId = currentExam._id || currentExam.id;
+              const response = await examService.updateExam(
+                examId,
+                formattedData
+              );
 
               if (response.success) {
                 dispatch({
                   type: "UPDATE_EXAM",
                   payload: {
-                    id: currentExam.id,
+                    id: examId,
+                    _id: examId,
                     ...examData,
+                    ...response.data,
                     updatedAt: new Date().toISOString(),
                   },
                 });
@@ -660,16 +621,20 @@ function AdminExamPanelContent() {
               }
             } else {
               // Create new exam
-              const response = await createExam(formattedData);
+              const response = await examService.createExam(formattedData);
 
               if (response.success) {
                 const newExam = {
                   id: response.data._id || Date.now().toString(),
+                  _id: response.data._id,
                   ...examData,
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                  questionCount: 0,
-                  responseCount: 0,
+                  ...response.data,
+                  createdAt:
+                    response.data.createdAt || new Date().toISOString(),
+                  updatedAt:
+                    response.data.updatedAt || new Date().toISOString(),
+                  questionCount: response.data.questionCount || 0,
+                  responseCount: response.data.responseCount || 0,
                 };
                 dispatch({
                   type: "ADD_EXAM",
