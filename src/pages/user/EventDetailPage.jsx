@@ -10,6 +10,7 @@ import {
   Star,
   MessageSquare,
 } from "lucide-react";
+import { extractIdFromParam } from "@/utils/urlUtils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,7 +29,8 @@ import { useAuth } from "@/contexts/optimized-auth-context";
 import eventService from "@/services/eventService";
 
 export default function EventDetailPage() {
-  const { id } = useParams();
+  const { eventParam } = useParams();
+  const eventId = extractIdFromParam(eventParam);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -44,7 +46,7 @@ export default function EventDetailPage() {
     const fetchEventDetails = async () => {
       setLoading(true);
       try {
-        const response = await eventService.getEventById(id);
+        const response = await eventService.getEventById(eventId);
 
         if (response.success && response.data) {
           setEvent(response.data);
@@ -305,7 +307,7 @@ export default function EventDetailPage() {
               <h2 className="text-2xl font-semibold mb-4">Speakers</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {event.speakers.map((speaker, index) => (
-                  <Card key={index}>
+                  <Card key={`speaker-${speaker.name}-${index}`}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
                         {speaker.avatar ? (
@@ -340,7 +342,11 @@ export default function EventDetailPage() {
               <h2 className="text-2xl font-semibold mb-4">Tags</h2>
               <div className="flex flex-wrap gap-2">
                 {event.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="capitalize">
+                  <Badge
+                    key={`tag-${tag}-${index}`}
+                    variant="secondary"
+                    className="capitalize"
+                  >
                     <Tag className="mr-1 h-3 w-3" />
                     {tag}
                   </Badge>
@@ -486,7 +492,10 @@ export default function EventDetailPage() {
 
           <div className="py-4">
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="rating"
+                className="block text-sm font-medium mb-2"
+              >
                 Rating (1-5 stars)
               </label>
               <div className="flex gap-2">
@@ -510,7 +519,10 @@ export default function EventDetailPage() {
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="feedback-comment"
+                className="block text-sm font-medium mb-2"
+              >
                 Comments (optional)
               </label>
               <Textarea
