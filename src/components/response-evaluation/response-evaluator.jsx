@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useExamContext } from "@/contexts/exam-context";
+import { useExamContext } from "@/contexts/optimized-exam-context";
 import {
   Card,
   CardContent,

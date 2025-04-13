@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback, useState } from "react";
 import FacultyCard from "./FacultyCard";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { useFaculty } from "@/components/faculty/FacultyContext";
+import { useFaculty } from "@/components/faculty/OptimizedFacultyContext";
 
 gsap.registerPlugin(useGSAP);
 
