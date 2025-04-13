@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -191,7 +191,7 @@ export default function SignupPage() {
         <div className="mx-auto max-w-md">
           <div className="mb-8 flex items-center gap-2 font-semibold">
             <code className="flex h-10 w-10 items-center justify-center rounded-lg border bg-muted">
-            <img src="/image/CodingClubLogoSmall.png" alt="logo" />
+              <img src="/image/CodingClubLogoSmall.png" alt="logo" />
             </code>
             <span className="text-xl">Coding Club</span>
           </div>
@@ -220,7 +220,7 @@ export default function SignupPage() {
           <div className="flex flex-col items-center mb-8 lg:hidden">
             <div className="mb-4 flex items-center gap-2 font-semibold">
               <code className="flex h-10 w-10 items-center justify-center rounded-lg border bg-muted">
-              <img src="/image/CodingClubLogoSmall.png" alt="logo" />
+                <img src="/image/CodingClubLogoSmall.png" alt="logo" />
               </code>
               <span className="text-xl">Coding Club</span>
             </div>

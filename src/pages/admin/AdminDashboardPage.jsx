@@ -6,7 +6,7 @@ import { EventsPage } from "@/components/admin/events-page";
 import { FacultyPage } from "@/components/admin/faculty-page";
 import { SettingsPage } from "@/components/admin/settings-page";
 import { AdminExamPanel } from "./AdminExamPanel";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
 
 /**
  * Admin Dashboard Page - Main container for all admin pages

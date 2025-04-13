@@ -61,8 +61,11 @@ import { ExamFormModal } from "@/components/admin/exam-form-modal";
 import { QuestionFormModal } from "@/components/admin/question-form-modal";
 import { ExamSettingsModal } from "@/components/admin/exam-settings-modal";
 import { ExamResponsesPanel } from "@/components/admin/exam-responses-panel";
-import { ExamProvider, useExamContext } from "@/contexts/exam-context";
-import { useNotification } from "@/contexts/notification-context";
+import {
+  ExamProvider,
+  useExamContext,
+} from "@/contexts/optimized-exam-context";
+import { useNotification } from "@/contexts/optimized-notification-context";
 // import { getExams, deleteExam, createExam, updateExam } from "../../lib/api";
 import {
   Select,

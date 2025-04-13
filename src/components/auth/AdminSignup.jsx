@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, User, Mail, Phone, Lock, Key } from "lucide-react";
-import { useAuth } from "../../contexts/auth-context";
+import { useAuth } from "../../contexts/optimized-auth-context";
 
 const AdminSignupPage = () => {
   const navigate = useNavigate();

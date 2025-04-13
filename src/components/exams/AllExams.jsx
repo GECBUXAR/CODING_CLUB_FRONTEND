@@ -15,7 +15,7 @@ import {
   Bookmark,
   BookmarkCheck,
 } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
 import { examService } from "@/services/index.js";
 
 // UI Components

@@ -1,26 +1,12 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import apiClient from "../services/api";
 import { useAuth } from "./optimized-auth-context";
 
-const EventContext = createContext({
-  events: [],
-  userEvents: [],
-  loading: false,
-  fetchEvents: () => {},
-  fetchUserEvents: () => {},
-  enrollInEvent: () => {},
-  unenrollFromEvent: () => {},
-  getEventById: () => {},
-  searchEvents: () => {},
-});
+// Create separate contexts for state and actions
+const EventStateContext = createContext(null);
+const EventActionsContext = createContext(null);
 
+// Event provider component
 export const EventProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
   const [events, setEvents] = useState([]);
@@ -28,6 +14,7 @@ export const EventProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const initialFetchDone = useRef(false);
 
+  // Memoized fetch events function
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
@@ -40,6 +27,7 @@ export const EventProvider = ({ children }) => {
     }
   }, []);
 
+  // Memoized fetch user events function
   const fetchUserEvents = useCallback(async () => {
     if (!isAuthenticated) return;
 
@@ -54,7 +42,8 @@ export const EventProvider = ({ children }) => {
     }
   }, [isAuthenticated]);
 
-  const enrollInEvent = async (eventId) => {
+  // Memoized enroll in event function
+  const enrollInEvent = useCallback(async (eventId) => {
     try {
       setLoading(true);
       await apiClient.post(`/events/${eventId}/enroll`);
@@ -72,9 +61,10 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchUserEvents]);
 
-  const unenrollFromEvent = async (eventId) => {
+  // Memoized unenroll from event function
+  const unenrollFromEvent = useCallback(async (eventId) => {
     try {
       setLoading(true);
       await apiClient.post(`/events/${eventId}/unenroll`);
@@ -92,9 +82,10 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchUserEvents]);
 
-  const getEventById = async (eventId) => {
+  // Memoized get event by ID function
+  const getEventById = useCallback(async (eventId) => {
     try {
       const response = await apiClient.get(`/events/${eventId}`);
       return response.data;
@@ -102,9 +93,10 @@ export const EventProvider = ({ children }) => {
       console.error(`Failed to get event ${eventId}:`, error);
       return null;
     }
-  };
+  }, []);
 
-  const searchEvents = async (query, category) => {
+  // Memoized search events function
+  const searchEvents = useCallback(async (query, category) => {
     try {
       const params = new URLSearchParams();
       if (query) params.append("q", query);
@@ -118,8 +110,9 @@ export const EventProvider = ({ children }) => {
       console.error("Failed to search events:", error);
       return [];
     }
-  };
+  }, []);
 
+  // Effect to fetch events on initial mount
   useEffect(() => {
     // Only fetch on initial mount, not on every rerender
     if (!initialFetchDone.current) {
@@ -131,29 +124,59 @@ export const EventProvider = ({ children }) => {
     }
   }, [isAuthenticated, fetchEvents, fetchUserEvents]);
 
+  // Memoize state value to prevent unnecessary re-renders
+  const stateValue = useMemo(() => ({
+    events,
+    userEvents,
+    loading,
+  }), [events, userEvents, loading]);
+
+  // Memoize actions value to prevent unnecessary re-renders
+  const actionsValue = useMemo(() => ({
+    fetchEvents,
+    fetchUserEvents,
+    enrollInEvent,
+    unenrollFromEvent,
+    getEventById,
+    searchEvents,
+  }), [
+    fetchEvents,
+    fetchUserEvents,
+    enrollInEvent,
+    unenrollFromEvent,
+    getEventById,
+    searchEvents,
+  ]);
+
   return (
-    <EventContext.Provider
-      value={{
-        events,
-        userEvents,
-        loading,
-        fetchEvents,
-        fetchUserEvents,
-        enrollInEvent,
-        unenrollFromEvent,
-        getEventById,
-        searchEvents,
-      }}
-    >
-      {children}
-    </EventContext.Provider>
+    <EventStateContext.Provider value={stateValue}>
+      <EventActionsContext.Provider value={actionsValue}>
+        {children}
+      </EventActionsContext.Provider>
+    </EventStateContext.Provider>
   );
 };
 
-export const useEvents = () => {
-  const context = useContext(EventContext);
+// Custom hooks to use event context
+export const useEventState = () => {
+  const context = useContext(EventStateContext);
   if (context === undefined) {
-    throw new Error("useEvents must be used within an EventProvider");
+    throw new Error("useEventState must be used within an EventProvider");
   }
   return context;
+};
+
+export const useEventActions = () => {
+  const context = useContext(EventActionsContext);
+  if (context === undefined) {
+    throw new Error("useEventActions must be used within an EventProvider");
+  }
+  return context;
+};
+
+// Combined hook for backward compatibility
+export const useEvents = () => {
+  const state = useEventState();
+  const actions = useEventActions();
+  return { ...state, ...actions };
 };

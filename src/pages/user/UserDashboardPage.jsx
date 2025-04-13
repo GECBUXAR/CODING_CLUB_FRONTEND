@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { UserDashboardLayout } from "@/components/user/dashboard-layout";
 import { UserExamPanel } from "@/components/user/user-exam-panel";
 import { EventSection } from "@/components/user/event-section";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
 import { eventService, examService } from "@/services";
 import {
   Card,

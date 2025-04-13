@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useResponseEvaluation } from "../../contexts/response-evaluation-context";
+import { useResponseEvaluation } from "../../contexts/optimized-response-evaluation-context";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -14,7 +14,7 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs";
 import ExamResponseDetailModal from "./exam-response-detail-modal";
-import { useNotification } from "../../contexts/notification-context";
+import { useNotification } from "../../contexts/optimized-notification-context";
 import {
   CheckCircle,
   XCircle,

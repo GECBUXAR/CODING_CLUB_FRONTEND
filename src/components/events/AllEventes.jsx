@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useEvents } from "@/contexts/event-context";
-import { useAuth } from "@/contexts/auth-context";
+import { useEvents } from "@/contexts/optimized-event-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
 import {
   Search,
   Calendar,
