@@ -127,7 +127,12 @@ const AllExams = () => {
 
   // Fetch exams from API
   useEffect(() => {
-    fetchExams();
+    // Using a ref to track if we've already fetched exams to prevent unnecessary API calls
+    const fetchData = async () => {
+      await fetchExams();
+    };
+    fetchData();
+    // Empty dependency array ensures this only runs once on mount
   }, []);
 
   const fetchExams = async () => {

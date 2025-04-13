@@ -58,26 +58,33 @@ const HomePage = () => {
   const timerRef = useRef(null);
 
   // Fetch public data (events and exams) with staggered loading
-  useEffect(() => {
-    // Track if the component is still mounted
-    let isMounted = true;
+  // Use a ref to store the fetch function to prevent it from changing on every render
+  const fetchPublicDataRef = useRef();
 
-    const fetchPublicData = async () => {
+  // Initialize the fetch function once
+  useEffect(() => {
+    // Define the fetch function
+    fetchPublicDataRef.current = async () => {
+      // Skip if data is already fetched
       if (dataFetchedRef.current.events && dataFetchedRef.current.exams) {
-        return; // Data already fetched
+        return;
       }
 
-      setLoading(true);
+      let isMounted = true;
+      const cleanup = () => {
+        isMounted = false;
+      };
 
-      // Staggered loading of data to prevent API flooding
       try {
+        setLoading(true);
+
         // First, fetch upcoming events if not already fetched
         if (!dataFetchedRef.current.events) {
           try {
+            console.log("Fetching upcoming events...");
             const eventsResponse = await eventService.getUpcomingEvents(6);
 
-            // Check if component is still mounted before updating state
-            if (!isMounted) return;
+            if (!isMounted) return cleanup();
 
             if (eventsResponse.success) {
               setEvents(eventsResponse.data || []);
@@ -94,22 +101,20 @@ const HomePage = () => {
           }
         }
 
-        // Wait a bit before making the second request to avoid throttling
+        // Add a delay before fetching exams
         await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Check if component is still mounted before continuing
-        if (!isMounted) return;
+        if (!isMounted) return cleanup();
 
         // Then, fetch latest exams if not already fetched
         if (!dataFetchedRef.current.exams) {
           try {
+            console.log("Fetching exams...");
             const examsResponse = await examService.getAllExams({
               limit: 6,
               sort: "createdAt",
             });
 
-            // Check if component is still mounted before updating state
-            if (!isMounted) return;
+            if (!isMounted) return cleanup();
 
             if (examsResponse.success) {
               setExams(examsResponse.data || []);
@@ -122,49 +127,63 @@ const HomePage = () => {
       } catch (error) {
         console.error("Error in fetchPublicData:", error);
       } finally {
-        // Only update loading state if component is still mounted
         if (isMounted) {
           setLoading(false);
         }
+        cleanup();
       }
     };
+  }, []); // Empty dependency array ensures this only runs once
 
-    // Delay initial data loading slightly to allow the page to render first
-    timerRef.current = setTimeout(fetchPublicData, 100);
+  // Trigger the fetch on mount
+  useEffect(() => {
+    // Only fetch if we haven't already
+    if (!dataFetchedRef.current.events || !dataFetchedRef.current.exams) {
+      // Delay initial data loading slightly
+      const timer = setTimeout(() => {
+        if (fetchPublicDataRef.current) {
+          fetchPublicDataRef.current();
+        }
+      }, 500);
 
-    // Cleanup function
-    return () => {
-      isMounted = false;
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, []); // Empty dependency array ensures this only runs once
 
   // Fetch user-specific data (user events and exams) with debouncing and staggered loading
+  // Use a ref to store the fetch function to prevent it from changing on every render
+  const fetchUserDataRef = useRef();
+
+  // Update the fetch function when isAuthenticated changes
   useEffect(() => {
-    // Skip if not authenticated
-    if (!isAuthenticated) {
-      return;
-    }
+    // Define the fetch function
+    fetchUserDataRef.current = async () => {
+      // Skip if not authenticated
+      if (!isAuthenticated) {
+        return;
+      }
 
-    // Track if the component is still mounted
-    let isMounted = true;
+      // Skip if data is already fetched
+      if (
+        dataFetchedRef.current.userEvents &&
+        dataFetchedRef.current.userExams
+      ) {
+        return;
+      }
 
-    // Clear any existing timer
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
+      let isMounted = true;
+      const cleanup = () => {
+        isMounted = false;
+      };
 
-    const fetchUserData = async () => {
       try {
         // Fetch user's enrolled events if not already fetched
         if (!dataFetchedRef.current.userEvents) {
           try {
+            console.log("Fetching user events...");
             const userEventsResponse = await eventService.getUserEvents();
 
-            // Check if component is still mounted before updating state
-            if (!isMounted) return;
+            if (!isMounted) return cleanup();
 
             if (userEventsResponse.success) {
               setUserEvents(userEventsResponse.data || []);
@@ -175,19 +194,17 @@ const HomePage = () => {
           }
         }
 
-        // Wait a bit before making the second request to avoid throttling
+        // Add a delay before fetching user exams
         await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        // Check if component is still mounted before continuing
-        if (!isMounted) return;
+        if (!isMounted) return cleanup();
 
         // Fetch user's enrolled exams if not already fetched
         if (!dataFetchedRef.current.userExams) {
           try {
+            console.log("Fetching user exams...");
             const userExamsResponse = await examService.getUserExams();
 
-            // Check if component is still mounted before updating state
-            if (!isMounted) return;
+            if (!isMounted) return cleanup();
 
             if (userExamsResponse.success) {
               setUserExams(userExamsResponse.data || []);
@@ -199,21 +216,34 @@ const HomePage = () => {
         }
       } catch (error) {
         console.error("Error in fetchUserData:", error);
+      } finally {
+        cleanup();
       }
     };
+  }, [isAuthenticated]); // Include isAuthenticated in the dependency array
 
-    // Debounce the API calls to prevent throttling
-    // Use a longer delay for user data to prioritize public data loading
-    timerRef.current = setTimeout(fetchUserData, 2000);
+  // Trigger the fetch when authentication changes
+  useEffect(() => {
+    // Skip if not authenticated
+    if (!isAuthenticated) {
+      return;
+    }
 
-    // Cleanup function
-    return () => {
-      isMounted = false;
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, [isAuthenticated]);
+    // Only fetch if we haven't already
+    if (
+      !dataFetchedRef.current.userEvents ||
+      !dataFetchedRef.current.userExams
+    ) {
+      // Delay user data loading to prioritize public data
+      const timer = setTimeout(() => {
+        if (fetchUserDataRef.current) {
+          fetchUserDataRef.current();
+        }
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]); // Only depend on isAuthenticated
 
   // Function to check if user is enrolled in an event
   const isEnrolledInEvent = (eventId) => {
@@ -358,7 +388,7 @@ const HomePage = () => {
   // Loading skeleton component
   const CardSkeleton = () => (
     <div className="rounded-xl overflow-hidden bg-white shadow-md">
-      <div className="h-2 bg-gray-200"></div>
+      <div className="h-2 bg-gray-200" />
       <div className="p-4">
         <Skeleton className="h-6 w-3/4 mb-2" />
         <Skeleton className="h-4 w-full mb-4" />
@@ -676,7 +706,7 @@ const HomePage = () => {
                       key={event._id}
                       className="overflow-hidden hover:shadow-lg transition-all duration-300 border-gray-200 rounded-xl group h-full flex flex-col"
                     >
-                      <div className="h-2 bg-blue-600 group-hover:h-3 transition-all duration-300"></div>
+                      <div className="h-2 bg-blue-600 group-hover:h-3 transition-all duration-300" />
                       <CardHeader className="p-5">
                         <div className="flex justify-between items-start">
                           <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-blue-700 transition-colors">
@@ -780,7 +810,7 @@ const HomePage = () => {
                       key={exam._id}
                       className="overflow-hidden hover:shadow-lg transition-all duration-300 border-gray-200 rounded-xl group h-full flex flex-col"
                     >
-                      <div className="h-2 bg-indigo-600 group-hover:h-3 transition-all duration-300"></div>
+                      <div className="h-2 bg-indigo-600 group-hover:h-3 transition-all duration-300" />
                       <CardHeader className="p-5">
                         <div className="flex justify-between items-start">
                           <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-indigo-700 transition-colors">

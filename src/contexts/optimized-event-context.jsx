@@ -22,8 +22,8 @@ export const EventProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const initialFetchDone = useRef(false);
 
-  // Memoized fetch events function
-  const fetchEvents = useCallback(async () => {
+  // Use useRef for stable function references
+  const fetchEventsRef = useRef(async () => {
     try {
       setLoading(true);
       const response = await enhancedApiClient.get("/events", {}, true);
@@ -33,10 +33,13 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  });
 
-  // Memoized fetch user events function
-  const fetchUserEvents = useCallback(async () => {
+  // Create stable callbacks
+  const fetchEvents = useCallback(() => fetchEventsRef.current(), []);
+
+  // Use useRef for stable function references
+  const fetchUserEventsRef = useRef(async () => {
     if (!isAuthenticated) return;
 
     try {
@@ -52,7 +55,31 @@ export const EventProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
+  });
+
+  // Update the ref when isAuthenticated changes
+  useEffect(() => {
+    fetchUserEventsRef.current = async () => {
+      if (!isAuthenticated) return;
+
+      try {
+        setLoading(true);
+        const response = await enhancedApiClient.get(
+          "/events/user-events",
+          {},
+          true
+        );
+        setUserEvents(response.data);
+      } catch (error) {
+        console.error("Failed to fetch user events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
   }, [isAuthenticated]);
+
+  // Create stable callback
+  const fetchUserEvents = useCallback(() => fetchUserEventsRef.current(), []);
 
   // Memoized enroll in event function
   const enrollInEvent = useCallback(
@@ -67,7 +94,8 @@ export const EventProvider = ({ children }) => {
           )
         );
 
-        await fetchUserEvents();
+        // Use the ref directly to avoid dependency issues
+        await fetchUserEventsRef.current();
       } catch (error) {
         console.error("Failed to enroll in event:", error);
         throw error;
@@ -75,7 +103,7 @@ export const EventProvider = ({ children }) => {
         setLoading(false);
       }
     },
-    [fetchUserEvents]
+    [] // No dependencies needed since we use the ref
   );
 
   // Memoized unenroll from event function
@@ -91,7 +119,8 @@ export const EventProvider = ({ children }) => {
           )
         );
 
-        await fetchUserEvents();
+        // Use the ref directly to avoid dependency issues
+        await fetchUserEventsRef.current();
       } catch (error) {
         console.error("Failed to unenroll from event:", error);
         throw error;
@@ -99,7 +128,7 @@ export const EventProvider = ({ children }) => {
         setLoading(false);
       }
     },
-    [fetchUserEvents]
+    [] // No dependencies needed since we use the ref
   );
 
   // Memoized get event by ID function
@@ -141,12 +170,22 @@ export const EventProvider = ({ children }) => {
     // Only fetch on initial mount, not on every rerender
     if (!initialFetchDone.current) {
       initialFetchDone.current = true;
-      fetchEvents();
-      if (isAuthenticated) {
-        fetchUserEvents();
-      }
+
+      // Use a timeout to stagger API calls
+      const timer = setTimeout(() => {
+        fetchEventsRef.current();
+
+        if (isAuthenticated) {
+          // Add a small delay before the second API call
+          setTimeout(() => {
+            fetchUserEventsRef.current();
+          }, 1000);
+        }
+      }, 500);
+
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, fetchEvents, fetchUserEvents]);
+  }, [isAuthenticated]); // Only depend on isAuthenticated
 
   // Memoize state value to prevent unnecessary re-renders
   const stateValue = useMemo(

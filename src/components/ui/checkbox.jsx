@@ -1,28 +1,57 @@
-import * as React from "react"
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
-import { CheckIcon } from "lucide-react"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-import { cn } from "@/lib/utils"
+const Checkbox = React.forwardRef(
+  ({ className, checked, onCheckedChange, disabled, ...props }, ref) => {
+    // Handle the change event
+    const handleChange = React.useCallback(
+      (e) => {
+        if (onCheckedChange) {
+          onCheckedChange(e.target.checked);
+        }
+      },
+      [onCheckedChange]
+    );
 
-function Checkbox({
-  className,
-  ...props
-}) {
-  return (
-    (<CheckboxPrimitive.Root
-      data-slot="checkbox"
-      className={cn(
-        "peer border-input data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
-      {...props}>
-      <CheckboxPrimitive.Indicator
-        data-slot="checkbox-indicator"
-        className="flex items-center justify-center text-current transition-none">
-        <CheckIcon className="size-3.5" />
-      </CheckboxPrimitive.Indicator>
-    </CheckboxPrimitive.Root>)
-  );
-}
+    return (
+      <div className={cn("relative inline-flex", className)}>
+        <input
+          type="checkbox"
+          ref={ref}
+          checked={checked}
+          disabled={disabled}
+          onChange={handleChange}
+          className="sr-only peer"
+          {...props}
+        />
+        <div
+          className={cn(
+            "size-4 shrink-0 rounded-[4px] border shadow-xs transition-colors",
+            "peer-focus-visible:ring-[3px] peer-focus-visible:ring-ring/50",
+            "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+            checked ? "bg-primary border-primary" : "border-input"
+          )}
+        >
+          {checked && (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-3.5 w-3.5 text-primary-foreground"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          )}
+        </div>
+      </div>
+    );
+  }
+);
 
-export { Checkbox }
+Checkbox.displayName = "Checkbox";
+
+export { Checkbox };

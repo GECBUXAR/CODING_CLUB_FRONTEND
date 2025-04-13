@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/optimized-auth-context";
 
@@ -8,18 +8,21 @@ export function ProtectedRoute({
 }) {
   const { isAuthenticated, isAdmin, checkingAuth, refreshAuth } = useAuth();
   const location = useLocation();
+  const authRefreshAttempted = useRef(false);
 
-  // On mount, force a refresh of the auth state
+  // On mount, force a refresh of the auth state - but only once
   useEffect(() => {
-    // Only refresh if we think we're authenticated
-    // This prevents infinite loading if a user is definitely not logged in
-    if (isAuthenticated) {
-      refreshAuth();
+    // Only refresh if we think we're authenticated and haven't tried yet
+    if (isAuthenticated && !authRefreshAttempted.current) {
+      authRefreshAttempted.current = true;
+      refreshAuth().catch((err) => {
+        console.error("Auth refresh error in ProtectedRoute:", err);
+      });
     }
   }, [isAuthenticated, refreshAuth]);
 
   // If we're still checking auth status, show a loading indicator
-  if (checkingAuth) {
+  if (checkingAuth && !authRefreshAttempted.current) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -36,13 +39,13 @@ export function ProtectedRoute({
   // Handle role-based access
   if (requiredRole === "admin" && !isAdmin) {
     // If admin access is required but user is not admin
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   if (requiredRole === "user" && isAdmin) {
     // If regular user access is required but user is admin
     // This is optional - you might want admins to access user pages
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   // Render children if all conditions pass

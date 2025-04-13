@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import * as authService from "../services/authService";
 import enhancedApiClient from "../services/enhancedApi";
@@ -262,19 +262,35 @@ const actions = {
     // Prevent excessive calls to refreshAuth
     const now = Date.now();
     const lastRefreshTime = window.sessionStorage.getItem("lastAuthRefresh");
-    const refreshInterval = 5000; // 5 seconds minimum between refreshes
+    const refreshInterval = 10000; // 10 seconds minimum between refreshes (increased from 5s)
 
     if (
       lastRefreshTime &&
       now - Number.parseInt(lastRefreshTime, 10) < refreshInterval
     ) {
-      return state.isAuthenticated; // Return current authentication state
+      // Return current authentication state without triggering any state changes
+      return state.isAuthenticated;
     }
 
+    // Track this refresh attempt
     window.sessionStorage.setItem("lastAuthRefresh", now.toString());
+
+    // Only set checking auth to true if we're actually going to make an API call
     dispatch({ type: "SET_CHECKING_AUTH", payload: true });
 
     try {
+      // Use a flag to track if we're in the middle of an auth refresh
+      // This prevents multiple simultaneous auth refreshes
+      if (window.isRefreshingAuth) {
+        console.log(
+          "Auth refresh already in progress, skipping duplicate call"
+        );
+        dispatch({ type: "SET_CHECKING_AUTH", payload: false });
+        return state.isAuthenticated;
+      }
+
+      window.isRefreshingAuth = true;
+
       // Try to get the user profile first
       let result = await authService.getCurrentUser();
 
@@ -282,20 +298,19 @@ const actions = {
       if (!result.success) {
         try {
           // If user profile didn't work, try the admin profile endpoint
-          const adminResult = await enhancedApiClient.get(
-            "/admin/profile",
-            {},
-            true
-          );
-          if (adminResult.data && adminResult.data.status === "success") {
-            result = {
-              success: true,
-              data: adminResult.data.data,
-            };
-            // Ensure admin role is set
-            if (result.data && !result.data.role) {
-              result.data.role = "admin";
+          try {
+            // Use authService instead of direct API call for better error handling
+            const adminResult = await authService.getAdminProfile();
+
+            if (adminResult.success && adminResult.data) {
+              result = adminResult;
+              // Ensure admin role is set
+              if (result.data && !result.data.role) {
+                result.data.role = "admin";
+              }
             }
+          } catch (innerError) {
+            console.error("Inner admin profile check error:", innerError);
           }
         } catch (adminError) {
           console.error("Admin profile check failed:", adminError);
@@ -322,7 +337,11 @@ const actions = {
       dispatch({ type: "LOGOUT" });
       return false;
     } finally {
+      // Reset the auth checking flag
       dispatch({ type: "SET_CHECKING_AUTH", payload: false });
+
+      // Reset the global refresh flag to allow future auth refreshes
+      window.isRefreshingAuth = false;
     }
   },
 };
@@ -349,38 +368,58 @@ export function AuthProvider({ children }) {
     const { isAuthenticated } = useAuthState();
     const { refreshAuth, setCheckingAuth, setInitialized } = useAuthActions();
 
-    // Listen for auth errors from API client
+    // Use a ref to store the auth error handler function
+    const handleAuthErrorRef = useRef();
+
+    // Update the handler when dependencies change
     useEffect(() => {
-      const handleAuthError = (event) => {
+      // Create a stable reference to the handler function
+      handleAuthErrorRef.current = (event) => {
         // Only redirect if we think we're authenticated but get a 401/403
         if (isAuthenticated) {
-          // Use the logout action
-          const { logout } = useAuthActions();
-          logout();
-
-          navigate("/login", {
-            state: {
-              from: window.location.pathname,
-              message: "Your session has expired. Please log in again.",
-            },
+          // Use the refreshAuth action directly
+          refreshAuth().then((isStillAuthenticated) => {
+            if (!isStillAuthenticated) {
+              // Only navigate if we're truly not authenticated
+              navigate("/login", {
+                state: {
+                  from: window.location.pathname,
+                  message: "Your session has expired. Please log in again.",
+                },
+                replace: true, // Use replace to avoid back button issues
+              });
+            }
           });
         }
       };
+    }, [isAuthenticated, navigate, refreshAuth]); // Include all dependencies
 
-      window.addEventListener("auth-error", handleAuthError);
-      return () => {
-        window.removeEventListener("auth-error", handleAuthError);
-      };
-    }, [navigate, isAuthenticated]);
-
-    // Check if user is already logged in on initial load
+    // Set up the event listener with a stable callback
     useEffect(() => {
-      // Use a ref to prevent multiple auth checks
-      const hasAttemptedInitialAuth = sessionStorage.getItem(
-        "hasAttemptedInitialAuth"
-      );
+      // Create a stable event handler that uses the ref
+      const stableHandler = (event) => {
+        if (handleAuthErrorRef.current) {
+          handleAuthErrorRef.current(event);
+        }
+      };
 
-      const checkAuth = async () => {
+      window.addEventListener("auth-error", stableHandler);
+      return () => {
+        window.removeEventListener("auth-error", stableHandler);
+      };
+    }, []); // Empty dependency array ensures this only runs once
+
+    // Store the auth check function in a ref
+    const checkAuthRef = useRef();
+
+    // Update the auth check function when dependencies change
+    useEffect(() => {
+      checkAuthRef.current = async () => {
+        // Use a ref to prevent multiple auth checks
+        const hasAttemptedInitialAuth = sessionStorage.getItem(
+          "hasAttemptedInitialAuth"
+        );
+
         if (hasAttemptedInitialAuth) {
           setCheckingAuth(false);
           setInitialized(true);
@@ -398,23 +437,28 @@ export function AuthProvider({ children }) {
           setInitialized(true);
         }
       };
+    }, [refreshAuth, setCheckingAuth, setInitialized]); // Include all dependencies
 
-      checkAuth();
-    }, []);
+    // Run the auth check once on mount
+    useEffect(() => {
+      // Only run if the check function is defined
+      if (checkAuthRef.current) {
+        checkAuthRef.current();
+      }
+    }, []); // Empty dependency array ensures this only runs once
 
     return children;
   };
 
-  // Memoize the provider to prevent unnecessary re-renders
-  const MemoizedProvider = useMemo(() => {
-    return (
-      <OptimizedAuthProvider>
-        <EnhancedProvider>{children}</EnhancedProvider>
-      </OptimizedAuthProvider>
-    );
-  }, [children]);
+  // We don't need to memoize the provider since EnhancedProvider is recreated on every render
+  // Just return the provider directly
+  return (
+    <OptimizedAuthProvider>
+      <EnhancedProvider>{children}</EnhancedProvider>
+    </OptimizedAuthProvider>
+  );
 
-  return MemoizedProvider;
+  // MemoizedProvider is no longer used
 }
 
 // Custom hook to use auth context with all state and actions combined

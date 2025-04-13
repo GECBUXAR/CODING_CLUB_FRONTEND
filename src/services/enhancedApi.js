@@ -6,7 +6,7 @@ import {
 } from "../utils/retryUtils";
 
 // Event name for rate limit notifications
-const RATE_LIMIT_EVENT = "api:rate-limit";
+const RATE_LIMIT_EVENT = "rate-limit-error";
 
 // Global settings for API request management
 const API_SETTINGS = {
@@ -257,7 +257,9 @@ const enhancedApiClient = {
     if (useCache) {
       const cachedResponse = responseCache.get(url);
       if (cachedResponse) {
-        console.log(`Using cached response for ${url}`);
+        // Don't log every cache hit to avoid console spam
+        // Only log for debugging purposes when needed
+        // console.log(`Using cached response for ${url}`);
         return cachedResponse;
       }
     }
@@ -265,7 +267,8 @@ const enhancedApiClient = {
     // Check if there's already an in-flight request for this URL
     const existingRequest = responseCache.getInFlightRequest(url);
     if (existingRequest && useCache) {
-      console.log(`Reusing in-flight request for ${url}`);
+      // Don't log every reuse to avoid console spam
+      // console.log(`Reusing in-flight request for ${url}`);
       return existingRequest;
     }
 

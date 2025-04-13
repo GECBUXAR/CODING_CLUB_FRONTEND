@@ -1,27 +1,50 @@
-import * as React from "react"
-import * as SwitchPrimitive from "@radix-ui/react-switch"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-import { cn } from "@/lib/utils"
+const Switch = React.forwardRef(
+  ({ className, checked, onCheckedChange, disabled, ...props }, ref) => {
+    // Handle the change event
+    const handleChange = React.useCallback(
+      (e) => {
+        if (onCheckedChange) {
+          onCheckedChange(e.target.checked);
+        }
+      },
+      [onCheckedChange]
+    );
 
-function Switch({
-  className,
-  ...props
-}) {
-  return (
-    (<SwitchPrimitive.Root
-      data-slot="switch"
-      className={cn(
-        "peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
-      {...props}>
-      <SwitchPrimitive.Thumb
-        data-slot="switch-thumb"
-        className={cn(
-          "bg-background pointer-events-none block size-4 rounded-full ring-0 shadow-lg transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
-        )} />
-    </SwitchPrimitive.Root>)
-  );
-}
+    return (
+      <div className={cn("relative inline-flex", className)}>
+        <input
+          type="checkbox"
+          role="switch"
+          ref={ref}
+          checked={checked}
+          disabled={disabled}
+          onChange={handleChange}
+          className="sr-only peer"
+          {...props}
+        />
+        <div
+          className={cn(
+            "inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 border-transparent transition-colors",
+            "peer-focus-visible:ring-[3px] peer-focus-visible:ring-ring/50",
+            "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+            checked ? "bg-primary" : "bg-input"
+          )}
+        >
+          <span
+            className={cn(
+              "pointer-events-none block size-4 rounded-full bg-background shadow-lg transition-transform",
+              checked ? "translate-x-4" : "translate-x-0"
+            )}
+          />
+        </div>
+      </div>
+    );
+  }
+);
 
-export { Switch }
+Switch.displayName = "Switch";
+
+export { Switch };
