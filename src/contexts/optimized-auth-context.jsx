@@ -298,20 +298,19 @@ const actions = {
       if (!result.success) {
         try {
           // If user profile didn't work, try the admin profile endpoint
-          const adminResult = await enhancedApiClient.get(
-            "/admin/profile",
-            {},
-            true
-          );
-          if (adminResult.data && adminResult.data.status === "success") {
-            result = {
-              success: true,
-              data: adminResult.data.data,
-            };
-            // Ensure admin role is set
-            if (result.data && !result.data.role) {
-              result.data.role = "admin";
+          try {
+            // Use authService instead of direct API call for better error handling
+            const adminResult = await authService.getAdminProfile();
+
+            if (adminResult.success && adminResult.data) {
+              result = adminResult;
+              // Ensure admin role is set
+              if (result.data && !result.data.role) {
+                result.data.role = "admin";
+              }
             }
+          } catch (innerError) {
+            console.error("Inner admin profile check error:", innerError);
           }
         } catch (adminError) {
           console.error("Admin profile check failed:", adminError);
@@ -369,15 +368,16 @@ export function AuthProvider({ children }) {
     const { isAuthenticated } = useAuthState();
     const { refreshAuth, setCheckingAuth, setInitialized } = useAuthActions();
 
-    // Listen for auth errors from API client
+    // Use a ref to store the auth error handler function
+    const handleAuthErrorRef = useRef();
+
+    // Update the handler when dependencies change
     useEffect(() => {
-      // Create a stable reference to the logout function
-      // to avoid recreating the handler on every render
-      const handleAuthError = (event) => {
+      // Create a stable reference to the handler function
+      handleAuthErrorRef.current = (event) => {
         // Only redirect if we think we're authenticated but get a 401/403
         if (isAuthenticated) {
-          // Use the refreshAuth action directly instead of getting logout from useAuthActions
-          // This avoids the React hooks rules violation
+          // Use the refreshAuth action directly
           refreshAuth().then((isStillAuthenticated) => {
             if (!isStillAuthenticated) {
               // Only navigate if we're truly not authenticated
@@ -392,21 +392,34 @@ export function AuthProvider({ children }) {
           });
         }
       };
-
-      window.addEventListener("auth-error", handleAuthError);
-      return () => {
-        window.removeEventListener("auth-error", handleAuthError);
-      };
     }, [isAuthenticated, navigate, refreshAuth]); // Include all dependencies
 
-    // Check if user is already logged in on initial load
+    // Set up the event listener with a stable callback
     useEffect(() => {
-      // Use a ref to prevent multiple auth checks
-      const hasAttemptedInitialAuth = sessionStorage.getItem(
-        "hasAttemptedInitialAuth"
-      );
+      // Create a stable event handler that uses the ref
+      const stableHandler = (event) => {
+        if (handleAuthErrorRef.current) {
+          handleAuthErrorRef.current(event);
+        }
+      };
 
-      const checkAuth = async () => {
+      window.addEventListener("auth-error", stableHandler);
+      return () => {
+        window.removeEventListener("auth-error", stableHandler);
+      };
+    }, []); // Empty dependency array ensures this only runs once
+
+    // Store the auth check function in a ref
+    const checkAuthRef = useRef();
+
+    // Update the auth check function when dependencies change
+    useEffect(() => {
+      checkAuthRef.current = async () => {
+        // Use a ref to prevent multiple auth checks
+        const hasAttemptedInitialAuth = sessionStorage.getItem(
+          "hasAttemptedInitialAuth"
+        );
+
         if (hasAttemptedInitialAuth) {
           setCheckingAuth(false);
           setInitialized(true);
@@ -424,12 +437,15 @@ export function AuthProvider({ children }) {
           setInitialized(true);
         }
       };
+    }, [refreshAuth, setCheckingAuth, setInitialized]); // Include all dependencies
 
-      checkAuth();
-
-      // We intentionally omit dependencies here to ensure this only runs once on mount
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    // Run the auth check once on mount
+    useEffect(() => {
+      // Only run if the check function is defined
+      if (checkAuthRef.current) {
+        checkAuthRef.current();
+      }
+    }, []); // Empty dependency array ensures this only runs once
 
     return children;
   };

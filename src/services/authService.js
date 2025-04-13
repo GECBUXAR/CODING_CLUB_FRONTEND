@@ -322,3 +322,42 @@ export const changePassword = async (passwordData) => {
     };
   }
 };
+
+// Get admin profile
+export const getAdminProfile = async () => {
+  try {
+    console.log("Fetching admin profile");
+    const response = await enhancedApiClient.get("/admin/profile");
+    console.log("Admin profile response:", response.data);
+
+    // Check for data in the response
+    if (
+      response.data &&
+      (response.data.status === "success" || response.data.success)
+    ) {
+      const adminData = response.data.data || response.data;
+      // Ensure admin role is set
+      if (adminData && !adminData.role) {
+        adminData.role = "admin";
+      }
+      return {
+        success: true,
+        data: adminData,
+      };
+    }
+
+    return {
+      success: false,
+      error: "No admin data found in response",
+    };
+  } catch (error) {
+    console.error("Get admin profile error in authService:", error);
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to get admin profile",
+    };
+  }
+};
