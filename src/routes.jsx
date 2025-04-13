@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { RedirectIfAuthenticated } from "./routes/RedirectIfAuthenticated";
+import { extractIdFromParam } from "./utils/urlUtils";
 
 // Loading component for Suspense
 const LoadingFallback = () => (
@@ -176,8 +177,9 @@ const AppRoutes = () => {
           </Suspense>
         }
       />
+      {/* Support both /events/:id and /events/:id-slug formats */}
       <Route
-        path="/events/:id"
+        path="/events/:eventParam"
         element={
           <Suspense fallback={<LoadingFallback />}>
             <EventDetailPage />
@@ -192,16 +194,18 @@ const AppRoutes = () => {
           </Suspense>
         }
       />
+      {/* Support both /exams/:id and /exams/:id-slug formats */}
       <Route
-        path="/exams/:examId"
+        path="/exams/:examParam"
         element={
           <Suspense fallback={<LoadingFallback />}>
             <ExamDetailPage />
           </Suspense>
         }
       />
+      {/* Support both /exams/:id/results/:resultId and /exams/:id-slug/results/:resultId formats */}
       <Route
-        path="/exams/:examId/results/:resultId"
+        path="/exams/:examParam/results/:resultId"
         element={
           <UserRoute>
             <Suspense fallback={<LoadingFallback />}>
@@ -211,8 +215,9 @@ const AppRoutes = () => {
         }
       />
 
+      {/* Support both /exams/:id/leaderboard and /exams/:id-slug/leaderboard formats */}
       <Route
-        path="/exams/:examId/leaderboard"
+        path="/exams/:examParam/leaderboard"
         element={
           <UserRoute>
             <Suspense fallback={<LoadingFallback />}>
@@ -231,8 +236,9 @@ const AppRoutes = () => {
           </UserRoute>
         }
       />
+      {/* Support both /performance/:id and /performance/:id-slug formats */}
       <Route
-        path="/performance/:userId"
+        path="/performance/:userParam"
         element={
           <UserRoute>
             <Suspense fallback={<LoadingFallback />}>
@@ -281,8 +287,9 @@ const AppRoutes = () => {
           </AdminRoute>
         }
       />
+      {/* Support both /admin/exams/:id/results/:resultId/evaluate and /admin/exams/:id-slug/results/:resultId/evaluate formats */}
       <Route
-        path="/admin/exams/:examId/results/:resultId/evaluate"
+        path="/admin/exams/:examParam/results/:resultId/evaluate"
         element={
           <AdminRoute>
             <Suspense fallback={<LoadingFallback />}>
