@@ -14,7 +14,6 @@ const ModernFooter = () => {
       title: "Product",
       links: [
         { id: "features", name: "Features", href: "/features" },
-        { id: "pricing", name: "Pricing", href: "/pricing" },
         { id: "resources", name: "Resources", href: "/resources" },
         { id: "events", name: "Events", href: "/events" },
         { id: "exams", name: "Exams", href: "/exams" },
@@ -45,7 +44,7 @@ const ModernFooter = () => {
     {
       id: "github",
       icon: <Github className="h-5 w-5" />,
-      href: "https://github.com/coding-club",
+      href: "https://github.com/gecbuxar",
       label: "GitHub",
     },
     {
@@ -82,7 +81,7 @@ const ModernFooter = () => {
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <div className="h-8 w-8 rounded-md  flex items-center justify-center text-white font-bold">
-              <img src="/image/CodingClubLogoSmall.png" alt="logo" />
+                <img src="/image/CodingClubLogoSmall.png" alt="logo" />
               </div>
               <span className="text-xl font-semibold">Code Crusaders</span>
             </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { examService } from "@/services";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth-context";
 import {
   Card,
   CardContent,
@@ -9,12 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -33,13 +28,13 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { 
-  Award, 
-  TrendingUp, 
-  TrendingDown, 
-  BarChart2, 
+import {
+  Award,
+  TrendingUp,
+  TrendingDown,
+  BarChart2,
   PieChart as PieChartIcon,
-  Calendar 
+  Calendar,
 } from "lucide-react";
 
 const UserPerformanceDashboard = () => {
@@ -53,13 +48,13 @@ const UserPerformanceDashboard = () => {
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
   const GRADE_COLORS = {
     "A+": "#22c55e",
-    "A": "#4ade80",
+    A: "#4ade80",
     "B+": "#a3e635",
-    "B": "#facc15",
+    B: "#facc15",
     "C+": "#fb923c",
-    "C": "#f87171",
-    "D": "#ef4444",
-    "F": "#b91c1c",
+    C: "#f87171",
+    D: "#ef4444",
+    F: "#b91c1c",
   };
 
   useEffect(() => {
@@ -70,7 +65,7 @@ const UserPerformanceDashboard = () => {
 
         // If no userId is provided, use the current user's ID
         const targetUserId = userId || user?.id;
-        
+
         if (!targetUserId) {
           setError("User ID is required");
           return;
@@ -103,26 +98,29 @@ const UserPerformanceDashboard = () => {
   const formatMonth = (monthYear) => {
     const [year, month] = monthYear.split("-");
     const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      year: "numeric",
+    });
   };
 
   // Prepare data for grade distribution chart
   const prepareGradeData = (results) => {
     if (!results || !results.length) return [];
-    
+
     const gradeCounts = {};
-    
-    results.forEach(result => {
+
+    results.forEach((result) => {
       if (!gradeCounts[result.grade]) {
         gradeCounts[result.grade] = 0;
       }
       gradeCounts[result.grade]++;
     });
-    
-    return Object.keys(gradeCounts).map(grade => ({
+
+    return Object.keys(gradeCounts).map((grade) => ({
       name: grade,
       value: gradeCounts[grade],
-      color: GRADE_COLORS[grade] || "#9ca3af"
+      color: GRADE_COLORS[grade] || "#9ca3af",
     }));
   };
 
@@ -157,9 +155,7 @@ const UserPerformanceDashboard = () => {
       <Card>
         <CardHeader>
           <CardTitle>No Performance Data</CardTitle>
-          <CardDescription>
-            No exam results found for this user
-          </CardDescription>
+          <CardDescription>No exam results found for this user</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-center text-muted-foreground py-8">
@@ -171,10 +167,10 @@ const UserPerformanceDashboard = () => {
   }
 
   // Prepare data for trend chart
-  const trendData = performance.trend.map(month => ({
+  const trendData = performance.trend.map((month) => ({
     name: formatMonth(month.month),
     score: Math.round(month.averageScore),
-    examCount: month.examCount
+    examCount: month.examCount,
   }));
 
   // Prepare data for grade distribution
@@ -238,9 +234,7 @@ const UserPerformanceDashboard = () => {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Pass Rate
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
@@ -257,7 +251,8 @@ const UserPerformanceDashboard = () => {
                         : "bg-red-50 text-red-700"
                     }
                   >
-                    {performance.overall.passedExams} / {performance.overall.totalExams}
+                    {performance.overall.passedExams} /{" "}
+                    {performance.overall.totalExams}
                   </Badge>
                 </div>
                 <Progress
@@ -321,9 +316,7 @@ const UserPerformanceDashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle>Performance Trend</CardTitle>
-              <CardDescription>
-                Your average scores over time
-              </CardDescription>
+              <CardDescription>Your average scores over time</CardDescription>
             </CardHeader>
             <CardContent>
               {trendData.length > 0 ? (
@@ -344,7 +337,7 @@ const UserPerformanceDashboard = () => {
                       <YAxis
                         yAxisId="right"
                         orientation="right"
-                        domain={[0, 'dataMax + 1']}
+                        domain={[0, "dataMax + 1"]}
                       />
                       <Tooltip />
                       <Legend />
@@ -482,9 +475,7 @@ const UserPerformanceDashboard = () => {
       <Card>
         <CardHeader>
           <CardTitle>Recent Exams</CardTitle>
-          <CardDescription>
-            Your most recent exam results
-          </CardDescription>
+          <CardDescription>Your most recent exam results</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -492,9 +483,7 @@ const UserPerformanceDashboard = () => {
               <Card key={result.id} className="overflow-hidden">
                 <div
                   className={`h-1 w-full ${
-                    result.passed
-                      ? "bg-green-500"
-                      : "bg-red-500"
+                    result.passed ? "bg-green-500" : "bg-red-500"
                   }`}
                 />
                 <CardContent className="p-4">

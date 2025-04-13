@@ -1,5 +1,5 @@
 import Navbar from "../../components/common/Navbar.jsx";
-import AllExams from "../../components/exam/AllExams.jsx";
+import AllExams from "../../components/exams/AllExams.jsx";
 
 const ExamsPage = () => {
   return (
