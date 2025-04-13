@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import * as authService from "../services/authService";
-import apiClient from "../services/api";
+import enhancedApiClient from "../services/enhancedApi";
 import { createOptimizedContext } from "./optimized-context";
 
 // Initial state for the reducer
@@ -258,7 +258,7 @@ const actions = {
   // Refresh auth action
   refreshAuth: () => async (dispatch, getState) => {
     const state = getState();
-    
+
     // Prevent excessive calls to refreshAuth
     const now = Date.now();
     const lastRefreshTime = window.sessionStorage.getItem("lastAuthRefresh");
@@ -282,7 +282,11 @@ const actions = {
       if (!result.success) {
         try {
           // If user profile didn't work, try the admin profile endpoint
-          const adminResult = await apiClient.get("/admin/profile");
+          const adminResult = await enhancedApiClient.get(
+            "/admin/profile",
+            {},
+            true
+          );
           if (adminResult.data && adminResult.data.status === "success") {
             result = {
               success: true,
@@ -353,7 +357,7 @@ export function AuthProvider({ children }) {
           // Use the logout action
           const { logout } = useAuthActions();
           logout();
-          
+
           navigate("/login", {
             state: {
               from: window.location.pathname,
@@ -386,7 +390,7 @@ export function AuthProvider({ children }) {
         try {
           sessionStorage.setItem("hasAttemptedInitialAuth", "true");
           setCheckingAuth(true);
-          
+
           // Use the refreshAuth action to check authentication
           await refreshAuth();
         } finally {
@@ -424,7 +428,8 @@ export function useAuth() {
 
 // RequireAuth component for protected routes
 export function RequireAuth({ children, allowedRoles = ["user", "admin"] }) {
-  const { isAuthenticated, isAdmin, initialized, checkingAuth } = useAuthState();
+  const { isAuthenticated, isAdmin, initialized, checkingAuth } =
+    useAuthState();
   const navigate = useNavigate();
 
   useEffect(() => {

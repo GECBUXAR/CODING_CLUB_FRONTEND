@@ -57,64 +57,99 @@ const HomePage = () => {
   // Debounce timer ref
   const timerRef = useRef(null);
 
-  // Fetch public data (events and exams)
+  // Fetch public data (events and exams) with staggered loading
   useEffect(() => {
+    // Track if the component is still mounted
+    let isMounted = true;
+
     const fetchPublicData = async () => {
       if (dataFetchedRef.current.events && dataFetchedRef.current.exams) {
         return; // Data already fetched
       }
 
       setLoading(true);
+
+      // Staggered loading of data to prevent API flooding
       try {
-        // Fetch upcoming events if not already fetched
+        // First, fetch upcoming events if not already fetched
         if (!dataFetchedRef.current.events) {
-          const eventsResponse = await eventService.getUpcomingEvents(6);
-          if (eventsResponse.success) {
-            setEvents(eventsResponse.data || []);
+          try {
+            const eventsResponse = await eventService.getUpcomingEvents(6);
 
-            // Set featured content (first 3 events)
-            if (eventsResponse.data && eventsResponse.data.length > 0) {
-              setFeaturedContent(eventsResponse.data.slice(0, 3));
+            // Check if component is still mounted before updating state
+            if (!isMounted) return;
+
+            if (eventsResponse.success) {
+              setEvents(eventsResponse.data || []);
+
+              // Set featured content (first 3 events)
+              if (eventsResponse.data && eventsResponse.data.length > 0) {
+                setFeaturedContent(eventsResponse.data.slice(0, 3));
+              }
+
+              dataFetchedRef.current.events = true;
             }
-
-            dataFetchedRef.current.events = true;
+          } catch (error) {
+            console.error("Error fetching events:", error);
           }
         }
 
-        // Fetch latest exams if not already fetched
+        // Wait a bit before making the second request to avoid throttling
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Check if component is still mounted before continuing
+        if (!isMounted) return;
+
+        // Then, fetch latest exams if not already fetched
         if (!dataFetchedRef.current.exams) {
-          const examsResponse = await examService.getAllExams({
-            limit: 6,
-            sort: "createdAt",
-          });
-          if (examsResponse.success) {
-            setExams(examsResponse.data || []);
-            dataFetchedRef.current.exams = true;
+          try {
+            const examsResponse = await examService.getAllExams({
+              limit: 6,
+              sort: "createdAt",
+            });
+
+            // Check if component is still mounted before updating state
+            if (!isMounted) return;
+
+            if (examsResponse.success) {
+              setExams(examsResponse.data || []);
+              dataFetchedRef.current.exams = true;
+            }
+          } catch (error) {
+            console.error("Error fetching exams:", error);
           }
         }
       } catch (error) {
-        console.error("Error fetching public data:", error);
+        console.error("Error in fetchPublicData:", error);
       } finally {
-        setLoading(false);
+        // Only update loading state if component is still mounted
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchPublicData();
+    // Delay initial data loading slightly to allow the page to render first
+    timerRef.current = setTimeout(fetchPublicData, 100);
 
     // Cleanup function
     return () => {
+      isMounted = false;
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
     };
   }, []);
 
-  // Fetch user-specific data (user events and exams) with debouncing
+  // Fetch user-specific data (user events and exams) with debouncing and staggered loading
   useEffect(() => {
     // Skip if not authenticated
     if (!isAuthenticated) {
       return;
     }
+
+    // Track if the component is still mounted
+    let isMounted = true;
 
     // Clear any existing timer
     if (timerRef.current) {
@@ -125,34 +160,55 @@ const HomePage = () => {
       try {
         // Fetch user's enrolled events if not already fetched
         if (!dataFetchedRef.current.userEvents) {
-          const userEventsResponse = await eventService.getUserEvents();
-          if (userEventsResponse.success) {
-            setUserEvents(userEventsResponse.data || []);
-            dataFetchedRef.current.userEvents = true;
+          try {
+            const userEventsResponse = await eventService.getUserEvents();
+
+            // Check if component is still mounted before updating state
+            if (!isMounted) return;
+
+            if (userEventsResponse.success) {
+              setUserEvents(userEventsResponse.data || []);
+              dataFetchedRef.current.userEvents = true;
+            }
+          } catch (error) {
+            console.error("Error fetching user events:", error);
           }
         }
 
         // Wait a bit before making the second request to avoid throttling
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // Check if component is still mounted before continuing
+        if (!isMounted) return;
 
         // Fetch user's enrolled exams if not already fetched
         if (!dataFetchedRef.current.userExams) {
-          const userExamsResponse = await examService.getUserExams();
-          if (userExamsResponse.success) {
-            setUserExams(userExamsResponse.data || []);
-            dataFetchedRef.current.userExams = true;
+          try {
+            const userExamsResponse = await examService.getUserExams();
+
+            // Check if component is still mounted before updating state
+            if (!isMounted) return;
+
+            if (userExamsResponse.success) {
+              setUserExams(userExamsResponse.data || []);
+              dataFetchedRef.current.userExams = true;
+            }
+          } catch (error) {
+            console.error("Error fetching user exams:", error);
           }
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error in fetchUserData:", error);
       }
     };
 
     // Debounce the API calls to prevent throttling
-    timerRef.current = setTimeout(fetchUserData, 500);
+    // Use a longer delay for user data to prioritize public data loading
+    timerRef.current = setTimeout(fetchUserData, 2000);
 
     // Cleanup function
     return () => {
+      isMounted = false;
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }

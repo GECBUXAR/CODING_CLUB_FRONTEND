@@ -1,9 +1,9 @@
-import apiClient from "./api";
+import enhancedApiClient from "./enhancedApi";
 
 // Check if email belongs to an admin user
 export const checkIfAdmin = async (email) => {
   try {
-    const response = await apiClient.get(
+    const response = await enhancedApiClient.get(
       `/admin/check-by-email?email=${encodeURIComponent(email)}`
     );
     return response.data?.isAdmin || false;
@@ -31,7 +31,7 @@ export const login = async (credentials) => {
     }
 
     // Regular user login
-    const response = await apiClient.post("/users/login", credentials);
+    const response = await enhancedApiClient.post("/users/login", credentials);
     console.log("Login response:", response.data);
 
     const userData = response.data.user || response.data.data?.user;
@@ -69,7 +69,7 @@ export const login = async (credentials) => {
 export const adminLogin = async (credentials) => {
   console.log("authService.adminLogin called with:", credentials);
   try {
-    const response = await apiClient.post("/admin/login", credentials);
+    const response = await enhancedApiClient.post("/admin/login", credentials);
     console.log("Admin login response:", response.data);
 
     const userData = response.data.user || response.data.data?.user;
@@ -113,7 +113,7 @@ export const register = async (userData) => {
     const endpoint = isAdminRegistration ? "/admin/signup" : "/users/signup";
 
     // Set a shorter timeout for this specific request
-    const response = await apiClient.post(endpoint, userData, {
+    const response = await enhancedApiClient.post(endpoint, userData, {
       timeout: 8000, // 8 seconds timeout for registration
     });
     console.log("Register response:", response.data);
@@ -147,7 +147,7 @@ export const logout = async () => {
     // Check if the current user is an admin by trying to access the admin profile
     let isAdmin = false;
     try {
-      const adminCheck = await apiClient.get("/admin/profile");
+      const adminCheck = await enhancedApiClient.get("/admin/profile");
       isAdmin =
         adminCheck.data &&
         (adminCheck.data.status === "success" || adminCheck.data.success);
@@ -158,7 +158,7 @@ export const logout = async () => {
 
     // Use the appropriate endpoint based on user type
     const endpoint = isAdmin ? "/admin/logout" : "/users/logout";
-    const response = await apiClient.post(endpoint);
+    const response = await enhancedApiClient.post(endpoint);
 
     // Clear the token from localStorage
     localStorage.removeItem("accessToken");
@@ -184,7 +184,7 @@ export const getCurrentUser = async () => {
 
     // First try the regular user profile endpoint
     try {
-      const response = await apiClient.get("/users/profile");
+      const response = await enhancedApiClient.get("/users/profile");
       console.log("Current user response:", response.data);
 
       // Check for data in the response using both formats
@@ -223,7 +223,7 @@ export const getCurrentUser = async () => {
 
     // If we get here, try the admin profile endpoint
     try {
-      const adminResponse = await apiClient.get("/admin/profile");
+      const adminResponse = await enhancedApiClient.get("/admin/profile");
       console.log("Admin profile response:", adminResponse.data);
 
       if (
@@ -280,7 +280,10 @@ export const getCurrentUser = async () => {
 // Update user profile
 export const updateProfile = async (userData) => {
   try {
-    const response = await apiClient.put("/users/update-profile", userData);
+    const response = await enhancedApiClient.put(
+      "/users/update-profile",
+      userData
+    );
     return {
       success: true,
       data: response.data.data || response.data.user,
@@ -300,7 +303,7 @@ export const updateProfile = async (userData) => {
 // Change password
 export const changePassword = async (passwordData) => {
   try {
-    const response = await apiClient.post(
+    const response = await enhancedApiClient.post(
       "/users/change-password",
       passwordData
     );

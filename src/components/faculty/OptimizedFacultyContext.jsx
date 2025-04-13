@@ -1,5 +1,14 @@
-import React, { createContext, useContext, useReducer, useEffect, useMemo, useCallback } from "react";
-import apiClient from "../../services/api";
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
+import enhancedApiClient from "../../services/enhancedApi";
+import { loadEndpoint, clearEndpointCache } from "../../services/apiManager";
 
 // Action types
 export const ActionTypes = {
@@ -72,37 +81,74 @@ const FacultyActionsContext = createContext(null);
 export function FacultyProvider({ children }) {
   const [state, dispatch] = useReducer(facultyReducer, initialState);
 
-  // Fetch faculty data on mount
-  useEffect(() => {
-    const fetchFaculty = async () => {
-      try {
-        dispatch({ type: ActionTypes.FETCH_FACULTY_START });
-        const response = await apiClient.get("/faculty");
-        dispatch({
-          type: ActionTypes.FETCH_FACULTY_SUCCESS,
-          payload: response.data,
-        });
-      } catch (error) {
-        console.error("Error fetching faculty:", error);
-        dispatch({
-          type: ActionTypes.FETCH_FACULTY_ERROR,
-          payload: error.message || "Failed to fetch faculty",
-        });
-      }
-    };
+  // Track if initial fetch has been done
+  const initialFetchDone = useRef(false);
 
-    fetchFaculty();
+  // Define fetchFaculty as a callback so it can be used in useEffect and exposed in context
+  const fetchFaculty = useCallback(async (useCache = true) => {
+    try {
+      // Only show loading state if we don't have cached data
+      dispatch({ type: ActionTypes.FETCH_FACULTY_START });
+
+      // Use API Manager to load faculty data
+      // This prevents duplicate requests and implements throttling
+      const response = await loadEndpoint("/faculty", !useCache);
+
+      // Check if response has the expected structure
+      const facultyData = response?.data?.data || response?.data || [];
+
+      dispatch({
+        type: ActionTypes.FETCH_FACULTY_SUCCESS,
+        payload: facultyData,
+      });
+
+      return { success: true, data: facultyData };
+    } catch (error) {
+      console.error("Error fetching faculty:", error);
+      dispatch({
+        type: ActionTypes.FETCH_FACULTY_ERROR,
+        payload: error.message || "Failed to fetch faculty",
+      });
+
+      return {
+        success: false,
+        error: error.message || "Failed to fetch faculty",
+      };
+    }
   }, []);
+
+  // Fetch faculty data on mount with delay
+  useEffect(() => {
+    // Only fetch on initial mount, not on every rerender
+    if (!initialFetchDone.current) {
+      initialFetchDone.current = true;
+
+      // Use a longer delay to ensure API Manager has initialized
+      setTimeout(() => {
+        // This will either use cached data from API Manager or trigger a new request
+        // but with proper throttling and deduplication
+        fetchFaculty(true);
+      }, 2000);
+    }
+  }, [fetchFaculty]);
 
   // Action creators
   const addFacultyMember = useCallback(async (facultyData) => {
     try {
-      const response = await apiClient.post("/faculty", facultyData);
+      const response = await enhancedApiClient.post("/faculty", facultyData);
+
+      // Check if response has the expected structure
+      const newFaculty = response?.data?.data || response?.data;
+
       dispatch({
         type: ActionTypes.ADD_FACULTY_MEMBER,
-        payload: response.data,
+        payload: newFaculty,
       });
-      return { success: true, data: response.data };
+
+      // Clear the faculty cache to ensure fresh data on next fetch
+      clearEndpointCache("/faculty");
+
+      return { success: true, data: newFaculty };
     } catch (error) {
       console.error("Error adding faculty member:", error);
       return {
@@ -114,12 +160,23 @@ export function FacultyProvider({ children }) {
 
   const updateFacultyMember = useCallback(async (id, facultyData) => {
     try {
-      const response = await apiClient.put(`/faculty/${id}`, facultyData);
+      const response = await enhancedApiClient.put(
+        `/faculty/${id}`,
+        facultyData
+      );
+
+      // Check if response has the expected structure
+      const updatedFaculty = response?.data?.data || response?.data;
+
       dispatch({
         type: ActionTypes.UPDATE_FACULTY_MEMBER,
-        payload: response.data,
+        payload: updatedFaculty,
       });
-      return { success: true, data: response.data };
+
+      // Clear the faculty cache to ensure fresh data on next fetch
+      clearEndpointCache("/faculty");
+
+      return { success: true, data: updatedFaculty };
     } catch (error) {
       console.error("Error updating faculty member:", error);
       return {
@@ -131,11 +188,15 @@ export function FacultyProvider({ children }) {
 
   const deleteFacultyMember = useCallback(async (id) => {
     try {
-      await apiClient.delete(`/faculty/${id}`);
+      await enhancedApiClient.delete(`/faculty/${id}`);
       dispatch({
         type: ActionTypes.DELETE_FACULTY_MEMBER,
         payload: id,
       });
+
+      // Clear the faculty cache to ensure fresh data on next fetch
+      clearEndpointCache("/faculty");
+
       return { success: true };
     } catch (error) {
       console.error("Error deleting faculty member:", error);
@@ -149,14 +210,29 @@ export function FacultyProvider({ children }) {
   // Memoize the state value to prevent unnecessary re-renders
   const stateValue = useMemo(() => state, [state]);
 
+  // Function to refresh faculty data (just a wrapper around fetchFaculty with cache cleared)
+  const refreshFaculty = useCallback(async () => {
+    // Clear the cache first to ensure we get fresh data
+    clearEndpointCache("/faculty");
+    return fetchFaculty(false); // Don't use cache for refresh
+  }, [fetchFaculty]);
+
   // Memoize the actions value to prevent unnecessary re-renders
   const actionsValue = useMemo(
     () => ({
       addFacultyMember,
       updateFacultyMember,
       deleteFacultyMember,
+      fetchFaculty, // Expose the fetch function
+      refreshFaculty, // Convenience method to refresh with cache cleared
     }),
-    [addFacultyMember, updateFacultyMember, deleteFacultyMember]
+    [
+      addFacultyMember,
+      updateFacultyMember,
+      deleteFacultyMember,
+      fetchFaculty,
+      refreshFaculty,
+    ]
   );
 
   return (

@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import * as authService from "../services/authService";
-import apiClient from "../services/api";
+import enhancedApiClient from "../services/enhancedApi";
 
 // Create auth context with null as default value
 const AuthContext = createContext(null);
@@ -128,7 +128,11 @@ export function AuthProvider({ children }) {
       if (!result.success) {
         try {
           // If user profile didn't work, try the admin profile endpoint
-          const adminResult = await apiClient.get("/admin/profile");
+          const adminResult = await enhancedApiClient.get(
+            "/admin/profile",
+            {},
+            true
+          );
           if (adminResult.data && adminResult.data.status === "success") {
             result = {
               success: true,
@@ -199,7 +203,11 @@ export function AuthProvider({ children }) {
         if (!result.success) {
           try {
             // If user profile didn't work, try the admin profile endpoint
-            const adminResult = await apiClient.get("/admin/profile");
+            const adminResult = await enhancedApiClient.get(
+              "/admin/profile",
+              {},
+              true
+            );
             if (adminResult.data && adminResult.data.status === "success") {
               result = {
                 success: true,
