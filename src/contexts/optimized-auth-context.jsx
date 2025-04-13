@@ -262,19 +262,35 @@ const actions = {
     // Prevent excessive calls to refreshAuth
     const now = Date.now();
     const lastRefreshTime = window.sessionStorage.getItem("lastAuthRefresh");
-    const refreshInterval = 5000; // 5 seconds minimum between refreshes
+    const refreshInterval = 10000; // 10 seconds minimum between refreshes (increased from 5s)
 
     if (
       lastRefreshTime &&
       now - Number.parseInt(lastRefreshTime, 10) < refreshInterval
     ) {
-      return state.isAuthenticated; // Return current authentication state
+      // Return current authentication state without triggering any state changes
+      return state.isAuthenticated;
     }
 
+    // Track this refresh attempt
     window.sessionStorage.setItem("lastAuthRefresh", now.toString());
+
+    // Only set checking auth to true if we're actually going to make an API call
     dispatch({ type: "SET_CHECKING_AUTH", payload: true });
 
     try {
+      // Use a flag to track if we're in the middle of an auth refresh
+      // This prevents multiple simultaneous auth refreshes
+      if (window.isRefreshingAuth) {
+        console.log(
+          "Auth refresh already in progress, skipping duplicate call"
+        );
+        dispatch({ type: "SET_CHECKING_AUTH", payload: false });
+        return state.isAuthenticated;
+      }
+
+      window.isRefreshingAuth = true;
+
       // Try to get the user profile first
       let result = await authService.getCurrentUser();
 
@@ -322,7 +338,11 @@ const actions = {
       dispatch({ type: "LOGOUT" });
       return false;
     } finally {
+      // Reset the auth checking flag
       dispatch({ type: "SET_CHECKING_AUTH", payload: false });
+
+      // Reset the global refresh flag to allow future auth refreshes
+      window.isRefreshingAuth = false;
     }
   },
 };
@@ -351,18 +371,24 @@ export function AuthProvider({ children }) {
 
     // Listen for auth errors from API client
     useEffect(() => {
+      // Create a stable reference to the logout function
+      // to avoid recreating the handler on every render
       const handleAuthError = (event) => {
         // Only redirect if we think we're authenticated but get a 401/403
         if (isAuthenticated) {
-          // Use the logout action
-          const { logout } = useAuthActions();
-          logout();
-
-          navigate("/login", {
-            state: {
-              from: window.location.pathname,
-              message: "Your session has expired. Please log in again.",
-            },
+          // Use the refreshAuth action directly instead of getting logout from useAuthActions
+          // This avoids the React hooks rules violation
+          refreshAuth().then((isStillAuthenticated) => {
+            if (!isStillAuthenticated) {
+              // Only navigate if we're truly not authenticated
+              navigate("/login", {
+                state: {
+                  from: window.location.pathname,
+                  message: "Your session has expired. Please log in again.",
+                },
+                replace: true, // Use replace to avoid back button issues
+              });
+            }
           });
         }
       };
@@ -371,7 +397,7 @@ export function AuthProvider({ children }) {
       return () => {
         window.removeEventListener("auth-error", handleAuthError);
       };
-    }, [navigate, isAuthenticated]);
+    }, [isAuthenticated, navigate, refreshAuth]); // Include all dependencies
 
     // Check if user is already logged in on initial load
     useEffect(() => {
@@ -400,21 +426,23 @@ export function AuthProvider({ children }) {
       };
 
       checkAuth();
+
+      // We intentionally omit dependencies here to ensure this only runs once on mount
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return children;
   };
 
-  // Memoize the provider to prevent unnecessary re-renders
-  const MemoizedProvider = useMemo(() => {
-    return (
-      <OptimizedAuthProvider>
-        <EnhancedProvider>{children}</EnhancedProvider>
-      </OptimizedAuthProvider>
-    );
-  }, [children]);
+  // We don't need to memoize the provider since EnhancedProvider is recreated on every render
+  // Just return the provider directly
+  return (
+    <OptimizedAuthProvider>
+      <EnhancedProvider>{children}</EnhancedProvider>
+    </OptimizedAuthProvider>
+  );
 
-  return MemoizedProvider;
+  // MemoizedProvider is no longer used
 }
 
 // Custom hook to use auth context with all state and actions combined
