@@ -34,7 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
-import { useFaculty } from "@/components/faculty/FacultyContext";
+import { useFaculty } from "@/components/faculty/OptimizedFacultyContext";
 
 export function FacultyPage() {
   // Get faculty data and functions from context

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useEvents } from "@/contexts/event-context";
+import { useEvents } from "@/contexts/optimized-event-context";
 import { Search, Download, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

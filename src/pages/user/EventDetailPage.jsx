@@ -24,7 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "react-hot-toast";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
 import eventService from "@/services/eventService";
 
 export default function EventDetailPage() {

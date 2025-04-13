@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAuth } from "@/contexts/auth-context";
-import { useNotification } from "@/contexts/notification-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
+import { useNotification } from "@/contexts/optimized-notification-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

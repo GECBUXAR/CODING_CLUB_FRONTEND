@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
 import { useNavigate } from "react-router-dom";
 
 export function DashboardLayout({ children, currentPage, setCurrentPage }) {

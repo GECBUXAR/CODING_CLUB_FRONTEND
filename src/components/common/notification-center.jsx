@@ -1,5 +1,5 @@
 import React from "react";
-import { useNotification } from "@/contexts/notification-context";
+import { useNotification } from "@/contexts/optimized-notification-context";
 
 // Styles for different notification types
 const notificationStyles = {

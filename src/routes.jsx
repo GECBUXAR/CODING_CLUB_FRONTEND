@@ -1,44 +1,69 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { RedirectIfAuthenticated } from "./routes/RedirectIfAuthenticated";
 
-// Public Pages
-import LandingPage from "./pages/common/LandingPage";
-import AboutPage from "./pages/common/AboutPage";
-import ContactPage from "./pages/common/ContactPage";
-import HomePage from "./pages/common/HomePage";
+// Loading component for Suspense
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
+  </div>
+);
 
-// Auth Pages
-import LoginPage from "./pages/auth/LoginPage.jsx";
-import SignupPage from "./pages/auth/SignupPage.jsx";
-import AdminSignupPage from "./pages/auth/AdminSignupPage.jsx";
+// Public Pages - Lazy loaded
+const LandingPage = lazy(() => import("./pages/common/LandingPage"));
+const AboutPage = lazy(() => import("./pages/common/AboutPage"));
+const ContactPage = lazy(() => import("./pages/common/ContactPage"));
+const HomePage = lazy(() => import("./pages/common/HomePage"));
 
-// User Pages
-import ProfilePage from "./pages/user/ProfilePage";
-import ExamsPage from "./pages/user/ExamsPage";
-import UserDashboardPage from "./pages/user/UserDashboardPage";
-import MyExamsPage from "./pages/user/MyExamsPage.jsx";
-import ExamDetailPage from "./pages/user/ExamDetailPage";
-import UserPerformancePage from "./pages/user/UserPerformancePage";
+// Auth Pages - Lazy loaded
+const LoginPage = lazy(() => import("./pages/auth/LoginPage.jsx"));
+const SignupPage = lazy(() => import("./pages/auth/SignupPage.jsx"));
+const AdminSignupPage = lazy(() => import("./pages/auth/AdminSignupPage.jsx"));
 
-// Exam Components
-import ExamResultsView from "./components/exams/ExamResultsView";
-import ExamLeaderboard from "./components/exams/ExamLeaderboard";
+// User Pages - Lazy loaded
+const ProfilePage = lazy(() => import("./pages/user/ProfilePage"));
+const ExamsPage = lazy(() => import("./pages/user/ExamsPage"));
+const UserDashboardPage = lazy(() => import("./pages/user/UserDashboardPage"));
+const MyExamsPage = lazy(() => import("./pages/user/MyExamsPage.jsx"));
+const ExamDetailPage = lazy(() => import("./pages/user/ExamDetailPage"));
+const UserPerformancePage = lazy(() =>
+  import("./pages/user/UserPerformancePage")
+);
 
-// Event Pages
-import EventsPage from "./pages/user/EventsPage";
-import EventDetailPage from "./pages/user/EventDetailPage";
+// Exam Components - Lazy loaded
+const ExamResultsView = lazy(() =>
+  import("./components/exams/ExamResultsView")
+);
+const ExamLeaderboard = lazy(() =>
+  import("./components/exams/ExamLeaderboard")
+);
 
-// Admin Pages
-import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
-import { AdminExamPanel } from "./pages/admin/AdminExamPanel";
-import AdminExamStatisticsPage from "./pages/admin/AdminExamStatisticsPage";
-import ExamResponseEvaluator from "./components/admin/exam-response-evaluator";
+// Event Pages - Lazy loaded
+const EventsPage = lazy(() => import("./pages/user/EventsPage"));
+const EventDetailPage = lazy(() => import("./pages/user/EventDetailPage"));
 
-// Error Pages
-import NotFoundPage from "./pages/errors/NotFoundPage";
-import CorsWarning from "./components/common/cors-warning";
+// Admin Pages - Lazy loaded
+const AdminDashboardPage = lazy(() =>
+  import("./pages/admin/AdminDashboardPage")
+);
+const AdminExamPanel = lazy(() =>
+  import("./pages/admin/AdminExamPanel").then((module) => ({
+    default: module.AdminExamPanel,
+  }))
+);
+const AdminExamStatisticsPage = lazy(() =>
+  import("./pages/admin/AdminExamStatisticsPage")
+);
+const ExamResponseEvaluator = lazy(() =>
+  import("./components/admin/exam-response-evaluator")
+);
+
+// Error Pages - Lazy loaded
+const NotFoundPage = lazy(() => import("./pages/errors/NotFoundPage"));
+
+// Import ApiConnectionWarning with the updated name
+import ApiConnectionWarning from "./components/common/cors-warning";
 
 // User Route - allows both regular users and admins
 const UserRoute = ({ children }) => {
@@ -63,27 +88,61 @@ const AppRoutes = () => {
         path="/"
         element={
           <RedirectIfAuthenticated>
-            <LandingPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <LandingPage />
+            </Suspense>
           </RedirectIfAuthenticated>
         }
       />
-      <Route path="/about" element={<AboutPage />} />
-      <Route path="/contact" element={<ContactPage />} />
+      <Route
+        path="/about"
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <AboutPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <ContactPage />
+          </Suspense>
+        }
+      />
       <Route
         path="/login"
         element={
           <RedirectIfAuthenticated>
-            <LoginPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <LoginPage />
+            </Suspense>
           </RedirectIfAuthenticated>
         }
       />
-      <Route path="/signup" element={<SignupPage />} />
-      <Route path="/admin-signup" element={<AdminSignupPage />} />
+      <Route
+        path="/signup"
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <SignupPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin-signup"
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminSignupPage />
+          </Suspense>
+        }
+      />
       <Route
         path="/home"
         element={
           <UserRoute>
-            <HomePage />
+            <Suspense fallback={<LoadingFallback />}>
+              <HomePage />
+            </Suspense>
           </UserRoute>
         }
       />
@@ -93,7 +152,9 @@ const AppRoutes = () => {
         path="/profile"
         element={
           <UserRoute>
-            <ProfilePage />
+            <Suspense fallback={<LoadingFallback />}>
+              <ProfilePage />
+            </Suspense>
           </UserRoute>
         }
       />
@@ -101,19 +162,51 @@ const AppRoutes = () => {
         path="/user/dashboard"
         element={
           <UserRoute>
-            <UserDashboardPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <UserDashboardPage />
+            </Suspense>
           </UserRoute>
         }
       />
-      <Route path="/events" element={<EventsPage />} />
-      <Route path="/events/:id" element={<EventDetailPage />} />
-      <Route path="/exams" element={<ExamsPage />} />
-      <Route path="/exams/:examId" element={<ExamDetailPage />} />
+      <Route
+        path="/events"
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <EventsPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/events/:id"
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <EventDetailPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/exams"
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <ExamsPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/exams/:examId"
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <ExamDetailPage />
+          </Suspense>
+        }
+      />
       <Route
         path="/exams/:examId/results/:resultId"
         element={
           <UserRoute>
-            <ExamResultsView />
+            <Suspense fallback={<LoadingFallback />}>
+              <ExamResultsView />
+            </Suspense>
           </UserRoute>
         }
       />
@@ -122,7 +215,9 @@ const AppRoutes = () => {
         path="/exams/:examId/leaderboard"
         element={
           <UserRoute>
-            <ExamLeaderboard />
+            <Suspense fallback={<LoadingFallback />}>
+              <ExamLeaderboard />
+            </Suspense>
           </UserRoute>
         }
       />
@@ -130,7 +225,9 @@ const AppRoutes = () => {
         path="/performance"
         element={
           <UserRoute>
-            <UserPerformancePage />
+            <Suspense fallback={<LoadingFallback />}>
+              <UserPerformancePage />
+            </Suspense>
           </UserRoute>
         }
       />
@@ -138,7 +235,9 @@ const AppRoutes = () => {
         path="/performance/:userId"
         element={
           <UserRoute>
-            <UserPerformancePage />
+            <Suspense fallback={<LoadingFallback />}>
+              <UserPerformancePage />
+            </Suspense>
           </UserRoute>
         }
       />
@@ -146,7 +245,9 @@ const AppRoutes = () => {
         path="/my-exams"
         element={
           <UserRoute>
-            <MyExamsPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <MyExamsPage />
+            </Suspense>
           </UserRoute>
         }
       />
@@ -156,7 +257,9 @@ const AppRoutes = () => {
         path="/admin/dashboard"
         element={
           <AdminRoute>
-            <AdminDashboardPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <AdminDashboardPage />
+            </Suspense>
           </AdminRoute>
         }
       />
@@ -172,7 +275,9 @@ const AppRoutes = () => {
         path="/admin/exams"
         element={
           <AdminRoute>
-            <AdminExamPanel />
+            <Suspense fallback={<LoadingFallback />}>
+              <AdminExamPanel />
+            </Suspense>
           </AdminRoute>
         }
       />
@@ -180,7 +285,9 @@ const AppRoutes = () => {
         path="/admin/exams/:examId/results/:resultId/evaluate"
         element={
           <AdminRoute>
-            <ExamResponseEvaluator />
+            <Suspense fallback={<LoadingFallback />}>
+              <ExamResponseEvaluator />
+            </Suspense>
           </AdminRoute>
         }
       />
@@ -196,14 +303,23 @@ const AppRoutes = () => {
         path="/admin/exam-statistics"
         element={
           <AdminRoute>
-            <AdminExamStatisticsPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <AdminExamStatisticsPage />
+            </Suspense>
           </AdminRoute>
         }
       />
 
       {/* Error Routes */}
-      <Route path="/cors-error" element={<CorsWarning />} />
-      <Route path="*" element={<NotFoundPage />} />
+      <Route path="/cors-error" element={<ApiConnectionWarning />} />
+      <Route
+        path="*"
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <NotFoundPage />
+          </Suspense>
+        }
+      />
     </Routes>
   );
 };

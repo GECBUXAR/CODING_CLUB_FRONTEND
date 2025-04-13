@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
 import { toast } from "@/hooks/use-toast";
 
 export default function LoginForm() {

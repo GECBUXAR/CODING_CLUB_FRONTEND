@@ -7,7 +7,7 @@ import {
   useRef,
 } from "react";
 import apiClient from "../services/api";
-import { useAuth } from "./auth-context";
+import { useAuth } from "./optimized-auth-context";
 
 const EventContext = createContext({
   events: [],

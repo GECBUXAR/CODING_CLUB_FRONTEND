@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { Menu, X, ChevronDown, Search, Bell, User, Home } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -122,7 +122,11 @@ const Navbar = () => {
         <Link to="/" className="flex-shrink-0" aria-label="Go to homepage">
           <span className="text-xl font-bold text-blue-600 flex items-center">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center mr-2 bg-gradient-to-tr  text-white">
-              <img src="/image/CodingClubLogoSmall.png" alt="" className="size-8" />
+              <img
+                src="/image/CodingClubLogoSmall.png"
+                alt=""
+                className="size-8"
+              />
             </div>
             <span className="hidden xs:block">
               <img
@@ -141,7 +145,7 @@ const Navbar = () => {
               key={link.id}
               to={link.id}
               className={({ isActive }) => `
-                group relative font-medium text-sm tracking-wider flex items-center gap-2 
+                group relative font-medium text-sm tracking-wider flex items-center gap-2
                 px-3 py-2 rounded-lg
                 ${
                   isActive

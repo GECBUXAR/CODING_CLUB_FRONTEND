@@ -8,7 +8,7 @@ import {
   GraduationCap,
   Trophy,
 } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/optimized-auth-context";
 import {
   Sidebar,
   SidebarContent,
