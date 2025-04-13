@@ -5,8 +5,10 @@ import { ResponseEvaluationProvider } from "./contexts/optimized-response-evalua
 import { ExamProvider } from "./contexts/optimized-exam-context";
 import { EventProvider } from "./contexts/optimized-event-context";
 import { FacultyProvider } from "./components/faculty/OptimizedFacultyContext";
+import { RateLimitProvider } from "./contexts/rate-limit-context";
 import NotificationCenter from "./components/common/notification-center";
 import ApiConnectionWarning from "./components/common/cors-warning";
+import AppInitializer from "./components/common/AppInitializer";
 import AppRoutes from "./routes";
 import { Toaster } from "sonner";
 
@@ -14,18 +16,22 @@ const App = () => {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <NotificationCenter />
-        <ResponseEvaluationProvider>
-          <ExamProvider>
-            <EventProvider>
-              <FacultyProvider>
-                <AppRoutes />
-                <ApiConnectionWarning />
-                <Toaster position="top-right" richColors closeButton />
-              </FacultyProvider>
-            </EventProvider>
-          </ExamProvider>
-        </ResponseEvaluationProvider>
+        <RateLimitProvider>
+          <NotificationCenter />
+          <ResponseEvaluationProvider>
+            <ExamProvider>
+              <EventProvider>
+                <FacultyProvider>
+                  {/* Add AppInitializer to handle controlled data loading */}
+                  <AppInitializer />
+                  <AppRoutes />
+                  <ApiConnectionWarning />
+                  <Toaster position="top-right" richColors closeButton />
+                </FacultyProvider>
+              </EventProvider>
+            </ExamProvider>
+          </ResponseEvaluationProvider>
+        </RateLimitProvider>
       </NotificationProvider>
     </AuthProvider>
   );

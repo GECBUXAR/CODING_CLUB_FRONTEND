@@ -1,4 +1,4 @@
-import apiClient from "./api";
+import enhancedApiClient from "./enhancedApi";
 
 /**
  * Exam Service - Handles all exam-related API calls
@@ -11,7 +11,7 @@ const examService = {
    */
   getAllExams: async (params = {}) => {
     try {
-      const response = await apiClient.get("/exams", { params });
+      const response = await enhancedApiClient.get("/exams", { params });
       return {
         success: true,
         data: response.data.data || [],
@@ -26,6 +26,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch exams",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -37,7 +39,7 @@ const examService = {
    */
   getExamById: async (id) => {
     try {
-      const response = await apiClient.get(`/exams/${id}`);
+      const response = await enhancedApiClient.get(`/exams/${id}`);
       return {
         success: true,
         data: response.data.data,
@@ -47,6 +49,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch exam details",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -58,7 +62,7 @@ const examService = {
    */
   getExamQuestions: async (id) => {
     try {
-      const response = await apiClient.get(`/exams/${id}/questions`);
+      const response = await enhancedApiClient.get(`/exams/${id}/questions`);
       return {
         success: true,
         data: response.data.data,
@@ -69,6 +73,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch exam questions",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -80,7 +86,7 @@ const examService = {
    */
   registerForExam: async (id) => {
     try {
-      const response = await apiClient.post(`/exams/${id}/register`);
+      const response = await enhancedApiClient.post(`/exams/${id}/register`);
       return {
         success: true,
         message:
@@ -91,6 +97,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to register for exam",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -102,7 +110,7 @@ const examService = {
    */
   getExamResponses: async (id) => {
     try {
-      const response = await apiClient.get(`/exams/${id}/responses`);
+      const response = await enhancedApiClient.get(`/exams/${id}/responses`);
       return {
         success: true,
         data: response.data.data,
@@ -113,6 +121,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch exam responses",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -124,7 +134,9 @@ const examService = {
    */
   getExamResponseById: async (responseId) => {
     try {
-      const response = await apiClient.get(`/exams/responses/${responseId}`);
+      const response = await enhancedApiClient.get(
+        `/exams/responses/${responseId}`
+      );
       return {
         success: true,
         data: response.data.data,
@@ -134,6 +146,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch exam response",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -145,7 +159,7 @@ const examService = {
    */
   getExamResults: async (id) => {
     try {
-      const response = await apiClient.get(`/exams/${id}/results`);
+      const response = await enhancedApiClient.get(`/exams/${id}/results`);
       return {
         success: true,
         data: response.data.data,
@@ -156,6 +170,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch exam results",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -169,10 +185,13 @@ const examService = {
    */
   submitExamAnswers: async (id, answers, timeSpent) => {
     try {
-      const response = await apiClient.post(`/enhanced-exams/${id}/submit`, {
-        answers,
-        timeSpent,
-      });
+      const response = await enhancedApiClient.post(
+        `/enhanced-exams/${id}/submit`,
+        {
+          answers,
+          timeSpent,
+        }
+      );
       return {
         success: true,
         data: response.data.data,
@@ -183,6 +202,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to submit exam answers",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -194,7 +215,7 @@ const examService = {
   getUserExams: async () => {
     try {
       // Use the events endpoint to get all user events
-      const response = await apiClient.get("/events/user-events");
+      const response = await enhancedApiClient.get("/events/user-events");
 
       if (response.data?.data) {
         // Filter the events to only include exams (isExam: true)
@@ -217,6 +238,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch your exams",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -229,7 +252,11 @@ const examService = {
    */
   getExamResult: async (examId, resultId) => {
     try {
-      const response = await apiClient.get(`/results/${resultId}`);
+      const response = await enhancedApiClient.get(
+        `/results/${resultId}`,
+        {},
+        true
+      );
       return {
         success: true,
         data: response.data.data,
@@ -239,6 +266,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch exam result",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -251,8 +280,10 @@ const examService = {
    */
   getExamResultAdmin: async (examId, resultId) => {
     try {
-      const response = await apiClient.get(
-        `/enhanced-exams/${examId}/results/${resultId}`
+      const response = await enhancedApiClient.get(
+        `/enhanced-exams/${examId}/results/${resultId}`,
+        {},
+        true
       );
       return {
         success: true,
@@ -263,6 +294,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch exam result",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -275,8 +308,10 @@ const examService = {
    */
   getUserExamResults: async (examId, userId) => {
     try {
-      const response = await apiClient.get(
-        `/enhanced-exams/${examId}/results/user/${userId}`
+      const response = await enhancedApiClient.get(
+        `/enhanced-exams/${examId}/results/user/${userId}`,
+        {},
+        true
       );
       return {
         success: true,
@@ -288,6 +323,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch user exam results",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -299,8 +336,10 @@ const examService = {
    */
   getExamLeaderboard: async (examId) => {
     try {
-      const response = await apiClient.get(
-        `/results/exam/${examId}/leaderboard`
+      const response = await enhancedApiClient.get(
+        `/results/exam/${examId}/leaderboard`,
+        {},
+        true
       );
       return {
         success: true,
@@ -311,6 +350,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch exam leaderboard",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -325,7 +366,7 @@ const examService = {
    */
   evaluateAnswer: async (examId, resultId, answerId, evaluation) => {
     try {
-      const response = await apiClient.put(
+      const response = await enhancedApiClient.put(
         `/enhanced-exams/${examId}/results/${resultId}/answers/${answerId}/evaluate`,
         evaluation
       );
@@ -339,6 +380,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to evaluate answer",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -351,7 +394,7 @@ const examService = {
    */
   generateCertificate: async (examId, resultId) => {
     try {
-      const response = await apiClient.post(
+      const response = await enhancedApiClient.post(
         `/enhanced-exams/${examId}/results/${resultId}/certificate`
       );
       return {
@@ -364,6 +407,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to generate certificate",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -374,7 +419,11 @@ const examService = {
    */
   getExamStatistics: async () => {
     try {
-      const response = await apiClient.get("/results/statistics/exams");
+      const response = await enhancedApiClient.get(
+        "/results/statistics/exams",
+        {},
+        true
+      );
       return {
         success: true,
         data: response.data.data,
@@ -384,6 +433,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch exam statistics",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -395,8 +446,10 @@ const examService = {
    */
   getUserPerformance: async (userId) => {
     try {
-      const response = await apiClient.get(
-        `/results/user/${userId}/performance`
+      const response = await enhancedApiClient.get(
+        `/results/user/${userId}/performance`,
+        {},
+        true
       );
       return {
         success: true,
@@ -407,6 +460,8 @@ const examService = {
       return {
         success: false,
         error: error.message || "Failed to fetch user performance",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },

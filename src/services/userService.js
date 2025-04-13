@@ -1,9 +1,9 @@
-import apiClient from "./api";
+import enhancedApiClient from "./enhancedApi";
 
 // Get all users (admin only)
 export const getAllUsers = async () => {
   try {
-    const response = await apiClient.get("/admin/users");
+    const response = await enhancedApiClient.get("/admin/users");
     return {
       success: true,
       data: response.data.data || [],
@@ -19,7 +19,7 @@ export const getAllUsers = async () => {
 // Get user by ID (admin only)
 export const getUserById = async (userId) => {
   try {
-    const response = await apiClient.get(`/admin/users/${userId}`);
+    const response = await enhancedApiClient.get(`/admin/users/${userId}`);
     return {
       success: true,
       data: response.data.data,
@@ -35,7 +35,10 @@ export const getUserById = async (userId) => {
 // Update user (admin only)
 export const updateUser = async (userId, userData) => {
   try {
-    const response = await apiClient.put(`/admin/users/${userId}`, userData);
+    const response = await enhancedApiClient.put(
+      `/admin/users/${userId}`,
+      userData
+    );
     return {
       success: true,
       data: response.data.data,
@@ -51,7 +54,7 @@ export const updateUser = async (userId, userData) => {
 // Delete user (admin only)
 export const deleteUser = async (userId) => {
   try {
-    await apiClient.delete(`/admin/users/${userId}`);
+    await enhancedApiClient.delete(`/admin/users/${userId}`);
     return {
       success: true,
     };
@@ -66,7 +69,9 @@ export const deleteUser = async (userId) => {
 // Get user activity (admin only)
 export const getUserActivity = async (userId) => {
   try {
-    const response = await apiClient.get(`/admin/users/${userId}/activity`);
+    const response = await enhancedApiClient.get(
+      `/admin/users/${userId}/activity`
+    );
     return {
       success: true,
       data: response.data.data || [],
@@ -82,7 +87,9 @@ export const getUserActivity = async (userId) => {
 // Subscribe to newsletter
 export const subscribeToNewsletter = async (email) => {
   try {
-    const response = await apiClient.post("/users/subscribe", { email });
+    const response = await enhancedApiClient.post("/users/subscribe", {
+      email,
+    });
     return {
       success: true,
       data: response.data,

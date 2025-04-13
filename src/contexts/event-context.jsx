@@ -6,7 +6,7 @@ import {
   useCallback,
   useRef,
 } from "react";
-import apiClient from "../services/api";
+import enhancedApiClient from "../services/enhancedApi";
 import { useAuth } from "./optimized-auth-context";
 
 const EventContext = createContext({
@@ -31,7 +31,7 @@ export const EventProvider = ({ children }) => {
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get("/events");
+      const response = await enhancedApiClient.get("/events", {}, true);
       setEvents(response.data);
     } catch (error) {
       console.error("Failed to fetch events:", error);
@@ -45,7 +45,11 @@ export const EventProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const response = await apiClient.get("/events/user-events");
+      const response = await enhancedApiClient.get(
+        "/events/user-events",
+        {},
+        true
+      );
       setUserEvents(response.data);
     } catch (error) {
       console.error("Failed to fetch user events:", error);
@@ -57,7 +61,7 @@ export const EventProvider = ({ children }) => {
   const enrollInEvent = async (eventId) => {
     try {
       setLoading(true);
-      await apiClient.post(`/events/${eventId}/enroll`);
+      await enhancedApiClient.post(`/events/${eventId}/enroll`);
 
       setEvents((prev) =>
         prev.map((event) =>
@@ -77,7 +81,7 @@ export const EventProvider = ({ children }) => {
   const unenrollFromEvent = async (eventId) => {
     try {
       setLoading(true);
-      await apiClient.post(`/events/${eventId}/unenroll`);
+      await enhancedApiClient.post(`/events/${eventId}/unenroll`);
 
       setEvents((prev) =>
         prev.map((event) =>
@@ -96,7 +100,11 @@ export const EventProvider = ({ children }) => {
 
   const getEventById = async (eventId) => {
     try {
-      const response = await apiClient.get(`/events/${eventId}`);
+      const response = await enhancedApiClient.get(
+        `/events/${eventId}`,
+        {},
+        true
+      );
       return response.data;
     } catch (error) {
       console.error(`Failed to get event ${eventId}:`, error);
@@ -110,8 +118,10 @@ export const EventProvider = ({ children }) => {
       if (query) params.append("q", query);
       if (category) params.append("category", category);
 
-      const response = await apiClient.get(
-        `/events/search?${params.toString()}`
+      const response = await enhancedApiClient.get(
+        `/events/search?${params.toString()}`,
+        {},
+        true
       );
       return response.data;
     } catch (error) {

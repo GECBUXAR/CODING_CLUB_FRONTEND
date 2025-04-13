@@ -1,5 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from "react";
-import apiClient from "../services/api";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
+import enhancedApiClient from "../services/enhancedApi";
 import { useAuth } from "./optimized-auth-context";
 
 // Create separate contexts for state and actions
@@ -18,7 +26,7 @@ export const EventProvider = ({ children }) => {
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get("/events");
+      const response = await enhancedApiClient.get("/events", {}, true);
       setEvents(response.data);
     } catch (error) {
       console.error("Failed to fetch events:", error);
@@ -33,7 +41,11 @@ export const EventProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const response = await apiClient.get("/events/user-events");
+      const response = await enhancedApiClient.get(
+        "/events/user-events",
+        {},
+        true
+      );
       setUserEvents(response.data);
     } catch (error) {
       console.error("Failed to fetch user events:", error);
@@ -43,51 +55,61 @@ export const EventProvider = ({ children }) => {
   }, [isAuthenticated]);
 
   // Memoized enroll in event function
-  const enrollInEvent = useCallback(async (eventId) => {
-    try {
-      setLoading(true);
-      await apiClient.post(`/events/${eventId}/enroll`);
+  const enrollInEvent = useCallback(
+    async (eventId) => {
+      try {
+        setLoading(true);
+        await enhancedApiClient.post(`/events/${eventId}/enroll`);
 
-      setEvents((prev) =>
-        prev.map((event) =>
-          event.id === eventId ? { ...event, isEnrolled: true } : event
-        )
-      );
+        setEvents((prev) =>
+          prev.map((event) =>
+            event.id === eventId ? { ...event, isEnrolled: true } : event
+          )
+        );
 
-      await fetchUserEvents();
-    } catch (error) {
-      console.error("Failed to enroll in event:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchUserEvents]);
+        await fetchUserEvents();
+      } catch (error) {
+        console.error("Failed to enroll in event:", error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchUserEvents]
+  );
 
   // Memoized unenroll from event function
-  const unenrollFromEvent = useCallback(async (eventId) => {
-    try {
-      setLoading(true);
-      await apiClient.post(`/events/${eventId}/unenroll`);
+  const unenrollFromEvent = useCallback(
+    async (eventId) => {
+      try {
+        setLoading(true);
+        await enhancedApiClient.post(`/events/${eventId}/unenroll`);
 
-      setEvents((prev) =>
-        prev.map((event) =>
-          event.id === eventId ? { ...event, isEnrolled: false } : event
-        )
-      );
+        setEvents((prev) =>
+          prev.map((event) =>
+            event.id === eventId ? { ...event, isEnrolled: false } : event
+          )
+        );
 
-      await fetchUserEvents();
-    } catch (error) {
-      console.error("Failed to unenroll from event:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchUserEvents]);
+        await fetchUserEvents();
+      } catch (error) {
+        console.error("Failed to unenroll from event:", error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchUserEvents]
+  );
 
   // Memoized get event by ID function
   const getEventById = useCallback(async (eventId) => {
     try {
-      const response = await apiClient.get(`/events/${eventId}`);
+      const response = await enhancedApiClient.get(
+        `/events/${eventId}`,
+        {},
+        true
+      );
       return response.data;
     } catch (error) {
       console.error(`Failed to get event ${eventId}:`, error);
@@ -102,8 +124,10 @@ export const EventProvider = ({ children }) => {
       if (query) params.append("q", query);
       if (category) params.append("category", category);
 
-      const response = await apiClient.get(
-        `/events/search?${params.toString()}`
+      const response = await enhancedApiClient.get(
+        `/events/search?${params.toString()}`,
+        {},
+        true
       );
       return response.data;
     } catch (error) {
@@ -125,28 +149,34 @@ export const EventProvider = ({ children }) => {
   }, [isAuthenticated, fetchEvents, fetchUserEvents]);
 
   // Memoize state value to prevent unnecessary re-renders
-  const stateValue = useMemo(() => ({
-    events,
-    userEvents,
-    loading,
-  }), [events, userEvents, loading]);
+  const stateValue = useMemo(
+    () => ({
+      events,
+      userEvents,
+      loading,
+    }),
+    [events, userEvents, loading]
+  );
 
   // Memoize actions value to prevent unnecessary re-renders
-  const actionsValue = useMemo(() => ({
-    fetchEvents,
-    fetchUserEvents,
-    enrollInEvent,
-    unenrollFromEvent,
-    getEventById,
-    searchEvents,
-  }), [
-    fetchEvents,
-    fetchUserEvents,
-    enrollInEvent,
-    unenrollFromEvent,
-    getEventById,
-    searchEvents,
-  ]);
+  const actionsValue = useMemo(
+    () => ({
+      fetchEvents,
+      fetchUserEvents,
+      enrollInEvent,
+      unenrollFromEvent,
+      getEventById,
+      searchEvents,
+    }),
+    [
+      fetchEvents,
+      fetchUserEvents,
+      enrollInEvent,
+      unenrollFromEvent,
+      getEventById,
+      searchEvents,
+    ]
+  );
 
   return (
     <EventStateContext.Provider value={stateValue}>

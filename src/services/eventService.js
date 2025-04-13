@@ -1,4 +1,4 @@
-import apiClient from "./api";
+import enhancedApiClient from "./enhancedApi";
 
 /**
  * Event Service - Handles all event-related API calls
@@ -11,7 +11,7 @@ const eventService = {
    */
   getAllEvents: async (params = {}) => {
     try {
-      const response = await apiClient.get("/events", { params });
+      const response = await enhancedApiClient.get("/events", { params });
       return {
         success: true,
         data: response.data.data || [],
@@ -26,6 +26,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to fetch events",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -37,7 +39,7 @@ const eventService = {
    */
   getUpcomingEvents: async (limit = 5) => {
     try {
-      const response = await apiClient.get("/events/upcoming", {
+      const response = await enhancedApiClient.get("/events/upcoming", {
         params: { limit },
       });
       return {
@@ -49,6 +51,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to fetch upcoming events",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -61,7 +65,7 @@ const eventService = {
    */
   searchEvents: async (query, limit = 10) => {
     try {
-      const response = await apiClient.get("/events/search", {
+      const response = await enhancedApiClient.get("/events/search", {
         params: { q: query, limit },
       });
       return {
@@ -73,6 +77,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to search events",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -84,7 +90,9 @@ const eventService = {
    */
   getUserEvents: async (params = {}) => {
     try {
-      const response = await apiClient.get("/events/user-events", { params });
+      const response = await enhancedApiClient.get("/events/user-events", {
+        params,
+      });
       return {
         success: true,
         data: response.data.data || [],
@@ -94,6 +102,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to fetch your events",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -105,7 +115,7 @@ const eventService = {
    */
   getEventById: async (id) => {
     try {
-      const response = await apiClient.get(`/events/${id}`);
+      const response = await enhancedApiClient.get(`/events/${id}`);
       return {
         success: true,
         data: response.data.data,
@@ -115,6 +125,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to fetch event details",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -137,7 +149,7 @@ const eventService = {
 
       console.log("Creating event with data:", formattedData);
 
-      const response = await apiClient.post("/events", formattedData);
+      const response = await enhancedApiClient.post("/events", formattedData);
       console.log("Event creation response:", response.data);
 
       return {
@@ -197,7 +209,10 @@ const eventService = {
             : eventData.date,
       };
 
-      const response = await apiClient.put(`/events/${id}`, formattedData);
+      const response = await enhancedApiClient.put(
+        `/events/${id}`,
+        formattedData
+      );
       return {
         success: true,
         data: response.data.data,
@@ -207,6 +222,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to update event",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -218,7 +235,7 @@ const eventService = {
    */
   deleteEvent: async (id) => {
     try {
-      await apiClient.delete(`/events/${id}`);
+      await enhancedApiClient.delete(`/events/${id}`);
       return {
         success: true,
         message: "Event deleted successfully",
@@ -228,6 +245,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to delete event",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -239,7 +258,7 @@ const eventService = {
    */
   registerForEvent: async (id) => {
     try {
-      const response = await apiClient.post(`/events/${id}/register`);
+      const response = await enhancedApiClient.post(`/events/${id}/register`);
       return {
         success: true,
         message:
@@ -250,6 +269,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to register for event",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -261,7 +282,7 @@ const eventService = {
    */
   unregisterFromEvent: async (id) => {
     try {
-      const response = await apiClient.post(`/events/${id}/unregister`);
+      const response = await enhancedApiClient.post(`/events/${id}/unregister`);
       return {
         success: true,
         message:
@@ -272,6 +293,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to unregister from event",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -285,10 +308,13 @@ const eventService = {
    */
   markAttendance: async (id, userId, attended = true) => {
     try {
-      const response = await apiClient.post(`/events/${id}/attendance`, {
-        userId,
-        attended,
-      });
+      const response = await enhancedApiClient.post(
+        `/events/${id}/attendance`,
+        {
+          userId,
+          attended,
+        }
+      );
       return {
         success: true,
         message: response.data.message || "Attendance marked successfully",
@@ -298,6 +324,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to mark attendance",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
@@ -310,7 +338,10 @@ const eventService = {
    */
   submitFeedback: async (id, feedback) => {
     try {
-      const response = await apiClient.post(`/events/${id}/feedback`, feedback);
+      const response = await enhancedApiClient.post(
+        `/events/${id}/feedback`,
+        feedback
+      );
       return {
         success: true,
         message: response.data.message || "Feedback submitted successfully",
@@ -320,6 +351,8 @@ const eventService = {
       return {
         success: false,
         error: error.message || "Failed to submit feedback",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
       };
     }
   },
