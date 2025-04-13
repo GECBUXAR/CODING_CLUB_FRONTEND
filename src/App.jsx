@@ -6,9 +6,7 @@ const App = () => {
   return (
     <div className="app-container">
       <h1>Coding Club App</h1>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <AppRoutes />
     </div>
   );
 };
