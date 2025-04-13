@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/optimized-auth-context";
 
 /**
@@ -8,47 +8,36 @@ import { useAuth } from "@/contexts/optimized-auth-context";
  */
 export function RedirectIfAuthenticated({ children }) {
   const { isAuthenticated, checkingAuth, refreshAuth } = useAuth();
-  const navigate = useNavigate();
-  const [hasChecked, setHasChecked] = useState(
-    sessionStorage.getItem("redirectAuthChecked") === "true"
-  );
+  const [hasChecked, setHasChecked] = useState(false);
+  const authCheckRef = useRef(false);
 
   // On mount, check if the user is authenticated (verify access token)
   useEffect(() => {
-    // Prevent multiple checks using sessionStorage instead of only component state
-    if (sessionStorage.getItem("redirectAuthChecked") === "true") {
-      setHasChecked(true);
+    // Prevent multiple checks
+    if (authCheckRef.current) {
       return;
     }
 
+    // Mark that we've started the check
+    authCheckRef.current = true;
+
     const checkAuthentication = async () => {
-      // If we already know the user is authenticated, redirect immediately
-      if (isAuthenticated) {
-        navigate("/home", { replace: true });
-        return;
-      }
-
-      // Otherwise, try to refresh authentication status once
-      const result = await refreshAuth();
-
-      // Mark as checked in session storage to prevent repeated checks
-      sessionStorage.setItem("redirectAuthChecked", "true");
-      setHasChecked(true);
-
-      // If authentication was successful, redirect to /home
-      if (result) {
-        navigate("/home", { replace: true });
+      try {
+        // Only refresh auth if we're not already authenticated
+        if (!isAuthenticated) {
+          await refreshAuth();
+        }
+      } catch (error) {
+        console.error("Auth refresh error:", error);
+      } finally {
+        // Always mark as checked when done
+        setHasChecked(true);
       }
     };
 
+    // Start the auth check
     checkAuthentication();
-
-    // Cleanup function to reset the check flag when component unmounts
-    return () => {
-      // Don't reset the flag on unmount to prevent infinite loops
-      // We'll let it persist in the session
-    };
-  }, [isAuthenticated, navigate, refreshAuth]);
+  }, [isAuthenticated, refreshAuth]);
 
   // While checking authentication, show loading indicator
   if (checkingAuth && !hasChecked) {
@@ -59,7 +48,7 @@ export function RedirectIfAuthenticated({ children }) {
     );
   }
 
-  // If user is authenticated, don't render children (even though we'll redirect)
+  // If user is authenticated, redirect to home
   if (isAuthenticated) {
     return <Navigate to="/home" replace />;
   }
