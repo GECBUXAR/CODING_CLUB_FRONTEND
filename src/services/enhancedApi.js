@@ -6,7 +6,7 @@ import {
 } from "../utils/retryUtils";
 
 // Event name for rate limit notifications
-const RATE_LIMIT_EVENT = "api:rate-limit";
+const RATE_LIMIT_EVENT = "rate-limit-error";
 
 // Global settings for API request management
 const API_SETTINGS = {
