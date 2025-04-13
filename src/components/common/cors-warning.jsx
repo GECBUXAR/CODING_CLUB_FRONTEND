@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { AlertTriangle, X, RefreshCw } from "lucide-react";
 import { API_CONFIG } from "@/config";
 
@@ -68,7 +68,7 @@ export default function ApiConnectionWarning() {
   }, []); // Empty dependency array since these setters are stable
 
   // Use a ref to track if the initial check has been done
-  const initialCheckDone = React.useRef(false);
+  const initialCheckDone = useRef(false);
 
   // Effect for initial API check - only run after a delay
   useEffect(() => {
