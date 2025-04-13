@@ -6,6 +6,9 @@ import {
   ArrowRight,
   AlertCircle,
   RefreshCw,
+  Award,
+  BarChart2,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +27,7 @@ import { ExamTakingModal } from "@/components/user/exam-taking-modal";
 import { ExamResultsModal } from "@/components/user/exam-results-modal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { examService } from "@/services";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export function UserExamPanel() {
   const [exams, setExams] = useState([]);
@@ -71,23 +74,36 @@ export function UserExamPanel() {
     setIsResultsModalOpen(true);
   };
 
-  const handleExamSubmit = async (examId, answers) => {
+  const handleExamSubmit = async (examId, answers, timeSpent) => {
     setLoading(true);
     try {
-      // Call the API to submit exam answers
-      const response = await examService.submitExamAnswers(examId, answers);
+      // Call the API to submit exam answers with time spent
+      const response = await examService.submitExamAnswers(
+        examId,
+        answers,
+        timeSpent
+      );
 
       if (response.success) {
+        // Get the result data
+        const resultData = response.data.result || response.data;
+
         // Update the exam in the local state
         const updatedExam = {
-          ...exams.find((e) => e._id === examId),
+          ...exams.find((e) => e._id === examId || e.id === examId),
           status: "completed",
-          score: response.data.score,
-          passingScore: response.data.passingScore || 70,
-          passed: response.data.passed,
+          score: resultData.percentageScore || resultData.score,
+          passingScore: resultData.passingScore || 40,
+          passed: resultData.passed,
+          completedAt: new Date(),
+          resultId: resultData._id, // Store the result ID for viewing detailed results
         };
 
-        setExams(exams.map((e) => (e._id === examId ? updatedExam : e)));
+        setExams(
+          exams.map((e) =>
+            e._id === examId || e.id === examId ? updatedExam : e
+          )
+        );
         setCurrentExam(updatedExam);
         setIsExamTakingModalOpen(false);
         setIsResultsModalOpen(true);
@@ -184,11 +200,23 @@ export function UserExamPanel() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">My Exams</h2>
-        <p className="text-muted-foreground">
-          View and take your coding club exams
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">My Exams</h2>
+          <p className="text-muted-foreground">
+            View and take your coding club exams
+          </p>
+        </div>
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/performance")}
+            className="flex items-center"
+          >
+            <BarChart2 className="mr-2 h-4 w-4" />
+            My Performance
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -256,9 +284,7 @@ export function UserExamPanel() {
                       <div className="flex items-center text-sm">
                         <span className="mr-2">
                           Questions:{" "}
-                          {exam.questionCount ||
-                            (exam.questions && exam.questions.length) ||
-                            0}
+                          {exam.questionCount || exam.questions?.length || 0}
                         </span>
                       </div>
                     </div>
@@ -347,14 +373,26 @@ export function UserExamPanel() {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => handleViewResults(exam)}
-                    >
-                      View Results
-                    </Button>
+                    <div className="flex space-x-2 w-full">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleViewResults(exam)}
+                      >
+                        View Results
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center"
+                        onClick={() =>
+                          navigate(`/exams/${exam._id || exam.id}/leaderboard`)
+                        }
+                      >
+                        <Award className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardFooter>
                 </Card>
               ))}

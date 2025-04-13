@@ -5,11 +5,8 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import {
-  getExamResponses,
-  getExamResponseById,
-  updateExamResponse,
-} from "../lib/api";
+// Import the exam service for API calls
+import examService from "../services/examService";
 import { useNotification } from "./notification-context";
 
 // Create context
@@ -54,9 +51,9 @@ export const ResponseEvaluationProvider = ({ children }) => {
         fetchedExamIds.current.add(fetchKey);
 
         // Use our enhanced API that handles offline mode
-        const result = await getExamResponses(examId);
+        const result = await examService.getExamResponses(examId);
 
-        if (result && result.success) {
+        if (result?.success) {
           // Normalize and store responses by ID for efficient access
           const normalizedResponses = {};
           for (const resp of result.data || []) {
@@ -73,9 +70,9 @@ export const ResponseEvaluationProvider = ({ children }) => {
           }
 
           return result.data || [];
-        } else {
-          throw new Error(result?.error || "Failed to fetch exam responses");
         }
+
+        throw new Error(result?.error || "Failed to fetch exam responses");
       } catch (err) {
         console.error("Error fetching exam responses:", err);
         setFetchError(err.message || "Unknown error");
@@ -108,9 +105,9 @@ export const ResponseEvaluationProvider = ({ children }) => {
 
       try {
         setLoading(true);
-        const result = await getExamResponseById(responseId);
+        const result = await examService.getExamResponseById(responseId);
 
-        if (result && result.success) {
+        if (result?.success) {
           // Update the specific response in our store
           setExamResponses((prev) => ({
             ...prev,
@@ -121,9 +118,9 @@ export const ResponseEvaluationProvider = ({ children }) => {
           }));
 
           return result.data;
-        } else {
-          throw new Error(result?.error || "Failed to fetch response details");
         }
+
+        throw new Error(result?.error || "Failed to fetch response details");
       } catch (err) {
         console.error("Error fetching response details:", err);
         // Use setTimeout to avoid dependency changes triggering re-renders
@@ -187,12 +184,14 @@ export const ResponseEvaluationProvider = ({ children }) => {
 
       try {
         setLoading(true);
-        const result = await updateExamResponse(responseId, {
+        const result = await examService.evaluateAnswer(
+          examId,
+          responseId,
           questionId,
-          ...evaluationData,
-        });
+          evaluationData
+        );
 
-        if (result && result.success) {
+        if (result?.success) {
           // Update evaluations store
           setEvaluations((prev) => ({
             ...prev,
@@ -224,9 +223,9 @@ export const ResponseEvaluationProvider = ({ children }) => {
 
           success("Evaluation submitted successfully");
           return result.data;
-        } else {
-          throw new Error(result?.error || "Failed to submit evaluation");
         }
+
+        throw new Error(result?.error || "Failed to submit evaluation");
       } catch (err) {
         console.error("Error submitting evaluation:", err);
         // Use setTimeout to avoid dependency changes triggering re-renders
@@ -250,9 +249,8 @@ export const ResponseEvaluationProvider = ({ children }) => {
         setLoading(true);
 
         // Get the response data which should contain evaluations
-        const response = getExamResponses(examId).find(
-          (r) => r.id === responseId
-        );
+        const result = await examService.getExamResponses(examId);
+        const response = result?.data?.find((r) => r.id === responseId);
 
         if (!response) {
           throw new Error("Response not found");
