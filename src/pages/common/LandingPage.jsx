@@ -1,9 +1,32 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ModernFooter from "../../components/common/ModernFooter";
-import { ArrowRight, Check, Code, Users, Zap, BookOpen } from "lucide-react";
+import { ArrowRight, Code, Users, Zap, BookOpen, Calendar } from "lucide-react";
+import { eventService } from "@/services";
 
 const LandingPage = () => {
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  // Fetch upcoming events from the backend
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoadingEvents(true);
+        const result = await eventService.getUpcomingEvents(3);
+        if (result.success) {
+          setUpcomingEvents(result.data);
+        }
+      } catch (error) {
+        console.error("Error fetching upcoming events:", error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
   const features = [
     {
       id: "feature-1",
@@ -35,41 +58,18 @@ const LandingPage = () => {
     },
   ];
 
-  const events = [
-    {
-      id: "event-1",
-      date: "March 25, 2023",
-      title: "Web Development Bootcamp",
-      description:
-        "Intensive 3-day workshop covering modern frontend frameworks and backend technologies.",
-      image:
-        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
-    },
-    {
-      id: "event-2",
-      date: "April 10, 2023",
-      title: "AI & Machine Learning Day",
-      description:
-        "Explore the fundamentals of AI and machine learning with practical demonstrations.",
-      image:
-        "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
-    },
-    {
-      id: "event-3",
-      date: "May 5, 2023",
-      title: "Spring Hackathon",
-      description:
-        "48-hour hackathon to build innovative solutions for real-world problems.",
-      image:
-        "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
-    },
+  // Default image for events that don't have an image
+  const defaultEventImages = [
+    "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
   ];
 
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section - Updated with more modern styling */}
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white">
-        <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+        <div className="absolute inset-0 bg-grid-pattern opacity-10" />
         <div className="container mx-auto px-4 py-24 md:py-32 relative">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-block px-3 py-1 bg-blue-500/20 rounded-full text-blue-200 text-sm font-medium mb-6">
@@ -116,7 +116,7 @@ const LandingPage = () => {
               fill="#ffffff"
               fillOpacity="1"
               d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"
-            ></path>
+            />
           </svg>
         </div>
       </div>
@@ -165,38 +165,77 @@ const LandingPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {events.map((event) => (
-              <div
-                key={event.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full"
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute top-0 left-0 bg-blue-600 text-white py-2 px-4 rounded-br-lg text-sm font-semibold">
-                    {event.date}
+            {loadingEvents ? (
+              // Loading skeleton
+              Array(3)
+                .fill(0)
+                .map((_, index) => (
+                  <div
+                    key={`skeleton-${index}`}
+                    className="bg-white rounded-2xl overflow-hidden shadow-lg flex flex-col h-full"
+                  >
+                    <div className="h-48 bg-gray-200 animate-pulse" />
+                    <div className="p-6 flex-grow">
+                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4 animate-pulse" />
+                      <div className="h-4 bg-gray-200 rounded w-full mb-2 animate-pulse" />
+                      <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse" />
+                    </div>
+                    <div className="px-6 pb-6">
+                      <div className="h-4 bg-gray-200 rounded w-1/3 animate-pulse" />
+                    </div>
+                  </div>
+                ))
+            ) : upcomingEvents.length > 0 ? (
+              // Real data
+              upcomingEvents.map((event, index) => (
+                <div
+                  key={event._id || event.id || `event-${index}`}
+                  className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={
+                        event.image ||
+                        defaultEventImages[index % defaultEventImages.length]
+                      }
+                      alt={event.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute top-0 left-0 bg-blue-600 text-white py-2 px-4 rounded-br-lg text-sm font-semibold">
+                      {event.date
+                        ? new Date(event.date).toLocaleDateString()
+                        : "Upcoming"}
+                    </div>
+                  </div>
+                  <div className="p-6 flex-grow">
+                    <h3 className="text-xl font-bold mb-2 text-gray-900">
+                      {event.title}
+                    </h3>
+                    <p className="text-gray-600 mb-4">{event.description}</p>
+                  </div>
+                  <div className="px-6 pb-6">
+                    <Link
+                      to={`/events/${event._id || event.id}`}
+                      className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800 transition-colors"
+                    >
+                      Learn More
+                      <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                    </Link>
                   </div>
                 </div>
-                <div className="p-6 flex-grow">
-                  <h3 className="text-xl font-bold mb-2 text-gray-900">
-                    {event.title}
-                  </h3>
-                  <p className="text-gray-600 mb-4">{event.description}</p>
-                </div>
-                <div className="px-6 pb-6">
-                  <Link
-                    to={`/events/${event.id}`}
-                    className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800 transition-colors"
-                  >
-                    Learn More
-                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-                  </Link>
-                </div>
+              ))
+            ) : (
+              // No events found
+              <div className="col-span-3 text-center py-12">
+                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-gray-700 mb-2">
+                  No upcoming events
+                </h3>
+                <p className="text-gray-500">
+                  Check back later for new events or workshops
+                </p>
               </div>
-            ))}
+            )}
           </div>
 
           <div className="text-center mt-12">
@@ -282,7 +321,7 @@ const LandingPage = () => {
                   MS
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">Michael Scott</h4>
+                  <h4 className="font-semibold text-gray-900">Satyam Kumar</h4>
                   <p className="text-sm text-gray-500">
                     Computer Science Student
                   </p>
@@ -318,7 +357,7 @@ const LandingPage = () => {
                   JH
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">Jim Halpert</h4>
+                  <h4 className="font-semibold text-gray-900">Keshav Raj</h4>
                   <p className="text-sm text-gray-500">Software Developer</p>
                 </div>
               </div>
@@ -352,7 +391,7 @@ const LandingPage = () => {
                   PB
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">Pam Beesly</h4>
+                  <h4 className="font-semibold text-gray-900">Vishal Kumar</h4>
                   <p className="text-sm text-gray-500">UX Designer</p>
                 </div>
               </div>
