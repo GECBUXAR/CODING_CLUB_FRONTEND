@@ -84,8 +84,8 @@ export function FacultyProvider({ children }) {
   // Track if initial fetch has been done
   const initialFetchDone = useRef(false);
 
-  // Define fetchFaculty as a callback so it can be used in useEffect and exposed in context
-  const fetchFaculty = useCallback(async (useCache = true) => {
+  // Define fetchFaculty function using useRef to maintain a stable reference
+  const fetchFacultyRef = useRef(async (useCache = true) => {
     try {
       // Only show loading state if we don't have cached data
       dispatch({ type: ActionTypes.FETCH_FACULTY_START });
@@ -115,7 +115,13 @@ export function FacultyProvider({ children }) {
         error: error.message || "Failed to fetch faculty",
       };
     }
-  }, []);
+  });
+
+  // Create a stable reference to the fetch function
+  const fetchFaculty = useCallback(
+    (...args) => fetchFacultyRef.current(...args),
+    []
+  );
 
   // Fetch faculty data on mount with delay
   useEffect(() => {
@@ -124,13 +130,15 @@ export function FacultyProvider({ children }) {
       initialFetchDone.current = true;
 
       // Use a longer delay to ensure API Manager has initialized
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         // This will either use cached data from API Manager or trigger a new request
         // but with proper throttling and deduplication
-        fetchFaculty(true);
+        fetchFacultyRef.current(true);
       }, 2000);
+
+      return () => clearTimeout(timer);
     }
-  }, [fetchFaculty]);
+  }, []); // Empty dependency array to ensure this only runs once
 
   // Action creators
   const addFacultyMember = useCallback(async (facultyData) => {
