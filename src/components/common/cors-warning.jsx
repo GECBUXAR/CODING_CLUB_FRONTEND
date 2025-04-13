@@ -18,11 +18,7 @@ export default function ApiConnectionWarning() {
 
   // Function to check API connectivity - memoized with useCallback
   const checkApiConnection = useCallback(async () => {
-    setDiagnosticInfo((prev) => ({
-      ...prev,
-      lastChecked: new Date().toLocaleTimeString(),
-    }));
-
+    // Use a single state update for diagnostic info
     try {
       // Try to reach the server health endpoint
       const response = await fetch(
@@ -35,17 +31,22 @@ export default function ApiConnectionWarning() {
       );
 
       if (response.ok) {
-        setDiagnosticInfo((prev) => ({ ...prev, serverReachable: true }));
-        // If server is reachable, CORS is working
-        setDiagnosticInfo((prev) => ({ ...prev, corsEnabled: true }));
+        // Single state update for success case
+        setDiagnosticInfo({
+          serverReachable: true,
+          corsEnabled: true,
+          authWorking: true,
+          lastChecked: new Date().toLocaleTimeString(),
+        });
         setVisible(false); // Hide the warning if everything is working
       } else {
-        setDiagnosticInfo((prev) => ({
-          ...prev,
+        // Single state update for server error case
+        setDiagnosticInfo({
           serverReachable: true,
           corsEnabled: true,
           authWorking: false,
-        }));
+          lastChecked: new Date().toLocaleTimeString(),
+        });
         setVisible(true);
       }
     } catch (error) {
@@ -55,20 +56,35 @@ export default function ApiConnectionWarning() {
         error.message?.includes("CORS") ||
         error.message?.includes("cross-origin");
 
-      setDiagnosticInfo((prev) => ({
-        ...prev,
+      // Single state update for connection error case
+      setDiagnosticInfo({
         serverReachable: false,
         corsEnabled: !isCorsError,
         authWorking: false,
-      }));
+        lastChecked: new Date().toLocaleTimeString(),
+      });
       setVisible(true);
     }
-  }, []); // Empty dependency array since this doesn't depend on any props or state
+  }, []); // Empty dependency array since these setters are stable
 
+  // Use a ref to track if the initial check has been done
+  const initialCheckDone = React.useRef(false);
+
+  // Effect for initial API check - only run after a delay
   useEffect(() => {
-    // Check connection on component mount
-    checkApiConnection();
+    // Skip the initial API check on first load to prevent API flooding
+    // Instead, only show the warning if an actual API error occurs
+    // This prevents unnecessary API calls on initial load
 
+    // We'll set initialCheckDone to true, but we won't actually check the connection
+    // unless there's an error event or the user manually checks
+    initialCheckDone.current = true;
+
+    // No automatic API check on mount
+  }, []); // No dependencies
+
+  // Separate effect for event listeners
+  useEffect(() => {
     // Listen for custom API error events
     const handleApiError = (event) => {
       if (event.detail?.type === "cors") {
@@ -94,7 +110,7 @@ export default function ApiConnectionWarning() {
       window.removeEventListener("api-error", handleApiError);
       window.removeEventListener("cors-error", handleCorsError);
     };
-  }, [checkApiConnection]); // Add checkApiConnection as a dependency
+  }, []); // No dependencies for event listeners
 
   if (!visible) return null;
 

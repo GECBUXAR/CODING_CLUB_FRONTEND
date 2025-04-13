@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import apiClient from "@/services/api";
+import enhancedApiClient from "../../services/enhancedApi";
 
 // Initial state for faculty data
 const initialState = {
@@ -90,7 +90,7 @@ export function FacultyProvider({ children }) {
     dispatch({ type: ActionTypes.FETCH_FACULTY_START });
 
     try {
-      const response = await apiClient.get("/faculty");
+      const response = await enhancedApiClient.get("/faculty", {}, true);
 
       dispatch({
         type: ActionTypes.FETCH_FACULTY_SUCCESS,
@@ -110,7 +110,10 @@ export function FacultyProvider({ children }) {
     dispatch({ type: ActionTypes.FETCH_FACULTY_START });
 
     try {
-      const response = await apiClient.post("/faculty", facultyData);
+      const response = await enhancedApiClient.post("/faculty", facultyData);
+
+      // Clear the faculty cache to ensure fresh data on next fetch
+      enhancedApiClient.cache.clear();
 
       dispatch({
         type: ActionTypes.ADD_FACULTY_MEMBER,
@@ -141,7 +144,13 @@ export function FacultyProvider({ children }) {
     dispatch({ type: ActionTypes.FETCH_FACULTY_START });
 
     try {
-      const response = await apiClient.put(`/faculty/${id}`, facultyData);
+      const response = await enhancedApiClient.put(
+        `/faculty/${id}`,
+        facultyData
+      );
+
+      // Clear the faculty cache to ensure fresh data on next fetch
+      enhancedApiClient.cache.clear();
 
       dispatch({
         type: ActionTypes.UPDATE_FACULTY_MEMBER,
@@ -172,7 +181,10 @@ export function FacultyProvider({ children }) {
     dispatch({ type: ActionTypes.FETCH_FACULTY_START });
 
     try {
-      await apiClient.delete(`/faculty/${id}`);
+      await enhancedApiClient.delete(`/faculty/${id}`);
+
+      // Clear the faculty cache to ensure fresh data on next fetch
+      enhancedApiClient.cache.clear();
 
       dispatch({
         type: ActionTypes.DELETE_FACULTY_MEMBER,
