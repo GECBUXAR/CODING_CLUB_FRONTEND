@@ -163,7 +163,8 @@ const actions = {
       console.error("Error fetching submissions:", error);
       dispatch({
         type: "FETCH_EXAMS_ERROR",
-        payload: error.message || "An error occurred while fetching submissions",
+        payload:
+          error.message || "An error occurred while fetching submissions",
       });
     }
   },
@@ -193,10 +194,11 @@ export function ExamProvider({ children }) {
     const { fetchExams } = useExamActions();
     const state = useExamState();
 
-    // Fetch exams on initial mount
+    // Fetch exams on initial mount - using an empty dependency array to ensure it only runs once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
       fetchExams();
-    }, [fetchExams]);
+    }, []);
 
     // Helper methods that work with the state
     const getExamById = useCallback(
@@ -218,7 +220,8 @@ export function ExamProvider({ children }) {
     const getSubmissionsForExam = useCallback(
       (examId) => {
         return state.submissions.filter(
-          (submission) => submission.examId === examId || submission.exam === examId
+          (submission) =>
+            submission.examId === examId || submission.exam === examId
         );
       },
       [state.submissions]
@@ -230,7 +233,7 @@ export function ExamProvider({ children }) {
         const response = state.responses.find(
           (r) => r._id === responseId || r.id === responseId
         );
-        
+
         if (response) {
           const updatedResponse = { ...response, ...evaluation };
           if (
@@ -250,7 +253,7 @@ export function ExamProvider({ children }) {
           updateResponse(updatedResponse);
         }
       },
-      [state.responses, state.questions, useExamActions]
+      [state.responses, state.questions]
     );
 
     const calculateExamStatistics = useCallback(
@@ -351,10 +354,12 @@ export function ExamProvider({ children }) {
         const averageTimeSpent = totalTimeSpent / totalResponses;
         const averageConfidence =
           totalConfidence /
-            responses.filter((r) => r.confidenceLevel !== undefined).length || 0;
+            responses.filter((r) => r.confidenceLevel !== undefined).length ||
+          0;
 
         // Calculate difficulty rating (higher means more difficult)
-        const difficultyRating = 100 - (correctResponses / totalResponses) * 100;
+        const difficultyRating =
+          100 - (correctResponses / totalResponses) * 100;
 
         return {
           questionId,
@@ -390,8 +395,7 @@ export function ExamProvider({ children }) {
       ]
     );
 
-    // Create a context for the additional methods
-    const AdditionalMethodsContext = React.createContext(null);
+    // Use the AdditionalMethodsContext defined outside
 
     return (
       <AdditionalMethodsContext.Provider value={additionalMethods}>
@@ -400,32 +404,35 @@ export function ExamProvider({ children }) {
     );
   };
 
-  // Memoize the provider to prevent unnecessary re-renders
-  const MemoizedProvider = useMemo(() => {
-    return (
-      <OptimizedExamProvider>
-        <EnhancedProvider>{children}</EnhancedProvider>
-      </OptimizedExamProvider>
-    );
-  }, [children]);
+  // Create the EnhancedProvider component once to prevent recreation on each render
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const MemoizedEnhancedProvider = useMemo(
+    () => <EnhancedProvider>{children}</EnhancedProvider>,
+    []
+  );
 
-  return MemoizedProvider;
+  // Return the provider directly
+  return (
+    <OptimizedExamProvider>{MemoizedEnhancedProvider}</OptimizedExamProvider>
+  );
 }
+
+// Create a context for the additional methods
+const AdditionalMethodsContext = React.createContext(null);
 
 // Create a hook to use the exam context
 export function useExamContext() {
   const state = useExamState();
   const actions = useExamActions();
   const dispatch = useExamDispatch();
-  
+
   // Get additional methods from context
-  const AdditionalMethodsContext = React.createContext(null);
   const additionalMethods = useContext(AdditionalMethodsContext);
-  
+
   if (!additionalMethods) {
     throw new Error("useExamContext must be used within an ExamProvider");
   }
-  
+
   // Combine state, actions, dispatch, and additional methods
   return {
     ...state,
