@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth-context";
 import UserPerformanceDashboard from "@/components/exams/UserPerformanceDashboard";
 import { userService } from "@/services";
 import {
