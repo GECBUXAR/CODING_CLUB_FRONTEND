@@ -73,21 +73,21 @@ export default function EventDetailPage() {
       }
     };
 
-    if (id) {
+    if (eventId) {
       fetchEventDetails();
     }
-  }, [id, authState?.isAuthenticated, authState?.user?._id]);
+  }, [eventId, authState?.isAuthenticated, authState?.user?._id]);
 
   // Handle event registration
   const handleRegister = async () => {
     if (!authState?.isAuthenticated) {
       toast.error("Please log in to register for events");
-      navigate("/login", { state: { from: `/events/${id}` } });
+      navigate("/login", { state: { from: `/events/${eventId}` } });
       return;
     }
 
     try {
-      const response = await eventService.registerForEvent(id);
+      const response = await eventService.registerForEvent(eventId);
 
       if (response.success) {
         toast.success(
@@ -96,7 +96,7 @@ export default function EventDetailPage() {
         setIsRegistered(true);
 
         // Refresh event details to get updated participants list
-        const eventResponse = await eventService.getEventById(id);
+        const eventResponse = await eventService.getEventById(eventId);
         if (eventResponse.success) {
           setEvent(eventResponse.data);
         }
@@ -112,7 +112,7 @@ export default function EventDetailPage() {
   // Handle event unregistration
   const handleUnregister = async () => {
     try {
-      const response = await eventService.unregisterFromEvent(id);
+      const response = await eventService.unregisterFromEvent(eventId);
 
       if (response.success) {
         toast.success(
@@ -121,7 +121,7 @@ export default function EventDetailPage() {
         setIsRegistered(false);
 
         // Refresh event details to get updated participants list
-        const eventResponse = await eventService.getEventById(id);
+        const eventResponse = await eventService.getEventById(eventId);
         if (eventResponse.success) {
           setEvent(eventResponse.data);
         }
@@ -143,7 +143,7 @@ export default function EventDetailPage() {
 
     setSubmittingFeedback(true);
     try {
-      const response = await eventService.submitFeedback(id, {
+      const response = await eventService.submitFeedback(eventId, {
         rating: feedbackRating,
         comment: feedbackComment,
       });
@@ -153,7 +153,7 @@ export default function EventDetailPage() {
         setIsFeedbackModalOpen(false);
 
         // Refresh event details
-        const eventResponse = await eventService.getEventById(id);
+        const eventResponse = await eventService.getEventById(eventId);
         if (eventResponse.success) {
           setEvent(eventResponse.data);
         }
