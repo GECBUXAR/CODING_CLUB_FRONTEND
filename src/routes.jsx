@@ -31,6 +31,7 @@ const ExamDetailPage = lazy(() => import("./pages/user/ExamDetailPage"));
 const UserPerformancePage = lazy(() =>
   import("./pages/user/UserPerformancePage")
 );
+const LeaderboardPage = lazy(() => import("./pages/user/LeaderboardPage"));
 
 // Exam Components - Lazy loaded
 const ExamResultsView = lazy(() =>
@@ -191,6 +192,14 @@ const AppRoutes = () => {
         element={
           <Suspense fallback={<LoadingFallback />}>
             <ExamsPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/leaderboard"
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <LeaderboardPage />
           </Suspense>
         }
       />

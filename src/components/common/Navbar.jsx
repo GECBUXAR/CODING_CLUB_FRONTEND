@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
-import { Menu, X, ChevronDown, Search, Bell, User, Home } from "lucide-react";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  Search,
+  Bell,
+  User,
+  Home,
+  Trophy,
+} from "lucide-react";
 import { useAuth } from "@/contexts/optimized-auth-context";
 
 const Navbar = () => {
@@ -29,6 +38,12 @@ const Navbar = () => {
       id: "/exams",
       label: "Exams",
       icon: <FileText className="w-4 h-4" />,
+      auth: false,
+    },
+    {
+      id: "/leaderboard",
+      label: "Leaderboard",
+      icon: <Trophy className="w-4 h-4" />,
       auth: false,
     },
   ];
