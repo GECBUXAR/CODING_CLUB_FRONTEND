@@ -196,12 +196,15 @@ export function PreviousExamsModal({ onSelectExam }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="ml-auto">
+        <Button
+          variant="outline"
+          className="ml-auto text-sm sm:text-base w-full"
+        >
           <Trophy className="mr-2 h-4 w-4" />
           Previous Exams
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-[85vw] md:max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Previous Exams Leaderboard</DialogTitle>
           <DialogDescription>
@@ -211,14 +214,14 @@ export function PreviousExamsModal({ onSelectExam }) {
 
         {!selectedExam ? (
           // Exam selection view
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Select an Exam</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-medium">Select an Exam</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {PREVIOUS_EXAMS.map((exam) => (
                 <Button
                   key={exam.id}
                   variant="outline"
-                  className="h-auto p-4 justify-start text-left flex flex-col items-start"
+                  className="h-auto p-3 sm:p-4 justify-start text-left flex flex-col items-start text-sm sm:text-base"
                   onClick={() => {
                     // If onSelectExam is provided, call it with the exam data
                     if (onSelectExam) {
@@ -230,12 +233,16 @@ export function PreviousExamsModal({ onSelectExam }) {
                     }
                   }}
                 >
-                  <span className="font-medium">{exam.name}</span>
-                  <div className="flex justify-between w-full mt-2 text-sm text-muted-foreground">
-                    <span>
+                  <span className="font-medium truncate w-full">
+                    {exam.name}
+                  </span>
+                  <div className="flex flex-col sm:flex-row sm:justify-between w-full mt-1 sm:mt-2 text-xs sm:text-sm text-muted-foreground">
+                    <span className="truncate">
                       Date: {new Date(exam.date).toLocaleDateString()}
                     </span>
-                    <span>Total Marks: {exam.totalMarks}</span>
+                    <span className="truncate">
+                      Total Marks: {exam.totalMarks}
+                    </span>
                   </div>
                 </Button>
               ))}
@@ -243,18 +250,28 @@ export function PreviousExamsModal({ onSelectExam }) {
           </div>
         ) : (
           // Exam results view
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 sm:mb-6">
               <div>
-                <h3 className="text-lg font-medium">
+                <h3 className="text-lg sm:text-xl font-semibold truncate">
                   {selectedExamData?.name}
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  Date: {new Date(selectedExamData?.date).toLocaleDateString()}{" "}
-                  | Total Marks: {selectedExamData?.totalMarks}
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  <span className="block sm:inline">
+                    Date:{" "}
+                    {new Date(selectedExamData?.date).toLocaleDateString()}
+                  </span>
+                  <span className="hidden sm:inline"> | </span>
+                  <span className="block sm:inline">
+                    Total Marks: {selectedExamData?.totalMarks}
+                  </span>
                 </p>
               </div>
-              <Button variant="outline" onClick={() => setSelectedExam(null)}>
+              <Button
+                variant="outline"
+                className="text-sm sm:text-base w-full sm:w-auto"
+                onClick={() => setSelectedExam(null)}
+              >
                 Back to Exams
               </Button>
             </div>
@@ -263,7 +280,7 @@ export function PreviousExamsModal({ onSelectExam }) {
               <>
                 {/* Top Performers */}
                 {topPerformers.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                     {topPerformers.map((student, index) => (
                       <div
                         key={student["Reg. no"]}
@@ -312,12 +329,12 @@ export function PreviousExamsModal({ onSelectExam }) {
                 )}
 
                 {/* Search and Filters */}
-                <div className="flex items-center gap-4">
-                  <div className="relative flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
+                  <div className="relative w-full sm:w-64">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search by name or registration number..."
-                      className="pl-8"
+                      placeholder="Search by name or reg no..."
+                      className="pl-8 text-sm sm:text-base"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -325,17 +342,27 @@ export function PreviousExamsModal({ onSelectExam }) {
                 </div>
 
                 {/* Tabs */}
-                <Tabs defaultValue="all" onValueChange={setCurrentTab}>
-                  <TabsList>
-                    <TabsTrigger value="all">All Students</TabsTrigger>
-                    <TabsTrigger value="top10">Top 10</TabsTrigger>
-                    <TabsTrigger value="top25">Top 25%</TabsTrigger>
+                <Tabs
+                  defaultValue="all"
+                  onValueChange={setCurrentTab}
+                  className="mb-3 sm:mb-4"
+                >
+                  <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:flex">
+                    <TabsTrigger value="all" className="text-xs sm:text-sm">
+                      All Students
+                    </TabsTrigger>
+                    <TabsTrigger value="top10" className="text-xs sm:text-sm">
+                      Top 10
+                    </TabsTrigger>
+                    <TabsTrigger value="top25" className="text-xs sm:text-sm">
+                      Top 25%
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
 
                 {/* Results Table */}
-                <div className="rounded-md border">
-                  <Table>
+                <div className="rounded-md border overflow-x-auto">
+                  <Table className="min-w-full">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-16">

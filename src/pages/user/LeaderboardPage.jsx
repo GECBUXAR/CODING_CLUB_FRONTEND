@@ -28,6 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PreviousExamsModal } from "@/components/leaderboard/PreviousExamsModal";
 import { exam2 } from "@/components/leaderboard/ExamData";
+import Navbar from "@/components/common/Navbar";
 
 // Process exam data to add rank and department
 const processExamData = (examData, totalMarks = 50) => {
@@ -111,25 +112,33 @@ export default function LeaderboardPage() {
   const topPerformers = processedData.slice(0, 3);
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Leaderboard</h1>
-          <h2 className="text-xl font-medium text-primary mb-1">{examTitle}</h2>
-          <p className="text-muted-foreground">
-            Track your performance and see how you rank among your peers.
-          </p>
+    <>
+      <Navbar />
+      <div className="container mt-12 mx-auto py-4 sm:py-6 md:py-8 px-2 sm:px-4">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 sm:mb-2">
+              Leaderboard
+            </h1>
+            <h2 className="text-lg sm:text-xl font-medium text-primary mb-1">
+              {examTitle}
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Track your performance and see how you rank among your peers.
+            </p>
+          </div>
+          <div className="w-full md:w-auto mt-4 md:mt-0">
+            <PreviousExamsModal
+              onSelectExam={(exam) => {
+                setCurrentExam(exam);
+                setExamTitle(exam.name);
+              }}
+            />
+          </div>
         </div>
-        <div className="w-full md:w-80">
-          <PreviousExamsModal onSelectExam={(exam) => {
-            setCurrentExam(exam);
-            setExamTitle(exam.name);
-          }} />
-        </div>
-      </div>
 
         {/* Top Performers */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
           {topPerformers.map((student, index) => (
             <Card
               key={student.roll_no}
@@ -180,12 +189,12 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Filters and Search */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative w-full md:w-64">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search by name or roll no..."
-              className="pl-8"
+              className="pl-8 text-sm sm:text-base"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -193,10 +202,15 @@ export default function LeaderboardPage() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full md:w-auto">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto text-sm sm:text-base"
+              >
                 <Filter className="mr-2 h-4 w-4" />
-                Department: {departmentFilter.toUpperCase()}
-                <ChevronDown className="ml-2 h-4 w-4" />
+                <span className="truncate">
+                  Dept: {departmentFilter.toUpperCase()}
+                </span>
+                <ChevronDown className="ml-2 h-4 w-4 flex-shrink-0" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -214,17 +228,27 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="all" className="mb-6" onValueChange={setCurrentTab}>
-          <TabsList>
-            <TabsTrigger value="all">All Students</TabsTrigger>
-            <TabsTrigger value="top10">Top 10</TabsTrigger>
-            <TabsTrigger value="top25">Top 25%</TabsTrigger>
+        <Tabs
+          defaultValue="all"
+          className="mb-4 sm:mb-6"
+          onValueChange={setCurrentTab}
+        >
+          <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:flex">
+            <TabsTrigger value="all" className="text-xs sm:text-sm">
+              All Students
+            </TabsTrigger>
+            <TabsTrigger value="top10" className="text-xs sm:text-sm">
+              Top 10
+            </TabsTrigger>
+            <TabsTrigger value="top25" className="text-xs sm:text-sm">
+              Top 25%
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
         {/* Leaderboard Table */}
-        <div className="rounded-md border">
-          <Table>
+        <div className="rounded-md border overflow-x-auto">
+          <Table className="min-w-full">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-16">
@@ -315,6 +339,6 @@ export default function LeaderboardPage() {
           </Table>
         </div>
       </div>
-    </div>
+    </>
   );
 }
