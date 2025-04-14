@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { examService } from "@/services";
+import examService from "@/services/examService";
 import {
   Plus,
   Search,

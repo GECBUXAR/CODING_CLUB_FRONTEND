@@ -465,6 +465,87 @@ const examService = {
       };
     }
   },
+
+  /**
+   * Create a new exam
+   * @param {Object} examData - Exam data
+   * @returns {Promise} - API response
+   */
+  createExam: async (examData) => {
+    try {
+      // Format date if it's a string
+      const formattedData = {
+        ...examData,
+        date:
+          examData.date && typeof examData.date === "string"
+            ? new Date(examData.date).toISOString()
+            : examData.date,
+        isExam: true, // Always set isExam to true
+        category: examData.category || "exam", // Default category to exam
+      };
+
+      console.log("Creating exam with data:", formattedData);
+
+      const response = await enhancedApiClient.post("/events", formattedData);
+      console.log("Exam creation response:", response.data);
+
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error("Error creating exam:", error);
+      return {
+        success: false,
+        error:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create exam",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
+      };
+    }
+  },
+
+  /**
+   * Update an exam
+   * @param {string} id - Exam ID
+   * @param {Object} examData - Updated exam data
+   * @returns {Promise} - API response
+   */
+  updateExam: async (id, examData) => {
+    try {
+      // Format date if it's a string
+      const formattedData = {
+        ...examData,
+        date:
+          examData.date && typeof examData.date === "string"
+            ? new Date(examData.date).toISOString()
+            : examData.date,
+        isExam: true, // Always ensure isExam is true
+      };
+
+      const response = await enhancedApiClient.put(
+        `/events/${id}`,
+        formattedData
+      );
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error(`Error updating exam ${id}:`, error);
+      return {
+        success: false,
+        error:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to update exam",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
+      };
+    }
+  },
 };
 
 export default examService;
