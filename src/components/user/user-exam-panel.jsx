@@ -269,7 +269,7 @@ export function UserExamPanel() {
               </Button>
             </div>
           ) : (
-            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
               {filteredExams.map((exam) => (
                 <Card key={exam._id || exam.id} className="flex flex-col">
                   <CardHeader className="space-y-1 pb-2 sm:pb-3">
@@ -329,7 +329,7 @@ export function UserExamPanel() {
               </p>
             </div>
           ) : (
-            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
               {filteredExams.map((exam) => (
                 <Card key={exam._id || exam.id} className="flex flex-col">
                   <CardHeader className="space-y-1 pb-2 sm:pb-3">

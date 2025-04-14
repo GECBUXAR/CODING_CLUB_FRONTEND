@@ -196,7 +196,9 @@ export function UserDashboardLayout({ children, currentPage, setCurrentPage }) {
               </h1>
             </div>
           </header>
-          <main className="flex-1 p-3 sm:p-6">{children}</main>
+          <main className="flex-1 p-3 sm:p-6 max-w-full">
+            <div className="mx-auto max-w-7xl w-full">{children}</div>
+          </main>
         </div>
       </div>
     </SidebarProvider>

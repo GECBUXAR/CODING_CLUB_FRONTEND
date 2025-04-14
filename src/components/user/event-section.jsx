@@ -177,7 +177,7 @@ export function EventSection() {
           value="upcoming"
           className="space-y-3 sm:space-y-4 mt-4 sm:mt-6"
         >
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             {activeEvents.length > 0 ? (
               activeEvents.map((event) => (
                 <Card key={event._id || event.id} className="overflow-hidden">
@@ -296,7 +296,7 @@ export function EventSection() {
           value="past"
           className="space-y-3 sm:space-y-4 mt-4 sm:mt-6"
         >
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             {pastEvents.length > 0 ? (
               pastEvents.map((event) => (
                 <Card key={event._id || event.id}>

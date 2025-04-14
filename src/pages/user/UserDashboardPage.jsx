@@ -204,7 +204,7 @@ const DashboardOverview = ({ setCurrentPage }) => {
       </Card>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         <Card>
           <CardHeader className="pb-1 sm:pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -330,7 +330,7 @@ const DashboardOverview = ({ setCurrentPage }) => {
         </CardHeader>
         <CardContent>
           {recentExams.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {recentExams.map((exam) => (
                 <Card key={exam._id} className="border shadow-sm">
                   <CardHeader className="pb-2">
