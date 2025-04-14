@@ -97,20 +97,20 @@ const DashboardOverview = ({ setCurrentPage }) => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Welcome Card Skeleton */}
         <Card className="bg-gradient-to-r from-blue-500 to-indigo-600">
-          <CardHeader>
-            <Skeleton className="h-8 w-64 bg-white/20" />
-            <Skeleton className="h-4 w-48 mt-2 bg-white/20" />
+          <CardHeader className="pb-2 sm:pb-4">
+            <Skeleton className="h-6 sm:h-8 w-48 sm:w-64 bg-white/20" />
+            <Skeleton className="h-3 sm:h-4 w-36 sm:w-48 mt-2 bg-white/20" />
           </CardHeader>
-          <CardContent>
-            <Skeleton className="h-4 w-32 bg-white/20" />
+          <CardContent className="pt-0 sm:pt-2">
+            <Skeleton className="h-3 sm:h-4 w-24 sm:w-32 bg-white/20" />
           </CardContent>
         </Card>
 
         {/* Stats Overview Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i}>
               <CardHeader className="pb-2">
@@ -131,12 +131,12 @@ const DashboardOverview = ({ setCurrentPage }) => {
 
         {/* Recent Exams Skeleton */}
         <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-64 mt-1" />
+          <CardHeader className="pb-2 sm:pb-4">
+            <Skeleton className="h-5 sm:h-6 w-36 sm:w-48" />
+            <Skeleton className="h-3 sm:h-4 w-48 sm:w-64 mt-1" />
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
               {[1, 2].map((i) => (
                 <Card key={i} className="border shadow-sm">
                   <CardHeader className="pb-2">
@@ -206,84 +206,116 @@ const DashboardOverview = ({ setCurrentPage }) => {
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
               Active Exams
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="py-1 sm:py-2">
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{stats.activeExams}</div>
-              <GraduationCapIcon className="h-6 w-6 text-primary/80" />
+              <div className="text-xl sm:text-2xl font-bold">
+                {stats.activeExams}
+              </div>
+              <GraduationCapIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary/80" />
             </div>
           </CardContent>
-          <CardFooter className="p-2">
-            <Button variant="ghost" size="sm" className="w-full" asChild>
+          <CardFooter className="p-1 sm:p-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs sm:text-sm h-8 sm:h-9"
+              asChild
+            >
               <Link to="#" onClick={() => setCurrentPage("exams")}>
-                View All <ArrowRightIcon className="ml-1 h-4 w-4" />
+                View All{" "}
+                <ArrowRightIcon className="ml-1 h-3 w-3 sm:h-4 sm:w-4" />
               </Link>
             </Button>
           </CardFooter>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
               Upcoming Events
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="py-1 sm:py-2">
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{stats.upcomingEvents}</div>
-              <CalendarIcon className="h-6 w-6 text-primary/80" />
+              <div className="text-xl sm:text-2xl font-bold">
+                {stats.upcomingEvents}
+              </div>
+              <CalendarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary/80" />
             </div>
           </CardContent>
-          <CardFooter className="p-2">
-            <Button variant="ghost" size="sm" className="w-full" asChild>
+          <CardFooter className="p-1 sm:p-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs sm:text-sm h-8 sm:h-9"
+              asChild
+            >
               <Link to="#" onClick={() => setCurrentPage("events")}>
-                View All <ArrowRightIcon className="ml-1 h-4 w-4" />
+                View All{" "}
+                <ArrowRightIcon className="ml-1 h-3 w-3 sm:h-4 sm:w-4" />
               </Link>
             </Button>
           </CardFooter>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
               Available Resources
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="py-1 sm:py-2">
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{stats.resources}</div>
-              <BookOpenIcon className="h-6 w-6 text-primary/80" />
+              <div className="text-xl sm:text-2xl font-bold">
+                {stats.resources}
+              </div>
+              <BookOpenIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary/80" />
             </div>
           </CardContent>
-          <CardFooter className="p-2">
-            <Button variant="ghost" size="sm" className="w-full" asChild>
+          <CardFooter className="p-1 sm:p-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs sm:text-sm h-8 sm:h-9"
+              asChild
+            >
               <Link to="#" onClick={() => setCurrentPage("resources")}>
-                View All <ArrowRightIcon className="ml-1 h-4 w-4" />
+                View All{" "}
+                <ArrowRightIcon className="ml-1 h-3 w-3 sm:h-4 sm:w-4" />
               </Link>
             </Button>
           </CardFooter>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
               Achievements
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="py-1 sm:py-2">
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{stats.achievements}</div>
-              <TrophyIcon className="h-6 w-6 text-primary/80" />
+              <div className="text-xl sm:text-2xl font-bold">
+                {stats.achievements}
+              </div>
+              <TrophyIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary/80" />
             </div>
           </CardContent>
-          <CardFooter className="p-2">
-            <Button variant="ghost" size="sm" className="w-full" asChild>
+          <CardFooter className="p-1 sm:p-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs sm:text-sm h-8 sm:h-9"
+              asChild
+            >
               <Link to="#" onClick={() => setCurrentPage("achievements")}>
-                View All <ArrowRightIcon className="ml-1 h-4 w-4" />
+                View All{" "}
+                <ArrowRightIcon className="ml-1 h-3 w-3 sm:h-4 sm:w-4" />
               </Link>
             </Button>
           </CardFooter>
@@ -335,11 +367,16 @@ const DashboardOverview = ({ setCurrentPage }) => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">
+            <div className="text-center py-6 sm:py-8">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 You haven't enrolled in any exams yet
               </p>
-              <Button variant="default" onClick={() => setCurrentPage("exams")}>
+              <Button
+                variant="default"
+                size="sm"
+                className="text-xs sm:text-sm h-8 sm:h-9"
+                onClick={() => setCurrentPage("exams")}
+              >
                 Browse Available Exams
               </Button>
             </div>
