@@ -61,6 +61,7 @@ import { ExamFormModal } from "@/components/admin/exam-form-modal";
 import { QuestionFormModal } from "@/components/admin/question-form-modal";
 import { ExamSettingsModal } from "@/components/admin/exam-settings-modal";
 import { ExamResponsesPanel } from "@/components/admin/exam-responses-panel";
+import { UploadExamScoresModal } from "@/components/admin/upload-exam-scores-modal";
 import {
   ExamProvider,
   useExamContext,
@@ -156,6 +157,7 @@ function AdminExamPanelContent() {
   const [showAllExams, setShowAllExams] = useState(true);
   const [showExamFormModal, setShowExamFormModal] = useState(false);
   const [showUploadResultsModal, setShowUploadResultsModal] = useState(false);
+  const [showUploadScoresModal, setShowUploadScoresModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("date-desc");
 
@@ -356,6 +358,22 @@ function AdminExamPanelContent() {
           >
             <Upload className="h-4 w-4" />
             Upload Results
+          </Button>
+          <Button
+            onClick={() => {
+              if (currentExam) {
+                setShowUploadScoresModal(true);
+              } else {
+                if (typeof showNotification === "function") {
+                  showNotification("Please select an exam first", "warning");
+                }
+              }
+            }}
+            variant="outline"
+            className="gap-2 bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:text-amber-800"
+          >
+            <Upload className="h-4 w-4" />
+            Upload Previous Scores
           </Button>
         </div>
       </div>
@@ -725,6 +743,24 @@ function AdminExamPanelContent() {
           setIsQuestionModalOpen(false);
         }}
         exam={currentExam}
+      />
+
+      <UploadExamScoresModal
+        isOpen={showUploadScoresModal}
+        onClose={() => setShowUploadScoresModal(false)}
+        examId={currentExam?.id}
+        onSuccess={(data, uploaded) => {
+          if (uploaded) {
+            if (typeof showNotification === "function") {
+              showNotification(
+                `Successfully uploaded scores for ${data.length} students`,
+                "success"
+              );
+            }
+            // Refresh exam data if needed
+            // You might want to add a function to refresh the exam details
+          }
+        }}
       />
     </div>
   );
