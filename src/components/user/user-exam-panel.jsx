@@ -132,14 +132,14 @@ export function UserExamPanel() {
   // Loading skeleton
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex justify-between items-center">
-          <Skeleton className="h-10 w-40" />
+          <Skeleton className="h-8 sm:h-10 w-32 sm:w-40" />
         </div>
 
-        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-8 sm:h-10 w-full" />
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="overflow-hidden">
               <CardHeader className="pb-3">
@@ -172,23 +172,27 @@ export function UserExamPanel() {
   // Error state
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-bold tracking-tight">My Exams</h2>
+          <h2 className="text-xl sm:text-3xl font-bold tracking-tight">
+            My Exams
+          </h2>
         </div>
 
         <Card className="bg-red-50 border-red-200">
-          <CardContent className="flex items-center py-6">
-            <AlertCircle className="h-6 w-6 text-red-600 mr-3" />
+          <CardContent className="flex items-center py-4 sm:py-6">
+            <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 mr-2 sm:mr-3 flex-shrink-0" />
             <div>
-              <p className="font-medium text-red-800">{error}</p>
+              <p className="font-medium text-red-800 text-sm sm:text-base">
+                {error}
+              </p>
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-2"
+                className="mt-2 text-xs sm:text-sm h-8 sm:h-9"
                 onClick={() => window.location.reload()}
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 Retry
               </Button>
             </div>
@@ -199,104 +203,116 @@ export function UserExamPanel() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-0">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">My Exams</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+            My Exams
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             View and take your coding club exams
           </p>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={() => navigate("/performance")}
-            className="flex items-center"
+            className="flex items-center text-xs sm:text-sm h-8 sm:h-9 w-full sm:w-auto justify-center sm:justify-start"
           >
-            <BarChart2 className="mr-2 h-4 w-4" />
+            <BarChart2 className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
             My Performance
           </Button>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center justify-between">
-          <TabsList className="grid w-[400px] grid-cols-2">
-            <TabsTrigger value="available" className="px-4 py-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          <TabsList className="grid w-full sm:w-[300px] md:w-[400px] grid-cols-2">
+            <TabsTrigger
+              value="available"
+              className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm"
+            >
               Available Exams
             </TabsTrigger>
-            <TabsTrigger value="completed" className="px-4 py-2">
+            <TabsTrigger
+              value="completed"
+              className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm"
+            >
               Completed Exams
             </TabsTrigger>
           </TabsList>
-          <div className="relative max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search exams..."
-              className="pl-8"
+              className="pl-8 text-xs sm:text-sm h-8 sm:h-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        <TabsContent value="available" className="mt-6">
+        <TabsContent value="available" className="mt-4 sm:mt-6">
           {filteredExams.length === 0 ? (
-            <div className="text-center p-8 border rounded-lg">
-              <p className="text-muted-foreground mb-4">
+            <div className="text-center p-4 sm:p-8 border rounded-lg">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 No available exams found.
               </p>
               <Button
                 variant="outline"
                 size="sm"
+                className="text-xs sm:text-sm h-8 sm:h-9"
                 onClick={() => navigate("/exams")}
               >
                 Browse Available Exams
               </Button>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
               {filteredExams.map((exam) => (
                 <Card key={exam._id || exam.id} className="flex flex-col">
-                  <CardHeader className="space-y-1">
-                    <CardTitle className="text-xl">{exam.title}</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="space-y-1 pb-2 sm:pb-3">
+                    <CardTitle className="text-lg sm:text-xl">
+                      {exam.title}
+                    </CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       {exam.description || "No description available"}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="flex-1">
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm">
-                        <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <CardContent className="flex-1 py-1 sm:py-2">
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <div className="flex items-center text-xs sm:text-sm">
+                        <Clock className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                         <span>
                           Time Limit: {exam.timeLimit || exam.duration || "N/A"}{" "}
                           minutes
                         </span>
                       </div>
-                      <div className="flex items-center text-sm">
-                        <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center text-xs sm:text-sm">
+                        <Calendar className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                         <span>
                           Due Date:{" "}
                           {exam.dueDate || exam.endDate || "No due date"}
                         </span>
                       </div>
-                      <div className="flex items-center text-sm">
-                        <span className="mr-2">
+                      <div className="flex items-center text-xs sm:text-sm">
+                        <span className="mr-1.5 sm:mr-2">
                           Questions:{" "}
                           {exam.questionCount || exam.questions?.length || 0}
                         </span>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="pt-1 sm:pt-2">
                     <Button
                       variant="default"
                       size="sm"
-                      className="w-full"
+                      className="w-full text-xs sm:text-sm h-8 sm:h-9"
                       onClick={() => handleStartExam(exam)}
                     >
-                      Start Exam <ArrowRight className="ml-2 h-4 w-4" />
+                      Start Exam{" "}
+                      <ArrowRight className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </CardFooter>
                 </Card>
@@ -305,30 +321,34 @@ export function UserExamPanel() {
           )}
         </TabsContent>
 
-        <TabsContent value="completed" className="mt-6">
+        <TabsContent value="completed" className="mt-4 sm:mt-6">
           {filteredExams.length === 0 ? (
-            <div className="text-center p-8 border rounded-lg">
-              <p className="text-muted-foreground">No completed exams found.</p>
+            <div className="text-center p-4 sm:p-8 border rounded-lg">
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                No completed exams found.
+              </p>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
               {filteredExams.map((exam) => (
                 <Card key={exam._id || exam.id} className="flex flex-col">
-                  <CardHeader className="space-y-1">
+                  <CardHeader className="space-y-1 pb-2 sm:pb-3">
                     <div className="flex justify-between items-start">
-                      <CardTitle className="text-xl">{exam.title}</CardTitle>
+                      <CardTitle className="text-lg sm:text-xl">
+                        {exam.title}
+                      </CardTitle>
                       {exam.passed !== undefined ? (
                         exam.passed ? (
                           <Badge
                             variant="outline"
-                            className="bg-green-100 text-green-800 border-green-200"
+                            className="bg-green-100 text-green-800 border-green-200 text-xs sm:text-sm px-1.5 sm:px-2 py-0.5"
                           >
                             Passed
                           </Badge>
                         ) : (
                           <Badge
                             variant="outline"
-                            className="bg-red-100 text-red-800 border-red-200"
+                            className="bg-red-100 text-red-800 border-red-200 text-xs sm:text-sm px-1.5 sm:px-2 py-0.5"
                           >
                             Failed
                           </Badge>
@@ -336,33 +356,36 @@ export function UserExamPanel() {
                       ) : (
                         <Badge
                           variant="outline"
-                          className="bg-yellow-100 text-yellow-800 border-yellow-200"
+                          className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs sm:text-sm px-1.5 sm:px-2 py-0.5"
                         >
                           Completed
                         </Badge>
                       )}
                     </div>
-                    <CardDescription>
+                    <CardDescription className="text-xs sm:text-sm">
                       {exam.description || "No description available"}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="flex-1">
-                    <div className="space-y-4">
+                  <CardContent className="flex-1 py-1 sm:py-2">
+                    <div className="space-y-3 sm:space-y-4">
                       {exam.score !== undefined && (
                         <div>
                           <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium">
+                            <span className="text-xs sm:text-sm font-medium">
                               Score: {exam.score}%
                             </span>
-                            <span className="text-sm text-muted-foreground">
+                            <span className="text-xs sm:text-sm text-muted-foreground">
                               Passing: {exam.passingScore || 70}%
                             </span>
                           </div>
-                          <Progress value={exam.score} className="h-2" />
+                          <Progress
+                            value={exam.score}
+                            className="h-1.5 sm:h-2"
+                          />
                         </div>
                       )}
-                      <div className="flex items-center text-sm">
-                        <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center text-xs sm:text-sm">
+                        <Calendar className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                         <span>
                           Completed:{" "}
                           {exam.completedAt
@@ -372,12 +395,12 @@ export function UserExamPanel() {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="pt-1 sm:pt-2">
                     <div className="flex space-x-2 w-full">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
                         onClick={() => handleViewResults(exam)}
                       >
                         View Results
@@ -385,12 +408,12 @@ export function UserExamPanel() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex items-center"
+                        className="flex items-center justify-center h-8 sm:h-9 w-8 sm:w-9 p-0"
                         onClick={() =>
                           navigate(`/exams/${exam._id || exam.id}/leaderboard`)
                         }
                       >
-                        <Award className="h-4 w-4" />
+                        <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
                   </CardFooter>
