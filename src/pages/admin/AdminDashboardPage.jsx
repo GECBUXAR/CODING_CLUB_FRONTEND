@@ -21,22 +21,42 @@ export default function AdminDashboardPage() {
 
   // Check if user is authenticated and is an admin
   useEffect(() => {
-    if (authState && !authState.isAuthenticated) {
-      // Redirect to login if not authenticated
-      navigate("/login", {
-        state: {
-          from: location.pathname,
-          message: "Please log in to access the admin dashboard",
-        },
+    const checkAuth = async () => {
+      // Make sure authState is loaded
+      if (!authState) return;
+
+      console.log("AdminDashboardPage - Checking auth state:", {
+        isAuthenticated: authState.isAuthenticated,
+        userRole: authState?.user?.role,
       });
-    } else if (authState?.user?.role !== "admin") {
-      // Redirect to home if not an admin
-      navigate("/", {
-        state: {
-          message: "You don't have permission to access the admin dashboard",
-        },
-      });
-    }
+
+      if (!authState.isAuthenticated) {
+        // Redirect to login if not authenticated
+        console.log(
+          "AdminDashboardPage - User not authenticated, redirecting to login"
+        );
+        navigate("/login", {
+          state: {
+            from: location.pathname,
+            message: "Please log in to access the admin dashboard",
+          },
+        });
+      } else if (authState?.user?.role !== "admin") {
+        // Redirect to home if not an admin
+        console.log("AdminDashboardPage - User not admin, redirecting to home");
+        navigate("/", {
+          state: {
+            message: "You don't have permission to access the admin dashboard",
+          },
+        });
+      } else {
+        console.log(
+          "AdminDashboardPage - User is authenticated admin, proceeding"
+        );
+      }
+    };
+
+    checkAuth();
   }, [authState, navigate, location]);
 
   // Parse the current page from URL hash if present
@@ -60,9 +80,11 @@ export default function AdminDashboardPage() {
 
   // Show loading state while checking authentication
   if (!authState || authState.loading) {
+    console.log("AdminDashboardPage - Loading state", { authState });
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <span className="ml-3 text-primary">Loading admin dashboard...</span>
       </div>
     );
   }
