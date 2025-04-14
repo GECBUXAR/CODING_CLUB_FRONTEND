@@ -159,8 +159,12 @@ function AdminExamPanelContent() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("date-desc");
 
-  // Destructure safely
-  const { state, dispatch, getExamById } = examContext || {};
+  // Destructure safely with default values
+  const {
+    state = {},
+    dispatch = () => {},
+    getExamById = () => null,
+  } = examContext || {};
   const exams = state?.exams || [];
 
   // Filter exams based on search query and status
@@ -191,14 +195,15 @@ function AdminExamPanelContent() {
   // Exams are now fetched in the ExamContext provider
   // We just need to set the loading state based on the context
   useEffect(() => {
-    setLoading(state.loading);
-    setError(state.error);
-    setIsOfflineMode(state.error !== null);
+    // Safely access state properties with optional chaining
+    setLoading(state?.loading || false);
+    setError(state?.error || null);
+    setIsOfflineMode(state?.error !== null && state?.error !== undefined);
 
-    if (state.error && typeof showNotification === "function") {
+    if (state?.error && typeof showNotification === "function") {
       showNotification(state.error, "error", 3000);
     }
-  }, [state.loading, state.error, showNotification]);
+  }, [state?.loading, state?.error, showNotification]);
 
   // Error fallback
   if (error) {
@@ -207,8 +212,16 @@ function AdminExamPanelContent() {
 
   // Function to handle editing an exam
   const handleEditExam = (examId) => {
-    setCurrentExam(getExamById(examId));
-    setIsExamModalOpen(true);
+    try {
+      const exam = getExamById(examId);
+      setCurrentExam(exam || null);
+      setIsExamModalOpen(true);
+    } catch (error) {
+      console.error("Error getting exam by ID:", error);
+      if (typeof showNotification === "function") {
+        showNotification("Error loading exam details", "error");
+      }
+    }
   };
 
   // Function to handle deleting an exam
@@ -252,8 +265,16 @@ function AdminExamPanelContent() {
 
   // Function to handle adding questions to an exam
   const handleAddQuestions = (examId) => {
-    setCurrentExam(getExamById(examId));
-    setIsQuestionModalOpen(true);
+    try {
+      const exam = getExamById(examId);
+      setCurrentExam(exam || null);
+      setIsQuestionModalOpen(true);
+    } catch (error) {
+      console.error("Error getting exam by ID:", error);
+      if (typeof showNotification === "function") {
+        showNotification("Error loading exam details", "error");
+      }
+    }
   };
 
   // Function to test API connection
@@ -282,8 +303,16 @@ function AdminExamPanelContent() {
 
   // Function to handle viewing responses for an exam
   const handleViewResponses = (examId) => {
-    setCurrentExam(getExamById(examId));
-    setIsResponsePanelOpen(true);
+    try {
+      const exam = getExamById(examId);
+      setCurrentExam(exam || null);
+      setIsResponsePanelOpen(true);
+    } catch (error) {
+      console.error("Error getting exam by ID:", error);
+      if (typeof showNotification === "function") {
+        showNotification("Error loading exam responses", "error");
+      }
+    }
   };
 
   const toggleExamList = () => {
@@ -541,8 +570,19 @@ function AdminExamPanelContent() {
                       onEdit={() => handleEditExam(exam.id)}
                       onAddQuestions={() => handleAddQuestions(exam.id)}
                       onDelete={() => {
-                        setCurrentExam(getExamById(exam.id));
-                        setIsDeleteModalOpen(true);
+                        try {
+                          const examData = getExamById(exam.id);
+                          setCurrentExam(examData || null);
+                          setIsDeleteModalOpen(true);
+                        } catch (error) {
+                          console.error("Error getting exam by ID:", error);
+                          if (typeof showNotification === "function") {
+                            showNotification(
+                              "Error loading exam details",
+                              "error"
+                            );
+                          }
+                        }
                       }}
                       onViewResponses={() => handleViewResponses(exam.id)}
                     />
