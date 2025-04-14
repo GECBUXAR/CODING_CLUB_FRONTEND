@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, Link } from "react-router-dom";
-import { Menu, X, ChevronDown, Search, Bell, User, Home } from "lucide-react";
+import { NavLink, Link, useNavigate } from "react-router-dom";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  Search,
+  Bell,
+  User,
+  Home,
+  Trophy,
+} from "lucide-react";
 import { useAuth } from "@/contexts/optimized-auth-context";
 
 const Navbar = () => {
@@ -9,6 +18,7 @@ const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const isAdmin = user?.role === "admin";
+  const navigate = useNavigate();
 
   // Navigation links - common links for all users
   const commonLinks = [
@@ -28,6 +38,12 @@ const Navbar = () => {
       id: "/exams",
       label: "Exams",
       icon: <FileText className="w-4 h-4" />,
+      auth: false,
+    },
+    {
+      id: "/leaderboard",
+      label: "Leaderboard",
+      icon: <Trophy className="w-4 h-4" />,
       auth: false,
     },
   ];
@@ -218,12 +234,15 @@ const Navbar = () => {
                     Profile
                   </Link>
                   {isAdmin ? (
-                    <Link
-                      to="/admin/dashboard"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    <button
+                      onClick={() => {
+                        console.log("Navigating to admin dashboard");
+                        navigate("/admin/dashboard");
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
-                      Dashboard
-                    </Link>
+                      Admin Dashboard
+                    </button>
                   ) : (
                     <Link
                       to="/user/dashboard"

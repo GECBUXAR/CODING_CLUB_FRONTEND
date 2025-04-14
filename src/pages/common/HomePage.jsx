@@ -462,10 +462,10 @@ const HomePage = () => {
                 <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
                   Elevate Your Coding Skills with Code Crusaders
                 </h1>
-                <p className="text-xl text-blue-100 mb-8 max-w-lg">
+                {/* <p className="text-xl text-blue-100 mb-8 max-w-lg">
                   Join our community of developers, participate in events, and
                   test your knowledge with our coding exams.
-                </p>
+                </p> */}
                 <div className="flex flex-wrap gap-4">
                   <Button
                     size="lg"
@@ -475,16 +475,6 @@ const HomePage = () => {
                     Explore Events
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                  {!isAuthenticated && (
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="border-white text-white hover:bg-white/10"
-                      onClick={() => navigate("/register")}
-                    >
-                      Join Now
-                    </Button>
-                  )}
                 </div>
               </div>
               <div className="md:w-1/2 flex justify-center">
@@ -882,37 +872,6 @@ const HomePage = () => {
       </div>
 
       {/* Call to Action Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-gradient-to-r from-indigo-600 to-blue-700 rounded-2xl shadow-xl overflow-hidden">
-            <div className="px-6 py-12 md:p-12 text-center md:text-left md:flex md:items-center md:justify-between">
-              <div className="md:w-2/3 mb-6 md:mb-0">
-                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                  Ready to enhance your coding skills?
-                </h2>
-                <p className="text-blue-100 md:text-lg">
-                  Join our community today and get access to exclusive events,
-                  exams, and resources.
-                </p>
-              </div>
-              <div className="md:w-1/3 text-center md:text-right">
-                <Button
-                  size="lg"
-                  className="bg-white text-blue-700 hover:bg-blue-50"
-                  onClick={() =>
-                    isAuthenticated
-                      ? navigate("/events")
-                      : navigate("/register")
-                  }
-                >
-                  {isAuthenticated ? "Explore Events" : "Join Now"}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <SimpleFooter />
     </div>

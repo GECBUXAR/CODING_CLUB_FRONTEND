@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/optimized-auth-context";
 
@@ -9,20 +9,29 @@ export function ProtectedRoute({
   const { isAuthenticated, isAdmin, checkingAuth, refreshAuth } = useAuth();
   const location = useLocation();
   const authRefreshAttempted = useRef(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // On mount, force a refresh of the auth state - but only once
   useEffect(() => {
-    // Only refresh if we think we're authenticated and haven't tried yet
-    if (isAuthenticated && !authRefreshAttempted.current) {
-      authRefreshAttempted.current = true;
-      refreshAuth().catch((err) => {
+    const verifyAuth = async () => {
+      try {
+        // Only refresh if we haven't tried yet
+        if (!authRefreshAttempted.current) {
+          authRefreshAttempted.current = true;
+          await refreshAuth();
+        }
+      } catch (err) {
         console.error("Auth refresh error in ProtectedRoute:", err);
-      });
-    }
-  }, [isAuthenticated, refreshAuth]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // If we're still checking auth status, show a loading indicator
-  if (checkingAuth && !authRefreshAttempted.current) {
+    verifyAuth();
+  }, [refreshAuth]);
+
+  // If we're still checking auth status or loading, show a loading indicator
+  if ((checkingAuth && !authRefreshAttempted.current) || isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -32,17 +41,24 @@ export function ProtectedRoute({
 
   // Check if user is authenticated
   if (!isAuthenticated) {
+    console.log("User not authenticated, redirecting to login");
     // Redirect to login with the attempted location
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   // Handle role-based access
   if (requiredRole === "admin" && !isAdmin) {
+    console.log(
+      "Admin access required but user is not admin, redirecting to home"
+    );
     // If admin access is required but user is not admin
     return <Navigate to="/home" replace />;
   }
 
   if (requiredRole === "user" && isAdmin) {
+    console.log(
+      "User access required but user is admin, redirecting to admin dashboard"
+    );
     // If regular user access is required but user is admin
     // This is optional - you might want admins to access user pages
     return <Navigate to="/admin/dashboard" replace />;

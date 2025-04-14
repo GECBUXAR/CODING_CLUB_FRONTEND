@@ -327,7 +327,24 @@ export const changePassword = async (passwordData) => {
 export const getAdminProfile = async () => {
   try {
     console.log("Fetching admin profile");
-    const response = await enhancedApiClient.get("/admin/profile");
+
+    // Make sure we have a token
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.log("No access token found for admin profile check");
+      return {
+        success: false,
+        error: "No access token",
+      };
+    }
+
+    // Set the token in the headers
+    const response = await enhancedApiClient.get("/admin/profile", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     console.log("Admin profile response:", response.data);
 
     // Check for data in the response
@@ -352,6 +369,20 @@ export const getAdminProfile = async () => {
     };
   } catch (error) {
     console.error("Get admin profile error in authService:", error);
+
+    // If it's an authentication error, don't treat it as a critical failure
+    if (
+      error.response?.status === 401 ||
+      error.response?.status === 403 ||
+      error.message?.includes("Authentication required")
+    ) {
+      return {
+        success: false,
+        authenticated: false,
+        error: "Not authenticated as admin",
+      };
+    }
+
     return {
       success: false,
       error:

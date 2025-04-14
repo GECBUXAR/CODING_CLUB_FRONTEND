@@ -465,6 +465,206 @@ const examService = {
       };
     }
   },
+
+  /**
+   * Create a new exam
+   * @param {Object} examData - Exam data
+   * @returns {Promise} - API response
+   */
+  createExam: async (examData) => {
+    try {
+      // Format date if it's a string
+      const formattedData = {
+        ...examData,
+        date:
+          examData.date && typeof examData.date === "string"
+            ? new Date(examData.date).toISOString()
+            : examData.date,
+        isExam: true, // Always set isExam to true
+        category: examData.category || "exam", // Default category to exam
+      };
+
+      console.log("Creating exam with data:", formattedData);
+
+      const response = await enhancedApiClient.post("/events", formattedData);
+      console.log("Exam creation response:", response.data);
+
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error("Error creating exam:", error);
+      return {
+        success: false,
+        error:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create exam",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
+      };
+    }
+  },
+
+  /**
+   * Update an exam
+   * @param {string} id - Exam ID
+   * @param {Object} examData - Updated exam data
+   * @returns {Promise} - API response
+   */
+  updateExam: async (id, examData) => {
+    try {
+      // Format date if it's a string
+      const formattedData = {
+        ...examData,
+        date:
+          examData.date && typeof examData.date === "string"
+            ? new Date(examData.date).toISOString()
+            : examData.date,
+        isExam: true, // Always ensure isExam is true
+      };
+
+      const response = await enhancedApiClient.put(
+        `/events/${id}`,
+        formattedData
+      );
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.error(`Error updating exam ${id}:`, error);
+      return {
+        success: false,
+        error:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to update exam",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
+      };
+    }
+  },
+
+  /**
+   * Upload previous exam scores for multiple students
+   * @param {string} examId - Exam ID
+   * @param {Array} studentScores - Array of student score objects
+   * @returns {Promise} - API response
+   */
+  uploadPreviousExamScores: async (examId, studentScores) => {
+    try {
+      console.log(
+        `Uploading scores for exam ${examId} for ${studentScores.length} students`
+      );
+
+      // Format the data for the API
+      const formattedData = {
+        examId,
+        scores: studentScores.map((student) => ({
+          name: student.name,
+          rollNo: student.roll_no,
+          score: student.marks,
+        })),
+      };
+
+      const response = await enhancedApiClient.post(
+        `/exams/${examId}/bulk-results`,
+        formattedData
+      );
+
+      return {
+        success: true,
+        data: response.data.data,
+        message:
+          response.data.message ||
+          `Successfully uploaded scores for ${studentScores.length} students`,
+      };
+    } catch (error) {
+      console.error(`Error uploading exam scores for exam ${examId}:`, error);
+      return {
+        success: false,
+        error:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to upload exam scores",
+        isRateLimitError: enhancedApiClient.isRateLimitError(error),
+        retryAfter: enhancedApiClient.getRetryAfter(error),
+      };
+    }
+  },
+
+  /**
+   * Upload temporary exam scores from a JSON array
+   * @param {string} examId - Exam ID
+   * @param {string} jsonData - JSON string containing student scores
+   * @returns {Promise} - API response
+   */
+  uploadTemporaryExamScores: async (examId, jsonData) => {
+    try {
+      let studentScores;
+
+      // Parse the JSON if it's a string
+      if (typeof jsonData === "string") {
+        try {
+          studentScores = JSON.parse(jsonData);
+        } catch (parseError) {
+          throw new Error(`Invalid JSON format: ${parseError.message}`);
+        }
+      } else {
+        // If it's already an object, use it directly
+        studentScores = jsonData;
+      }
+
+      if (!Array.isArray(studentScores)) {
+        throw new Error("Student scores must be an array");
+      }
+
+      console.log(
+        `Processing ${studentScores.length} student scores for exam ${examId}`
+      );
+
+      // Validate the data format
+      const validatedScores = studentScores.map((student, index) => {
+        if (!student.name) {
+          throw new Error(`Missing student name at index ${index}`);
+        }
+        if (!student.roll_no) {
+          throw new Error(`Missing roll number for student ${student.name}`);
+        }
+        if (student.marks === undefined || student.marks === null) {
+          throw new Error(`Missing marks for student ${student.name}`);
+        }
+
+        return {
+          name: student.name,
+          rollNo: student.roll_no,
+          score: parseInt(student.marks, 10),
+        };
+      });
+
+      // Store in local storage for temporary use
+      localStorage.setItem(
+        `temp_exam_scores_${examId}`,
+        JSON.stringify(validatedScores)
+      );
+
+      // If there's an API endpoint for this, we can use it
+      // For now, we'll just return success with the validated data
+      return {
+        success: true,
+        data: validatedScores,
+        message: `Successfully processed ${validatedScores.length} student scores for temporary storage`,
+      };
+    } catch (error) {
+      console.error(`Error processing temporary exam scores:`, error);
+      return {
+        success: false,
+        error: error.message || "Failed to process exam scores",
+      };
+    }
+  },
 };
 
 export default examService;
