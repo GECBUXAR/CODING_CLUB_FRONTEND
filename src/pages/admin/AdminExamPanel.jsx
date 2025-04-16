@@ -359,22 +359,6 @@ function AdminExamPanelContent() {
             <Upload className="h-4 w-4" />
             Upload Results
           </Button>
-          <Button
-            onClick={() => {
-              if (currentExam) {
-                setShowUploadScoresModal(true);
-              } else {
-                if (typeof showNotification === "function") {
-                  showNotification("Please select an exam first", "warning");
-                }
-              }
-            }}
-            variant="outline"
-            className="gap-2 bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:text-amber-800"
-          >
-            <Upload className="h-4 w-4" />
-            Upload Previous Scores
-          </Button>
         </div>
       </div>
 

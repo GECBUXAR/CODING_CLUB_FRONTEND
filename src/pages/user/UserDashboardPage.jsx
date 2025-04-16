@@ -184,7 +184,7 @@ const DashboardOverview = ({ setCurrentPage }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full  ">
       {/* Welcome Card */}
       <Card className="bg-gradient-to-r from-blue-500 to-indigo-600">
         <CardHeader>

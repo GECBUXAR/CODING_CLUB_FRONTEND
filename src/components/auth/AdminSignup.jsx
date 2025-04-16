@@ -446,7 +446,7 @@ const AdminSignupPage = () => {
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between pt-4">
+              <div className="flex justify-between gap-6 pt-4">
                 {formStep > 0 && (
                   <button
                     type="button"

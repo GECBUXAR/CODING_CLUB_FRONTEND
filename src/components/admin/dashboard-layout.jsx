@@ -87,7 +87,7 @@ export function DashboardLayout({ children, currentPage, setCurrentPage }) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen w-full bg-background">
         <Sidebar className="border-r bg-primary-foreground">
           <SidebarHeader className="flex h-16 items-center border-b px-4">
             <div className="flex items-center gap-2 font-semibold">
@@ -193,7 +193,7 @@ export function DashboardLayout({ children, currentPage, setCurrentPage }) {
             </DropdownMenu>
           </SidebarFooter>
         </Sidebar>
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 relative ">
           <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6 shadow-sm">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="flex flex-1 items-center justify-between">
