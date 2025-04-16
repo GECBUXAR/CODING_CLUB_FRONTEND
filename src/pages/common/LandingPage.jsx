@@ -123,7 +123,7 @@ const LandingPage = () => {
 
       {/* Features Section - Improved with better icons and layout */}
       <div className="container mx-auto px-4 py-20">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 md:mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
             Why Join Our Coding Community?
           </h2>
@@ -133,11 +133,11 @@ const LandingPage = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:overflow-visible md:pb-0">
           {features.map((feature) => (
             <div
               key={feature.id}
-              className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 transition-all duration-300 group"
+              className="bg-white p-6 md:p-8 rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 transition-all duration-300 group flex-shrink-0 w-[85vw] max-w-sm snap-center md:w-auto md:max-w-none"
             >
               <div className="w-16 h-16 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-100 transition-colors">
                 {feature.icon}
@@ -154,7 +154,7 @@ const LandingPage = () => {
       {/* Events Section - Modernized with image cards */}
       <div className="bg-gray-50 py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
               Upcoming Events
             </h2>
@@ -164,7 +164,7 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="flex md:grid md:grid-cols-3 gap-4 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:overflow-visible md:pb-0">
             {loadingEvents ? (
               // Loading skeleton
               Array(3)
@@ -172,7 +172,7 @@ const LandingPage = () => {
                 .map((_, index) => (
                   <div
                     key={`skeleton-${index}`}
-                    className="bg-white rounded-2xl overflow-hidden shadow-lg flex flex-col h-full"
+                    className="bg-white rounded-2xl overflow-hidden shadow-lg flex flex-col h-full flex-shrink-0 w-[85vw] max-w-sm snap-center md:w-auto md:max-w-none"
                   >
                     <div className="h-48 bg-gray-200 animate-pulse" />
                     <div className="p-6 flex-grow">
@@ -190,7 +190,7 @@ const LandingPage = () => {
               upcomingEvents.map((event, index) => (
                 <div
                   key={event._id || event.id || `event-${index}`}
-                  className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full"
+                  className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full flex-shrink-0 w-[85vw] max-w-sm snap-center md:w-auto md:max-w-none"
                 >
                   <div className="relative h-48 overflow-hidden">
                     <img
@@ -226,7 +226,7 @@ const LandingPage = () => {
               ))
             ) : (
               // No events found
-              <div className="col-span-3 text-center py-12">
+              <div className="w-full text-center py-12 flex-shrink-0 md:col-span-3">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-medium text-gray-700 mb-2">
                   No upcoming events
@@ -279,10 +279,10 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Facultys Section - New section */}
+      {/* Our Members - New section */}
       <div className="bg-gray-50 py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
               What Our Members Say
             </h2>
@@ -292,8 +292,8 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-lg">
+          <div className="flex md:grid md:grid-cols-3 gap-4 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:overflow-visible md:pb-0">
+            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg flex-shrink-0 w-[85vw] max-w-sm snap-center md:w-auto md:max-w-none">
               <div className="flex items-center mb-4">
                 <div className="text-yellow-500 flex">
                   {[...Array(5)].map((_, i) => (
@@ -329,7 +329,7 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-lg">
+            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg flex-shrink-0 w-[85vw] max-w-sm snap-center md:w-auto md:max-w-none">
               <div className="flex items-center mb-4">
                 <div className="text-yellow-500 flex">
                   {[...Array(5)].map((_, i) => (
@@ -363,7 +363,7 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-lg">
+            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg flex-shrink-0 w-[85vw] max-w-sm snap-center md:w-auto md:max-w-none">
               <div className="flex items-center mb-4">
                 <div className="text-yellow-500 flex">
                   {[...Array(5)].map((_, i) => (
@@ -391,8 +391,10 @@ const LandingPage = () => {
                   PB
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">Vishal Kumar</h4>
-                  <p className="text-sm text-gray-500">UX Designer</p>
+                  <h4 className="font-semibold text-gray-900">
+                    Azlan Ehtasham
+                  </h4>
+                  <p className="text-sm text-gray-500">Full-Stack Developer</p>
                 </div>
               </div>
             </div>
