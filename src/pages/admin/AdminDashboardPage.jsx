@@ -141,7 +141,7 @@ export default function AdminDashboardPage() {
       isAdmin,
     });
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center min-h-screen w-full bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
         <span className="ml-3 text-primary">Loading admin dashboard...</span>
       </div>

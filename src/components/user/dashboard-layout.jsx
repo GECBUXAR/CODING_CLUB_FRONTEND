@@ -79,7 +79,7 @@ export function UserDashboardLayout({ children, currentPage, setCurrentPage }) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen bg-background w-full ">
         <Sidebar className="border-r">
           <SidebarHeader className="flex h-14 items-center border-b px-4">
             <div className="flex items-center gap-1 sm:gap-2 font-semibold">
